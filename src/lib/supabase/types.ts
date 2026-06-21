@@ -272,6 +272,27 @@ export interface Database {
         Update: never;
         Relationships: [];
       };
+      trivia_duels: {
+        Row: {
+          id: string;
+          creator_id: string;
+          opponent_id: string | null;
+          stake: number;
+          status: string;
+          question_ids: string[] | null;
+          creator_answers: number[] | null;
+          opponent_answers: number[] | null;
+          creator_score: number | null;
+          opponent_score: number | null;
+          winner_id: string | null;
+          created_at: string;
+          expires_at: string;
+          settled_at: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       markets: {
         Row: {
           id: string;
@@ -1377,7 +1398,12 @@ export interface Database {
         }[];
       };
       create_rps_duel: {
-        Args: { p_stake: number; p_move: string };
+        Args: {
+          p_stake: number;
+          p_move: string;
+          p_invite_code?: string | null;
+          p_friendly?: boolean;
+        };
         Returns: string;
       };
       accept_rps_duel: {
@@ -1400,6 +1426,8 @@ export interface Database {
           creator_id: string;
           creator_name: string;
           stake: number;
+          is_friendly: boolean;
+          invited_user_id: string | null;
           created_at: string;
           expires_at: string;
         }[];
@@ -1449,6 +1477,94 @@ export interface Database {
           wins: number;
           losses: number;
           games_played: number;
+        }[];
+      };
+      create_lightning_duel: {
+        Args: { p_side: string; p_stake: number; p_duration_sec?: number };
+        Returns: string;
+      };
+      accept_lightning_duel: {
+        Args: { p_duel_id: string; p_btc_price: number };
+        Returns: undefined;
+      };
+      cancel_lightning_duel: {
+        Args: { p_duel_id: string };
+        Returns: undefined;
+      };
+      tick_lightning_duels: {
+        Args: { p_btc_price: number };
+        Returns: number;
+      };
+      get_open_lightning_duels: {
+        Args: { p_limit?: number };
+        Returns: {
+          id: string;
+          creator_id: string;
+          creator_name: string;
+          stake: number;
+          creator_side: string;
+          duration_sec: number;
+          created_at: string;
+        }[];
+      };
+      get_lightning_duel: {
+        Args: { p_duel_id: string };
+        Returns: {
+          id: string;
+          creator_id: string;
+          creator_name: string;
+          opponent_id: string | null;
+          opponent_name: string | null;
+          stake: number;
+          creator_side: string;
+          duration_sec: number;
+          status: string;
+          strike_price: number | null;
+          end_price: number | null;
+          winner_id: string | null;
+          started_at: string | null;
+          ends_at: string | null;
+          settled_at: string | null;
+        }[];
+      };
+      create_trivia_duel: {
+        Args: { p_stake: number };
+        Returns: string;
+      };
+      accept_trivia_duel: {
+        Args: { p_duel_id: string };
+        Returns: string[];
+      };
+      submit_trivia_answers: {
+        Args: { p_duel_id: string; p_answers: number[] };
+        Returns: {
+          creator_score: number | null;
+          opponent_score: number | null;
+          winner_id: string | null;
+          payout: number | null;
+        }[];
+      };
+      cancel_trivia_duel: {
+        Args: { p_duel_id: string };
+        Returns: undefined;
+      };
+      get_open_trivia_duels: {
+        Args: { p_limit?: number };
+        Returns: {
+          id: string;
+          creator_id: string;
+          creator_name: string;
+          stake: number;
+          created_at: string;
+        }[];
+      };
+      get_trivia_questions_for_duel: {
+        Args: { p_duel_id: string };
+        Returns: {
+          question_id: string;
+          question: string;
+          options: unknown;
+          question_num: number;
         }[];
       };
       create_paper_duel: {
@@ -1731,6 +1847,77 @@ export interface Database {
       register_platform_bot: {
         Args: { p_bot_user_id: string };
         Returns: undefined;
+      };
+      resolve_player_code: {
+        Args: { p_code: string };
+        Returns: {
+          user_id: string;
+          display_name: string;
+          username: string | null;
+          referral_code: string;
+        }[];
+      };
+      get_my_player_code: {
+        Args: Record<string, never>;
+        Returns: {
+          referral_code: string;
+          username: string | null;
+          display_name: string;
+        }[];
+      };
+      create_connect4_game: {
+        Args: {
+          p_stake: number;
+          p_invite_code?: string | null;
+          p_friendly?: boolean;
+        };
+        Returns: string;
+      };
+      accept_connect4_game: {
+        Args: { p_game_id: string };
+        Returns: undefined;
+      };
+      cancel_connect4_game: {
+        Args: { p_game_id: string };
+        Returns: undefined;
+      };
+      play_connect4_move: {
+        Args: { p_game_id: string; p_col: number };
+        Returns: {
+          winner_id: string | null;
+          is_draw: boolean;
+          row_played: number;
+        }[];
+      };
+      get_open_connect4_games: {
+        Args: { p_limit?: number };
+        Returns: {
+          id: string;
+          creator_id: string;
+          creator_name: string;
+          stake: number;
+          is_friendly: boolean;
+          invited_user_id: string | null;
+          created_at: string;
+        }[];
+      };
+      get_connect4_game: {
+        Args: { p_game_id: string };
+        Returns: {
+          id: string;
+          creator_id: string;
+          creator_name: string;
+          opponent_id: string | null;
+          opponent_name: string;
+          invited_user_id: string | null;
+          stake: number;
+          is_friendly: boolean;
+          board: number[];
+          current_turn_id: string | null;
+          status: string;
+          winner_id: string | null;
+          settled_at: string | null;
+        }[];
       };
     };
     Enums: {

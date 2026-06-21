@@ -3,13 +3,13 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { PlayerCodeCard } from "@/components/player-code-card";
-import { RpsDuelPanel } from "../duel-panels";
+import { Connect4Panel } from "../connect4-panels";
 
 export const revalidate = 0;
 
-async function getOpenRpsDuels() {
+async function getOpenConnect4Games() {
   const supabase = await createClient();
-  const { data } = await supabase.rpc("get_open_rps_duels", { p_limit: 20 });
+  const { data } = await supabase.rpc("get_open_connect4_games", { p_limit: 20 });
   return (data ?? []) as {
     id: string;
     creator_id: string;
@@ -20,15 +20,18 @@ async function getOpenRpsDuels() {
   }[];
 }
 
-export default async function RpsDuelsPage() {
-  const enabled = await isEnabled("game_layer_enabled");
+export default async function Connect4Page() {
+  const enabled = await isEnabled("connect4_enabled");
   if (!enabled) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-16 text-center">
-        <h1 className="text-2xl font-semibold">Game layer off</h1>
+        <h1 className="text-2xl font-semibold">Connect Four off</h1>
         <p className="mt-2 text-sm text-zinc-400">
-          Enable <code className="font-mono">game_layer_enabled</code> in Admin.
+          Enable <code className="font-mono">connect4_enabled</code> in Admin.
         </p>
+        <Link href="/games/duels" className="mt-4 inline-block text-sm text-indigo-400 hover:underline">
+          ← Duel hub
+        </Link>
       </div>
     );
   }
@@ -37,23 +40,25 @@ export default async function RpsDuelsPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login?next=/games/duels/rps");
+  if (!user) redirect("/login?next=/games/duels/connect4");
 
-  const openDuels = await getOpenRpsDuels();
+  const openGames = await getOpenConnect4Games();
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
       <Link href="/games/duels" className="text-xs text-zinc-500 hover:text-zinc-300">
         ← Duel hub
       </Link>
-      <h1 className="mt-3 text-2xl font-semibold">Rock Paper Scissors</h1>
+      <h1 className="mt-3 text-2xl font-semibold">🔴 Connect Four</h1>
       <p className="mt-1 text-sm text-zinc-400">
-        Head-to-head luck duel. Winner takes 90% of the pool.
+        Drop discs — first to connect four wins. Challenge a friend by their player code.
       </p>
       <div className="mt-6">
         <PlayerCodeCard />
       </div>
-      <RpsDuelPanel openDuels={openDuels} userId={user.id} />
+      <div className="mt-6">
+        <Connect4Panel openGames={openGames} userId={user.id} />
+      </div>
     </div>
   );
 }

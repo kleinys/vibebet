@@ -4,7 +4,22 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
-const stakeSchema = z.coerce.number().int().min(10).max(10_000);
+const stakeSchema = z.coerce.number().int().min(0).max(10_000);
+
+function parseFriendFields(formData: FormData) {
+  const inviteRaw = String(formData.get("inviteCode") ?? "").trim();
+  const friendly = formData.get("friendly") === "true";
+  const stakeRaw = stakeSchema.parse(formData.get("stake"));
+  const stake = friendly ? 0 : stakeRaw;
+  if (!friendly && (stake < 10 || stake > 10_000)) {
+    throw new Error("Stake must be 10–10,000 VIBE for ranked duels.");
+  }
+  return {
+    inviteCode: inviteRaw.length > 0 ? inviteRaw : null,
+    friendly,
+    stake,
+  };
+}
 
 export async function createRpsDuel(
   _prev: { error?: string; ok?: string } | null,
@@ -13,24 +28,38 @@ export async function createRpsDuel(
   const parsed = z
     .object({
       move: z.enum(["rock", "paper", "scissors"]),
-      stake: stakeSchema,
     })
     .safeParse({
       move: formData.get("move"),
-      stake: formData.get("stake"),
     });
   if (!parsed.success) return { error: "Invalid duel." };
 
+  let friendFields: ReturnType<typeof parseFriendFields>;
+  try {
+    friendFields = parseFriendFields(formData);
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+
   const supabase = await createClient();
   const { error } = await supabase.rpc("create_rps_duel", {
-    p_stake: parsed.data.stake,
+    p_stake: friendFields.stake,
     p_move: parsed.data.move,
+    p_invite_code: friendFields.inviteCode,
+    p_friendly: friendFields.friendly,
   });
   if (error) return { error: error.message };
 
   revalidatePath("/games/duels");
   revalidatePath("/games/duels/rps");
-  return { ok: `RPS duel posted (${parsed.data.stake} VIBE). Your move is locked in.` };
+  const suffix = friendFields.friendly
+    ? " Friendly — no VIBE wager."
+    : friendFields.inviteCode
+      ? " Challenge sent — waiting for them."
+      : "";
+  return {
+    ok: `RPS duel posted${friendFields.friendly ? "" : ` (${friendFields.stake} VIBE)`}. Your move is locked in.${suffix}`,
+  };
 }
 
 export async function acceptRpsDuel(duelId: string, move: "rock" | "paper" | "scissors") {

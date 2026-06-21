@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
+import { PlayerCodeCard } from "@/components/player-code-card";
 import { GAME_CATALOG, liveGames } from "@/lib/game-catalog";
 
 export const revalidate = 0;
@@ -13,12 +14,14 @@ const KIND_LABELS = {
 } as const;
 
 export default async function DuelsHubPage() {
-  const [layerOn, duelsOn, arcadeOn, paperOn, fastOn] = await Promise.all([
+  const [layerOn, duelsOn, arcadeOn, paperOn, fastOn, triviaOn, connect4On] = await Promise.all([
     isEnabled("game_layer_enabled"),
     isEnabled("duels_enabled"),
     isEnabled("arcade_games_enabled"),
     isEnabled("paper_trading_duels_enabled"),
     isEnabled("fast_markets_enabled"),
+    isEnabled("trivia_enabled"),
+    isEnabled("connect4_enabled"),
   ]);
 
   const flags = {
@@ -27,6 +30,8 @@ export default async function DuelsHubPage() {
     arcade_games_enabled: arcadeOn,
     paper_trading_duels_enabled: paperOn,
     fast_markets_enabled: fastOn,
+    trivia_enabled: triviaOn,
+    connect4_enabled: connect4On,
   };
 
   const playable = liveGames(flags);
@@ -52,13 +57,17 @@ export default async function DuelsHubPage() {
       myRatings = (data ?? []) as typeof myRatings;
     }
 
-    const [rpsLb, hcLb] = await Promise.all([
+    const [rpsLb, hcLb, c4Lb] = await Promise.all([
       supabase.rpc("get_game_leaderboard", { p_game_key: "rps", p_limit: 5 }),
       supabase.rpc("get_game_leaderboard", { p_game_key: "high_card", p_limit: 5 }),
+      connect4On
+        ? supabase.rpc("get_game_leaderboard", { p_game_key: "connect4", p_limit: 5 })
+        : Promise.resolve({ data: [] }),
     ]);
     leaderboards = {
       rps: (rpsLb.data ?? []) as (typeof leaderboards)["rps"],
       high_card: (hcLb.data ?? []) as (typeof leaderboards)["high_card"],
+      connect4: (c4Lb.data ?? []) as (typeof leaderboards)["connect4"],
     };
   }
 
@@ -70,8 +79,16 @@ export default async function DuelsHubPage() {
       <h1 className="mt-3 text-2xl font-semibold">Duel Games</h1>
       <p className="mt-1 max-w-2xl text-sm text-zinc-400">
         Head-to-head play-money duels with open challenges, online matchmaking, and ELO
-        ratings. Post a stake — someone takes the other side.
+        ratings. Post a stake — someone takes the other side. Challenge a friend by their
+        player code, or tick <strong className="font-normal text-zinc-300">Friendly match</strong> to
+        skip ELO changes.
       </p>
+
+      {layerOn && (
+        <div className="mt-6">
+          <PlayerCodeCard />
+        </div>
+      )}
 
       {!layerOn && (
         <p className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
@@ -130,7 +147,9 @@ export default async function DuelsHubPage() {
       </section>
 
       {layerOn &&
-        (leaderboards.rps?.length > 0 || leaderboards.high_card?.length > 0) && (
+        (leaderboards.rps?.length > 0 ||
+          leaderboards.high_card?.length > 0 ||
+          leaderboards.connect4?.length > 0) && (
           <section className="mt-10">
             <h2 className="text-sm font-semibold text-zinc-200">Leaderboards</h2>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -138,6 +157,9 @@ export default async function DuelsHubPage() {
                 [
                   { key: "rps", label: "Rock Paper Scissors" },
                   { key: "high_card", label: "High Card" },
+                  { key: "connect4", label: "Connect Four" },
+                  { key: "lightning", label: "Lightning Duel" },
+                  { key: "trivia", label: "Trivia Blitz" },
                 ] as const
               ).map(({ key, label }) =>
                 leaderboards[key]?.length ? (

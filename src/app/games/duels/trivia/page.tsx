@@ -2,33 +2,33 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
-import { PlayerCodeCard } from "@/components/player-code-card";
-import { RpsDuelPanel } from "../duel-panels";
+import { TriviaDuelPanel } from "../trivia-panels";
 
 export const revalidate = 0;
 
-async function getOpenRpsDuels() {
+async function getOpenTriviaDuels() {
   const supabase = await createClient();
-  const { data } = await supabase.rpc("get_open_rps_duels", { p_limit: 20 });
+  const { data } = await supabase.rpc("get_open_trivia_duels", { p_limit: 20 });
   return (data ?? []) as {
     id: string;
     creator_id: string;
     creator_name: string;
     stake: number;
-    is_friendly: boolean;
-    invited_user_id: string | null;
   }[];
 }
 
-export default async function RpsDuelsPage() {
-  const enabled = await isEnabled("game_layer_enabled");
+export default async function TriviaDuelsPage() {
+  const enabled = await isEnabled("trivia_enabled");
   if (!enabled) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-16 text-center">
-        <h1 className="text-2xl font-semibold">Game layer off</h1>
+        <h1 className="text-2xl font-semibold">Trivia off</h1>
         <p className="mt-2 text-sm text-zinc-400">
-          Enable <code className="font-mono">game_layer_enabled</code> in Admin.
+          Enable <code className="font-mono">trivia_enabled</code> in Admin.
         </p>
+        <Link href="/games/duels" className="mt-4 inline-block text-sm text-fuchsia-400 hover:underline">
+          ← Duel hub
+        </Link>
       </div>
     );
   }
@@ -37,23 +37,20 @@ export default async function RpsDuelsPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) redirect("/login?next=/games/duels/rps");
+  if (!user) redirect("/login?next=/games/duels/trivia");
 
-  const openDuels = await getOpenRpsDuels();
+  const openDuels = await getOpenTriviaDuels();
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
       <Link href="/games/duels" className="text-xs text-zinc-500 hover:text-zinc-300">
         ← Duel hub
       </Link>
-      <h1 className="mt-3 text-2xl font-semibold">Rock Paper Scissors</h1>
+      <h1 className="mt-3 text-2xl font-semibold">🧠 Trivia Blitz</h1>
       <p className="mt-1 text-sm text-zinc-400">
-        Head-to-head luck duel. Winner takes 90% of the pool.
+        5 questions head-to-head. Most correct wins.
       </p>
-      <div className="mt-6">
-        <PlayerCodeCard />
-      </div>
-      <RpsDuelPanel openDuels={openDuels} userId={user.id} />
+      <TriviaDuelPanel openDuels={openDuels} userId={user.id} />
     </div>
   );
 }
