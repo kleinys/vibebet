@@ -4,11 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { PlayerCodeCard } from "@/components/player-code-card";
 import { SkillGameLobby } from "@/components/skill-game-lobby";
-import {
-  acceptChessGame,
-  cancelChessGame,
-  createChessGame,
-} from "../chess-actions";
 
 export const revalidate = 0;
 
@@ -46,17 +41,13 @@ export default async function ChessPage() {
       </div>
       <div className="mt-6">
         <SkillGameLobby
+          gameKey="chess"
           title="Post chess duel"
           description="Standard rules. Winner takes 90% of the pool. Friendly = free, no ELO."
           accentClass="border-stone-500/20 bg-stone-500/5"
           buttonClass="bg-stone-600 hover:bg-stone-500"
-          listPath="/games/duels/chess"
-          playPath={(id) => `/games/duels/chess/${id}`}
           openGames={(data ?? []) as never[]}
           userId={user.id}
-          createAction={createChessGame}
-          acceptAction={acceptChessGame}
-          cancelAction={cancelChessGame}
         />
       </div>
     </div>

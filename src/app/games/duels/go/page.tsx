@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { PlayerCodeCard } from "@/components/player-code-card";
 import { SkillGameLobby } from "@/components/skill-game-lobby";
-import { acceptGoGame, cancelGoGame, createGoGame } from "../go-actions";
 
 export const revalidate = 0;
 
@@ -41,17 +40,13 @@ export default async function GoPage() {
       </div>
       <div className="mt-6">
         <SkillGameLobby
+          gameKey="go"
           title="Post Go duel"
           description="Simplified 9×9 rules — great for quick matches."
           accentClass="border-slate-500/20 bg-slate-500/5"
           buttonClass="bg-slate-600 hover:bg-slate-500"
-          listPath="/games/duels/go"
-          playPath={(id) => `/games/duels/go/${id}`}
           openGames={(data ?? []) as never[]}
           userId={user.id}
-          createAction={createGoGame}
-          acceptAction={acceptGoGame}
-          cancelAction={cancelGoGame}
         />
       </div>
     </div>

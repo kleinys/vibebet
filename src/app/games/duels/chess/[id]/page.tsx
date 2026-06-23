@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { ChessBoard } from "../../chess-board";
 import { SkillGameAcceptButton } from "@/components/skill-game-accept-button";
-import { acceptChessGame } from "../../chess-actions";
 
 export const revalidate = 0;
 
@@ -46,8 +45,8 @@ export default async function ChessGamePage({ params }: { params: Promise<{ id: 
         <div className="mt-8 rounded-xl border border-stone-500/20 bg-stone-500/5 p-5">
           <p className="text-sm text-zinc-300">Join this chess duel?</p>
           <SkillGameAcceptButton
+            gameKey="chess"
             gameId={id}
-            acceptAction={acceptChessGame}
             className="mt-4 rounded-md bg-stone-600 px-4 py-2 text-sm font-medium text-white hover:bg-stone-500 disabled:opacity-50"
           />
         </div>

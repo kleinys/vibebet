@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { SkillGameAcceptButton } from "@/components/skill-game-accept-button";
 import { ShogiBoard } from "../../shogi-board";
-import { acceptShogiGame } from "../../shogi-actions";
 
 export const revalidate = 0;
 
@@ -35,7 +34,7 @@ export default async function ShogiGamePage({ params }: { params: Promise<{ id: 
       <h1 className="mt-3 text-2xl font-semibold">Shogi</h1>
       {canJoin ? (
         <div className="mt-8 rounded-xl border border-orange-500/20 bg-orange-500/5 p-5">
-          <SkillGameAcceptButton gameId={id} acceptAction={acceptShogiGame} className="rounded-md bg-orange-700 px-4 py-2 text-sm text-white hover:bg-orange-600 disabled:opacity-50" />
+          <SkillGameAcceptButton gameKey="shogi" gameId={id} className="rounded-md bg-orange-700 px-4 py-2 text-sm text-white hover:bg-orange-600 disabled:opacity-50" />
         </div>
       ) : game.status === "open" ? (
         <p className="mt-8 text-sm text-zinc-400">Waiting for opponent…</p>

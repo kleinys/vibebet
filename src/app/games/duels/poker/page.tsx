@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { PlayerCodeCard } from "@/components/player-code-card";
 import { SkillGameLobby } from "@/components/skill-game-lobby";
-import { acceptPokerGame, cancelPokerGame, createPokerGame } from "../poker-actions";
 
 export const revalidate = 0;
 
@@ -43,17 +42,13 @@ export default async function PokerPage() {
       </div>
       <div className="mt-6">
         <SkillGameLobby
+          gameKey="poker"
           title="Post poker duel"
           description="All-in at ante. Reveal flop → turn → river → showdown."
           accentClass="border-emerald-500/20 bg-emerald-500/5"
           buttonClass="bg-emerald-600 hover:bg-emerald-500"
-          listPath="/games/duels/poker"
-          playPath={(id) => `/games/duels/poker/${id}`}
           openGames={(data ?? []) as never[]}
           userId={user.id}
-          createAction={createPokerGame}
-          acceptAction={acceptPokerGame}
-          cancelAction={cancelPokerGame}
         />
       </div>
     </div>

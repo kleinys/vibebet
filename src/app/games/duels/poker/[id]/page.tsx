@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { SkillGameAcceptButton } from "@/components/skill-game-accept-button";
 import { PokerBoard } from "../../poker-board";
-import { acceptPokerGame } from "../../poker-actions";
 import type { PokerState } from "@/lib/poker-holdem";
 
 export const revalidate = 0;
@@ -45,7 +44,7 @@ export default async function PokerGamePage({ params }: { params: Promise<{ id: 
       {canJoin ? (
         <div className="mt-8 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5">
           <p className="text-sm text-zinc-300">Join and deal the hand?</p>
-          <SkillGameAcceptButton gameId={id} acceptAction={acceptPokerGame} className="mt-3 rounded-md bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-500 disabled:opacity-50" />
+          <SkillGameAcceptButton gameKey="poker" gameId={id} className="mt-3 rounded-md bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-500 disabled:opacity-50" />
         </div>
       ) : game.status === "open" ? (
         <p className="mt-8 text-sm text-zinc-400">Waiting for opponent…</p>

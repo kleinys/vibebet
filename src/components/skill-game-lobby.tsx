@@ -4,6 +4,27 @@ import { useRouter } from "next/navigation";
 import { useActionState, useTransition } from "react";
 import { toast } from "sonner";
 import { FriendChallengeFields } from "@/components/friend-challenge-fields";
+import {
+  acceptCheckersGame,
+  cancelCheckersGame,
+  createCheckersGame,
+} from "@/app/games/duels/checkers-actions";
+import {
+  acceptChessGame,
+  cancelChessGame,
+  createChessGame,
+} from "@/app/games/duels/chess-actions";
+import { acceptGoGame, cancelGoGame, createGoGame } from "@/app/games/duels/go-actions";
+import {
+  acceptPokerGame,
+  cancelPokerGame,
+  createPokerGame,
+} from "@/app/games/duels/poker-actions";
+import {
+  acceptShogiGame,
+  cancelShogiGame,
+  createShogiGame,
+} from "@/app/games/duels/shogi-actions";
 
 type OpenGame = {
   id: string;
@@ -14,34 +35,50 @@ type OpenGame = {
   invited_user_id: string | null;
 };
 
+export type SkillGameKey = "chess" | "checkers" | "go" | "shogi" | "poker";
+
+type GameActions = {
+  create: (
+    prev: { error?: string; ok?: string; gameId?: string } | null,
+    formData: FormData,
+  ) => Promise<{ error?: string; ok?: string; gameId?: string }>;
+  accept: (id: string) => Promise<{ error?: string; ok?: string }>;
+  cancel: (id: string) => Promise<{ error?: string; ok?: string }>;
+};
+
+const GAME_ACTIONS: Record<SkillGameKey, GameActions> = {
+  chess: { create: createChessGame, accept: acceptChessGame, cancel: cancelChessGame },
+  checkers: {
+    create: createCheckersGame,
+    accept: acceptCheckersGame,
+    cancel: cancelCheckersGame,
+  },
+  go: { create: createGoGame, accept: acceptGoGame, cancel: cancelGoGame },
+  shogi: { create: createShogiGame, accept: acceptShogiGame, cancel: cancelShogiGame },
+  poker: { create: createPokerGame, accept: acceptPokerGame, cancel: cancelPokerGame },
+};
+
 export function SkillGameLobby({
+  gameKey,
   title,
   description,
   accentClass,
   buttonClass,
-  listPath,
-  playPath,
   openGames,
   userId,
-  createAction,
-  acceptAction,
-  cancelAction,
 }: {
+  gameKey: SkillGameKey;
   title: string;
   description: string;
   accentClass: string;
   buttonClass: string;
-  listPath: string;
-  playPath: (id: string) => string;
   openGames: OpenGame[];
   userId: string;
-  createAction: (
-    prev: { error?: string; ok?: string; gameId?: string } | null,
-    formData: FormData,
-  ) => Promise<{ error?: string; ok?: string; gameId?: string }>;
-  acceptAction: (id: string) => Promise<{ error?: string; ok?: string }>;
-  cancelAction: (id: string) => Promise<{ error?: string; ok?: string }>;
 }) {
+  const { create: createAction, accept: acceptAction, cancel: cancelAction } =
+    GAME_ACTIONS[gameKey];
+  const playBase = `/games/duels/${gameKey}`;
+
   const [createState, formAction, createPending] = useActionState(createAction, null);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
@@ -102,7 +139,7 @@ export function SkillGameLobby({
                         if (r.error) toast.error(r.error);
                         else {
                           toast.success(r.ok ?? "Started!");
-                          router.push(playPath(g.id));
+                          router.push(`${playBase}/${g.id}`);
                         }
                       })
                     }

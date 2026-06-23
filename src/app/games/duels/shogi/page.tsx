@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { PlayerCodeCard } from "@/components/player-code-card";
 import { SkillGameLobby } from "@/components/skill-game-lobby";
-import { acceptShogiGame, cancelShogiGame, createShogiGame } from "../shogi-actions";
 
 export const revalidate = 0;
 
@@ -41,17 +40,13 @@ export default async function ShogiPage() {
       </div>
       <div className="mt-6">
         <SkillGameLobby
+          gameKey="shogi"
           title="Post shogi duel"
           description="Standard 9×9 shogi. Winner takes 90% of the pool."
           accentClass="border-orange-500/20 bg-orange-500/5"
           buttonClass="bg-orange-700 hover:bg-orange-600"
-          listPath="/games/duels/shogi"
-          playPath={(id) => `/games/duels/shogi/${id}`}
           openGames={(data ?? []) as never[]}
           userId={user.id}
-          createAction={createShogiGame}
-          acceptAction={acceptShogiGame}
-          cancelAction={cancelShogiGame}
         />
       </div>
     </div>

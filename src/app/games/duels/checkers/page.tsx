@@ -4,11 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { PlayerCodeCard } from "@/components/player-code-card";
 import { SkillGameLobby } from "@/components/skill-game-lobby";
-import {
-  acceptCheckersGame,
-  cancelCheckersGame,
-  createCheckersGame,
-} from "../checkers-actions";
 
 export const revalidate = 0;
 
@@ -45,17 +40,13 @@ export default async function CheckersPage() {
       </div>
       <div className="mt-6">
         <SkillGameLobby
+          gameKey="checkers"
           title="Post checkers duel"
           description="8×8 checkers. Winner takes 90% of the pool."
           accentClass="border-amber-500/20 bg-amber-500/5"
           buttonClass="bg-amber-700 hover:bg-amber-600"
-          listPath="/games/duels/checkers"
-          playPath={(id) => `/games/duels/checkers/${id}`}
           openGames={(data ?? []) as never[]}
           userId={user.id}
-          createAction={createCheckersGame}
-          acceptAction={acceptCheckersGame}
-          cancelAction={cancelCheckersGame}
         />
       </div>
     </div>

@@ -4,7 +4,6 @@ import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { SkillGameAcceptButton } from "@/components/skill-game-accept-button";
 import { CheckersBoard } from "../../checkers-board";
-import { acceptCheckersGame } from "../../checkers-actions";
 import type { CheckersCell } from "@/lib/checkers-engine";
 
 export const revalidate = 0;
@@ -39,7 +38,7 @@ export default async function CheckersGamePage({ params }: { params: Promise<{ i
       </p>
       {canJoin ? (
         <div className="mt-8 rounded-xl border border-amber-500/20 bg-amber-500/5 p-5">
-          <SkillGameAcceptButton gameId={id} acceptAction={acceptCheckersGame} className="mt-2 rounded-md bg-amber-700 px-4 py-2 text-sm text-white hover:bg-amber-600 disabled:opacity-50" />
+          <SkillGameAcceptButton gameKey="checkers" gameId={id} className="mt-2 rounded-md bg-amber-700 px-4 py-2 text-sm text-white hover:bg-amber-600 disabled:opacity-50" />
         </div>
       ) : game.status === "open" ? (
         <p className="mt-8 text-sm text-zinc-400">Waiting for opponent…</p>
