@@ -62,16 +62,6 @@ export const GAME_CATALOG: GameDefinition[] = [
     flag: "arcade_games_enabled",
   },
   {
-    key: "prediction_duel",
-    name: "Prediction Duel",
-    emoji: "⚔️",
-    kind: "prediction",
-    status: "live",
-    description: "Stake VIBE on opposite sides of an open market.",
-    href: "/duels",
-    flag: "duels_enabled",
-  },
-  {
     key: "return_race",
     name: "Return Race",
     emoji: "🏁",

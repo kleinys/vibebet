@@ -1486,7 +1486,13 @@ export interface Database {
         }[];
       };
       create_lightning_duel: {
-        Args: { p_side: string; p_stake: number; p_duration_sec?: number };
+        Args: {
+          p_side: string;
+          p_stake: number;
+          p_duration_sec?: number;
+          p_invite_code?: string | null;
+          p_friendly?: boolean;
+        };
         Returns: string;
       };
       accept_lightning_duel: {
@@ -1508,6 +1514,8 @@ export interface Database {
           creator_id: string;
           creator_name: string;
           stake: number;
+          is_friendly: boolean;
+          invited_user_id: string | null;
           creator_side: string;
           duration_sec: number;
           created_at: string;
@@ -1534,7 +1542,11 @@ export interface Database {
         }[];
       };
       create_trivia_duel: {
-        Args: { p_stake: number };
+        Args: {
+          p_stake: number;
+          p_invite_code?: string | null;
+          p_friendly?: boolean;
+        };
         Returns: string;
       };
       accept_trivia_duel: {
@@ -1561,6 +1573,8 @@ export interface Database {
           creator_id: string;
           creator_name: string;
           stake: number;
+          is_friendly: boolean;
+          invited_user_id: string | null;
           created_at: string;
         }[];
       };

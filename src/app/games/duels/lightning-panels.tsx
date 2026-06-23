@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { FriendChallengeFields } from "@/components/friend-challenge-fields";
 import {
   acceptLightningDuel,
   cancelLightningDuel,
@@ -13,6 +14,8 @@ type OpenLightning = {
   creator_id: string;
   creator_name: string;
   stake: number;
+  is_friendly?: boolean;
+  invited_user_id?: string | null;
   creator_side: string;
   duration_sec: number;
 };
@@ -77,6 +80,7 @@ export function LightningDuelPanel({
             {createPending ? "Posting…" : "Post duel"}
           </button>
         </div>
+        <FriendChallengeFields stakeInputName="stake" />
         {createState?.error && <p className="mt-2 text-xs text-rose-300">{createState.error}</p>}
         {createState?.ok && <p className="mt-2 text-xs text-emerald-300">{createState.ok}</p>}
       </form>
@@ -95,7 +99,13 @@ export function LightningDuelPanel({
                 className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/5 bg-zinc-900/40 p-3 text-sm"
               >
                 <span>
-                  {d.creator_name} · {d.stake} VIBE · BTC{" "}
+                  {d.creator_name}
+                  {d.is_friendly ? (
+                    <span className="ml-2 text-[10px] text-sky-400">friendly · free</span>
+                  ) : (
+                    <> · {d.stake} VIBE</>
+                  )}
+                  {" · BTC "}
                   <strong className="uppercase">{d.creator_side}</strong> ({d.duration_sec}s)
                 </span>
                 {d.creator_id !== userId ? (

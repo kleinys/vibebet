@@ -14,6 +14,8 @@ async function getOpenLightningDuels() {
     creator_id: string;
     creator_name: string;
     stake: number;
+    is_friendly: boolean;
+    invited_user_id: string | null;
     creator_side: string;
     duration_sec: number;
   }[];

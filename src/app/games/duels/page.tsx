@@ -190,6 +190,23 @@ export default async function DuelsHubPage() {
           </section>
         )}
 
+      {duelsOn && (
+        <section className="mt-10 rounded-xl border border-violet-500/20 bg-violet-500/5 p-5">
+          <h2 className="text-sm font-semibold text-violet-200">Market duels</h2>
+          <p className="mt-1 text-xs leading-relaxed text-zinc-400">
+            Not a mini-game — stake VIBE head-to-head on an existing prediction market (YES vs
+            NO). Winner takes both stakes when the market resolves. Different from solo betting
+            where you trade shares with the whole crowd.
+          </p>
+          <Link
+            href="/duels"
+            className="mt-3 inline-block text-sm font-medium text-violet-300 hover:underline"
+          >
+            Go to market duels →
+          </Link>
+        </section>
+      )}
+
       <section className="mt-10">
         <h2 className="text-sm font-semibold text-zinc-400">Coming soon</h2>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

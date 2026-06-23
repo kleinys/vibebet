@@ -3,9 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { parseFriendDuelFields } from "@/lib/parse-friend-duel";
 import { fetchCryptoSpotPrices } from "@/lib/crypto-prices";
-
-const stakeSchema = z.coerce.number().int().min(10).max(10_000);
 
 async function getBtcPrice(): Promise<number> {
   const prices = await fetchCryptoSpotPrices();
@@ -21,27 +20,36 @@ export async function createLightningDuel(
   const parsed = z
     .object({
       side: z.enum(["up", "down"]),
-      stake: stakeSchema,
       duration: z.coerce.number().int().min(30).max(300).default(60),
     })
     .safeParse({
       side: formData.get("side"),
-      stake: formData.get("stake"),
       duration: formData.get("duration") ?? 60,
     });
   if (!parsed.success) return { error: "Invalid duel." };
 
+  let fields: ReturnType<typeof parseFriendDuelFields>;
+  try {
+    fields = parseFriendDuelFields(formData);
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("create_lightning_duel", {
     p_side: parsed.data.side,
-    p_stake: parsed.data.stake,
+    p_stake: fields.stake,
     p_duration_sec: parsed.data.duration,
+    p_invite_code: fields.inviteCode,
+    p_friendly: fields.friendly,
   });
   if (error) return { error: error.message };
 
   revalidatePath("/games/duels/lightning");
   return {
-    ok: `Lightning duel posted — betting BTC goes ${parsed.data.side.toUpperCase()}.`,
+    ok: fields.friendly
+      ? "Friendly Lightning duel posted — no VIBE wager."
+      : `Lightning duel posted — betting BTC goes ${parsed.data.side.toUpperCase()}.`,
     duelId: String(data),
   };
 }
@@ -86,12 +94,27 @@ export async function createTriviaDuel(
   _prev: { error?: string; ok?: string; duelId?: string } | null,
   formData: FormData,
 ): Promise<{ error?: string; ok?: string; duelId?: string }> {
-  const stake = stakeSchema.parse(formData.get("stake"));
+  let fields: ReturnType<typeof parseFriendDuelFields>;
+  try {
+    fields = parseFriendDuelFields(formData);
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("create_trivia_duel", { p_stake: stake });
+  const { data, error } = await supabase.rpc("create_trivia_duel", {
+    p_stake: fields.stake,
+    p_invite_code: fields.inviteCode,
+    p_friendly: fields.friendly,
+  });
   if (error) return { error: error.message };
   revalidatePath("/games/duels/trivia");
-  return { ok: `Trivia duel posted (${stake} VIBE).`, duelId: String(data) };
+  const msg = fields.friendly
+    ? "Friendly Trivia duel posted — no VIBE wager."
+    : fields.inviteCode
+      ? `Challenge sent (${fields.stake} VIBE).`
+      : `Trivia duel posted (${fields.stake} VIBE).`;
+  return { ok: msg, duelId: String(data) };
 }
 
 export async function acceptTriviaDuel(duelId: string) {

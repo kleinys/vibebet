@@ -14,6 +14,8 @@ async function getOpenTriviaDuels() {
     creator_id: string;
     creator_name: string;
     stake: number;
+    is_friendly: boolean;
+    invited_user_id: string | null;
   }[];
 }
 
