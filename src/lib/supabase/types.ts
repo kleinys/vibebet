@@ -1433,7 +1433,11 @@ export interface Database {
         }[];
       };
       create_high_card_duel: {
-        Args: { p_stake: number };
+        Args: {
+          p_stake: number;
+          p_invite_code?: string | null;
+          p_friendly?: boolean;
+        };
         Returns: string;
       };
       accept_high_card_duel: {
@@ -1456,6 +1460,8 @@ export interface Database {
           creator_id: string;
           creator_name: string;
           stake: number;
+          is_friendly: boolean;
+          invited_user_id: string | null;
           created_at: string;
           expires_at: string;
         }[];
@@ -1913,6 +1919,70 @@ export interface Database {
           stake: number;
           is_friendly: boolean;
           board: number[];
+          current_turn_id: string | null;
+          status: string;
+          winner_id: string | null;
+          settled_at: string | null;
+        }[];
+      };
+      create_liars_dice_game: {
+        Args: {
+          p_stake: number;
+          p_invite_code?: string | null;
+          p_friendly?: boolean;
+        };
+        Returns: string;
+      };
+      accept_liars_dice_game: {
+        Args: { p_game_id: string };
+        Returns: undefined;
+      };
+      place_liars_dice_bid: {
+        Args: { p_game_id: string; p_quantity: number; p_face: number };
+        Returns: undefined;
+      };
+      call_liars_dice: {
+        Args: { p_game_id: string };
+        Returns: {
+          winner_id: string | null;
+          actual_count: number;
+          bid_quantity: number;
+          bid_face: number;
+        }[];
+      };
+      cancel_liars_dice_game: {
+        Args: { p_game_id: string };
+        Returns: undefined;
+      };
+      get_open_liars_dice_games: {
+        Args: { p_limit?: number };
+        Returns: {
+          id: string;
+          creator_id: string;
+          creator_name: string;
+          stake: number;
+          is_friendly: boolean;
+          invited_user_id: string | null;
+          created_at: string;
+        }[];
+      };
+      get_liars_dice_game: {
+        Args: { p_game_id: string };
+        Returns: {
+          id: string;
+          creator_id: string;
+          creator_name: string;
+          opponent_id: string | null;
+          opponent_name: string;
+          invited_user_id: string | null;
+          stake: number;
+          is_friendly: boolean;
+          my_dice: number[] | null;
+          creator_dice: number[] | null;
+          opponent_dice: number[] | null;
+          bid_quantity: number | null;
+          bid_face: number | null;
+          last_bidder_id: string | null;
           current_turn_id: string | null;
           status: string;
           winner_id: string | null;

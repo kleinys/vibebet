@@ -3,23 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-
-const stakeSchema = z.coerce.number().int().min(0).max(10_000);
-
-function parseFriendFields(formData: FormData) {
-  const inviteRaw = String(formData.get("inviteCode") ?? "").trim();
-  const friendly = formData.get("friendly") === "true";
-  const stakeRaw = stakeSchema.parse(formData.get("stake"));
-  const stake = friendly ? 0 : stakeRaw;
-  if (!friendly && (stake < 10 || stake > 10_000)) {
-    throw new Error("Stake must be 10–10,000 VIBE for ranked duels.");
-  }
-  return {
-    inviteCode: inviteRaw.length > 0 ? inviteRaw : null,
-    friendly,
-    stake,
-  };
-}
+import { parseFriendDuelFields } from "@/lib/parse-friend-duel";
 
 export async function createRpsDuel(
   _prev: { error?: string; ok?: string } | null,
@@ -34,9 +18,9 @@ export async function createRpsDuel(
     });
   if (!parsed.success) return { error: "Invalid duel." };
 
-  let friendFields: ReturnType<typeof parseFriendFields>;
+  let friendFields: ReturnType<typeof parseFriendDuelFields>;
   try {
-    friendFields = parseFriendFields(formData);
+    friendFields = parseFriendDuelFields(formData);
   } catch (e) {
     return { error: (e as Error).message };
   }
@@ -96,12 +80,27 @@ export async function createHighCardDuel(
   _prev: { error?: string; ok?: string } | null,
   formData: FormData,
 ): Promise<{ error?: string; ok?: string }> {
-  const stake = stakeSchema.parse(formData.get("stake"));
+  let fields: ReturnType<typeof parseFriendDuelFields>;
+  try {
+    fields = parseFriendDuelFields(formData);
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+
   const supabase = await createClient();
-  const { error } = await supabase.rpc("create_high_card_duel", { p_stake: stake });
+  const { error } = await supabase.rpc("create_high_card_duel", {
+    p_stake: fields.stake,
+    p_invite_code: fields.inviteCode,
+    p_friendly: fields.friendly,
+  });
   if (error) return { error: error.message };
   revalidatePath("/games/duels/high-card");
-  return { ok: `High Card duel posted (${stake} VIBE).` };
+  const msg = fields.friendly
+    ? "Friendly High Card posted — no VIBE wager."
+    : fields.inviteCode
+      ? `Challenge sent (${fields.stake} VIBE).`
+      : `High Card duel posted (${fields.stake} VIBE).`;
+  return { ok: msg };
 }
 
 export async function acceptHighCardDuel(duelId: string) {

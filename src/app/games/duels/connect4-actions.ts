@@ -1,33 +1,16 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-
-const stakeSchema = z.coerce.number().int().min(0).max(10_000);
-
-function parseFriendFields(formData: FormData) {
-  const inviteRaw = String(formData.get("inviteCode") ?? "").trim();
-  const friendly = formData.get("friendly") === "true";
-  const stakeRaw = stakeSchema.parse(formData.get("stake"));
-  const stake = friendly ? 0 : stakeRaw;
-  if (!friendly && (stake < 10 || stake > 10_000)) {
-    throw new Error("Stake must be 10–10,000 VIBE for ranked duels.");
-  }
-  return {
-    inviteCode: inviteRaw.length > 0 ? inviteRaw : null,
-    friendly,
-    stake,
-  };
-}
+import { parseFriendDuelFields } from "@/lib/parse-friend-duel";
 
 export async function createConnect4Game(
   _prev: { error?: string; ok?: string; gameId?: string } | null,
   formData: FormData,
 ): Promise<{ error?: string; ok?: string; gameId?: string }> {
-  let fields: ReturnType<typeof parseFriendFields>;
+  let fields: ReturnType<typeof parseFriendDuelFields>;
   try {
-    fields = parseFriendFields(formData);
+    fields = parseFriendDuelFields(formData);
   } catch (e) {
     return { error: (e as Error).message };
   }

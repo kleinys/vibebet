@@ -122,6 +122,16 @@ export const GAME_CATALOG: GameDefinition[] = [
     flag: "fast_markets_enabled",
   },
   {
+    key: "liars_dice",
+    name: "Liar's Dice",
+    emoji: "🎲",
+    kind: "luck",
+    status: "live",
+    description: "Bluff and bid — call liar to win the pot. 1s are wild.",
+    href: "/games/duels/liars-dice",
+    flag: "liars_dice_enabled",
+  },
+  {
     key: "chess",
     name: "Chess",
     emoji: "♟️",
@@ -137,15 +147,6 @@ export const GAME_CATALOG: GameDefinition[] = [
     kind: "skill",
     status: "coming_soon",
     description: "Classic checkers with ranked ladder.",
-    href: null,
-  },
-  {
-    key: "liars_dice",
-    name: "Liar's Dice",
-    emoji: "🎲",
-    kind: "luck",
-    status: "coming_soon",
-    description: "Bluff and bid — last player standing wins the pot.",
     href: null,
   },
   {

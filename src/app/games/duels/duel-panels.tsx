@@ -213,6 +213,7 @@ export function HighCardDuelPanel({
           </button>
           <MatchmakingButton gameKey="high_card" stakeInputId="hc-stake" defaultStake={100} />
         </div>
+        <FriendChallengeFields stakeInputName="stake" />
         {createState?.error && <p className="mt-2 text-xs text-rose-300">{createState.error}</p>}
         {createState?.ok && <p className="mt-2 text-xs text-emerald-300">{createState.ok}</p>}
       </form>
