@@ -14,7 +14,7 @@ const KIND_LABELS = {
 } as const;
 
 export default async function DuelsHubPage() {
-  const [layerOn, duelsOn, arcadeOn, paperOn, fastOn, triviaOn, connect4On, liarsOn] =
+  const [layerOn, duelsOn, arcadeOn, paperOn, fastOn, triviaOn, connect4On, liarsOn, chessOn, checkersOn, goOn, shogiOn, pokerOn] =
     await Promise.all([
     isEnabled("game_layer_enabled"),
     isEnabled("duels_enabled"),
@@ -24,6 +24,11 @@ export default async function DuelsHubPage() {
     isEnabled("trivia_enabled"),
     isEnabled("connect4_enabled"),
     isEnabled("liars_dice_enabled"),
+    isEnabled("chess_enabled"),
+    isEnabled("checkers_enabled"),
+    isEnabled("go_enabled"),
+    isEnabled("shogi_enabled"),
+    isEnabled("poker_enabled"),
   ]);
 
   const flags = {
@@ -35,6 +40,11 @@ export default async function DuelsHubPage() {
     trivia_enabled: triviaOn,
     connect4_enabled: connect4On,
     liars_dice_enabled: liarsOn,
+    chess_enabled: chessOn,
+    checkers_enabled: checkersOn,
+    go_enabled: goOn,
+    shogi_enabled: shogiOn,
+    poker_enabled: pokerOn,
   };
 
   const playable = liveGames(flags);

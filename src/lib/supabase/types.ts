@@ -260,6 +260,27 @@ export interface Database {
         Update: never;
         Relationships: [];
       };
+      poker_games: {
+        Row: {
+          id: string;
+          creator_id: string;
+          opponent_id: string | null;
+          invited_user_id: string | null;
+          stake: number;
+          is_friendly: boolean;
+          state: Record<string, unknown> | null;
+          status: string;
+          winner_id: string | null;
+          creator_hand_rank: string | null;
+          opponent_hand_rank: string | null;
+          created_at: string;
+          expires_at: string;
+          settled_at: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       game_match_queue: {
         Row: {
           id: string;
@@ -2001,6 +2022,255 @@ export interface Database {
           status: string;
           winner_id: string | null;
           settled_at: string | null;
+        }[];
+      };
+      create_chess_game: {
+        Args: { p_stake: number; p_invite_code?: string | null; p_friendly?: boolean };
+        Returns: string;
+      };
+      accept_chess_game: { Args: { p_game_id: string }; Returns: undefined };
+      apply_chess_state: {
+        Args: {
+          p_game_id: string;
+          p_fen: string;
+          p_next_turn_id: string | null;
+          p_status: string;
+          p_winner_id: string | null;
+          p_result?: string | null;
+        };
+        Returns: undefined;
+      };
+      resign_chess_game: { Args: { p_game_id: string }; Returns: undefined };
+      cancel_chess_game: { Args: { p_game_id: string }; Returns: undefined };
+      get_open_chess_games: {
+        Args: { p_limit?: number };
+        Returns: {
+          id: string;
+          creator_id: string;
+          creator_name: string;
+          stake: number;
+          is_friendly: boolean;
+          invited_user_id: string | null;
+          created_at: string;
+        }[];
+      };
+      get_chess_game: {
+        Args: { p_game_id: string };
+        Returns: {
+          id: string;
+          creator_id: string;
+          creator_name: string;
+          opponent_id: string | null;
+          opponent_name: string | null;
+          stake: number;
+          is_friendly: boolean;
+          fen: string;
+          current_turn_id: string | null;
+          status: string;
+          winner_id: string | null;
+          result_reason: string | null;
+          invited_user_id: string | null;
+        }[];
+      };
+      create_checkers_game: {
+        Args: { p_stake: number; p_invite_code?: string | null; p_friendly?: boolean };
+        Returns: string;
+      };
+      accept_checkers_game: { Args: { p_game_id: string }; Returns: undefined };
+      apply_checkers_state: {
+        Args: {
+          p_game_id: string;
+          p_board: number[];
+          p_next_turn_id: string | null;
+          p_status: string;
+          p_winner_id: string | null;
+        };
+        Returns: undefined;
+      };
+      cancel_checkers_game: { Args: { p_game_id: string }; Returns: undefined };
+      get_open_checkers_games: {
+        Args: { p_limit?: number };
+        Returns: {
+          id: string;
+          creator_id: string;
+          creator_name: string;
+          stake: number;
+          is_friendly: boolean;
+          invited_user_id: string | null;
+          created_at: string;
+        }[];
+      };
+      get_checkers_game: {
+        Args: { p_game_id: string };
+        Returns: {
+          id: string;
+          creator_id: string;
+          creator_name: string;
+          opponent_id: string | null;
+          opponent_name: string | null;
+          stake: number;
+          is_friendly: boolean;
+          board: number[];
+          current_turn_id: string | null;
+          status: string;
+          winner_id: string | null;
+          invited_user_id: string | null;
+        }[];
+      };
+      create_go_game: {
+        Args: { p_stake: number; p_invite_code?: string | null; p_friendly?: boolean };
+        Returns: string;
+      };
+      accept_go_game: { Args: { p_game_id: string }; Returns: undefined };
+      apply_go_state: {
+        Args: {
+          p_game_id: string;
+          p_board: number[];
+          p_prev_board: number[] | null;
+          p_pass_count: number;
+          p_next_turn_id: string | null;
+          p_status: string;
+          p_winner_id: string | null;
+          p_black_score?: number | null;
+          p_white_score?: number | null;
+        };
+        Returns: undefined;
+      };
+      resign_go_game: { Args: { p_game_id: string }; Returns: undefined };
+      cancel_go_game: { Args: { p_game_id: string }; Returns: undefined };
+      get_open_go_games: {
+        Args: { p_limit?: number };
+        Returns: {
+          id: string;
+          creator_id: string;
+          creator_name: string;
+          stake: number;
+          is_friendly: boolean;
+          invited_user_id: string | null;
+          created_at: string;
+        }[];
+      };
+      get_go_game: {
+        Args: { p_game_id: string };
+        Returns: {
+          id: string;
+          creator_id: string;
+          creator_name: string;
+          opponent_id: string | null;
+          opponent_name: string | null;
+          stake: number;
+          is_friendly: boolean;
+          board: number[];
+          prev_board: number[] | null;
+          pass_count: number;
+          current_turn_id: string | null;
+          status: string;
+          winner_id: string | null;
+          black_score: number | null;
+          white_score: number | null;
+          invited_user_id: string | null;
+        }[];
+      };
+      create_shogi_game: {
+        Args: { p_stake: number; p_invite_code?: string | null; p_friendly?: boolean };
+        Returns: string;
+      };
+      accept_shogi_game: { Args: { p_game_id: string }; Returns: undefined };
+      apply_shogi_state: {
+        Args: {
+          p_game_id: string;
+          p_sfen: string;
+          p_next_turn_id: string | null;
+          p_status: string;
+          p_winner_id: string | null;
+          p_result?: string | null;
+        };
+        Returns: undefined;
+      };
+      resign_shogi_game: { Args: { p_game_id: string }; Returns: undefined };
+      cancel_shogi_game: { Args: { p_game_id: string }; Returns: undefined };
+      get_open_shogi_games: {
+        Args: { p_limit?: number };
+        Returns: {
+          id: string;
+          creator_id: string;
+          creator_name: string;
+          stake: number;
+          is_friendly: boolean;
+          invited_user_id: string | null;
+          created_at: string;
+        }[];
+      };
+      get_shogi_game: {
+        Args: { p_game_id: string };
+        Returns: {
+          id: string;
+          creator_id: string;
+          creator_name: string;
+          opponent_id: string | null;
+          opponent_name: string | null;
+          stake: number;
+          is_friendly: boolean;
+          sfen: string;
+          current_turn_id: string | null;
+          status: string;
+          winner_id: string | null;
+          result_reason: string | null;
+          invited_user_id: string | null;
+        }[];
+      };
+      create_poker_game: {
+        Args: { p_stake: number; p_invite_code?: string | null; p_friendly?: boolean };
+        Returns: string;
+      };
+      accept_poker_game: {
+        Args: { p_game_id: string; p_state: Record<string, unknown> };
+        Returns: undefined;
+      };
+      update_poker_state: {
+        Args: { p_game_id: string; p_state: Record<string, unknown> };
+        Returns: undefined;
+      };
+      settle_poker_game: {
+        Args: {
+          p_game_id: string;
+          p_winner_id: string | null;
+          p_is_draw: boolean;
+          p_state: Record<string, unknown>;
+          p_creator_rank: string;
+          p_opponent_rank: string;
+        };
+        Returns: undefined;
+      };
+      cancel_poker_game: { Args: { p_game_id: string }; Returns: undefined };
+      get_open_poker_games: {
+        Args: { p_limit?: number };
+        Returns: {
+          id: string;
+          creator_id: string;
+          creator_name: string;
+          stake: number;
+          is_friendly: boolean;
+          invited_user_id: string | null;
+          created_at: string;
+        }[];
+      };
+      get_poker_game: {
+        Args: { p_game_id: string };
+        Returns: {
+          id: string;
+          creator_id: string;
+          creator_name: string;
+          opponent_id: string | null;
+          opponent_name: string | null;
+          stake: number;
+          is_friendly: boolean;
+          state: Record<string, unknown> | null;
+          status: string;
+          winner_id: string | null;
+          creator_hand_rank: string | null;
+          opponent_hand_rank: string | null;
+          invited_user_id: string | null;
         }[];
       };
     };
