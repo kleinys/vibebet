@@ -106,6 +106,12 @@ export function SkillGameLobby({
           </button>
         </div>
         <FriendChallengeFields stakeInputName="stake" />
+        {gameKey === "chess" && (
+          <label className="mt-3 flex items-center gap-2 text-xs text-zinc-400">
+            <input type="checkbox" name="blitz" className="rounded border-white/20" />
+            5+3 blitz (5 min + 3s increment per move) — requires phase 38 + chess_clock_enabled
+          </label>
+        )}
         {createState?.error && <p className="mt-2 text-xs text-rose-300">{createState.error}</p>}
         {createState?.ok && <p className="mt-2 text-xs text-emerald-300">{createState.ok}</p>}
       </form>

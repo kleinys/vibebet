@@ -2046,7 +2046,12 @@ export interface Database {
         }[];
       };
       create_chess_game: {
-        Args: { p_stake: number; p_invite_code?: string | null; p_friendly?: boolean };
+        Args: {
+          p_stake: number;
+          p_invite_code?: string | null;
+          p_friendly?: boolean;
+          p_clock_initial_sec?: number | null;
+        };
         Returns: string;
       };
       accept_chess_game: { Args: { p_game_id: string }; Returns: undefined };
@@ -2111,6 +2116,10 @@ export interface Database {
           move_count: number;
           draw_offered_by: string | null;
           started_at: string | null;
+          spectator_market_id: string | null;
+          white_ms_left: number | null;
+          black_ms_left: number | null;
+          clock_initial_sec: number | null;
         }[];
       };
       create_checkers_game: {
@@ -2129,6 +2138,11 @@ export interface Database {
         Returns: undefined;
       };
       cancel_checkers_game: { Args: { p_game_id: string }; Returns: undefined };
+      leave_checkers_game: { Args: { p_game_id: string }; Returns: undefined };
+      resign_checkers_game: { Args: { p_game_id: string }; Returns: undefined };
+      offer_checkers_draw: { Args: { p_game_id: string }; Returns: undefined };
+      accept_checkers_draw: { Args: { p_game_id: string }; Returns: undefined };
+      decline_checkers_draw: { Args: { p_game_id: string }; Returns: undefined };
       get_open_checkers_games: {
         Args: { p_limit?: number };
         Returns: {
@@ -2156,6 +2170,10 @@ export interface Database {
           status: string;
           winner_id: string | null;
           invited_user_id: string | null;
+          move_count: number;
+          draw_offered_by: string | null;
+          started_at: string | null;
+          spectator_market_id: string | null;
         }[];
       };
       create_go_game: {
@@ -2179,6 +2197,10 @@ export interface Database {
       };
       resign_go_game: { Args: { p_game_id: string }; Returns: undefined };
       cancel_go_game: { Args: { p_game_id: string }; Returns: undefined };
+      leave_go_game: { Args: { p_game_id: string }; Returns: undefined };
+      offer_go_draw: { Args: { p_game_id: string }; Returns: undefined };
+      accept_go_draw: { Args: { p_game_id: string }; Returns: undefined };
+      decline_go_draw: { Args: { p_game_id: string }; Returns: undefined };
       get_open_go_games: {
         Args: { p_limit?: number };
         Returns: {
@@ -2210,6 +2232,10 @@ export interface Database {
           black_score: number | null;
           white_score: number | null;
           invited_user_id: string | null;
+          move_count: number;
+          draw_offered_by: string | null;
+          started_at: string | null;
+          spectator_market_id: string | null;
         }[];
       };
       create_shogi_game: {
@@ -2230,6 +2256,10 @@ export interface Database {
       };
       resign_shogi_game: { Args: { p_game_id: string }; Returns: undefined };
       cancel_shogi_game: { Args: { p_game_id: string }; Returns: undefined };
+      leave_shogi_game: { Args: { p_game_id: string }; Returns: undefined };
+      offer_shogi_draw: { Args: { p_game_id: string }; Returns: undefined };
+      accept_shogi_draw: { Args: { p_game_id: string }; Returns: undefined };
+      decline_shogi_draw: { Args: { p_game_id: string }; Returns: undefined };
       get_open_shogi_games: {
         Args: { p_limit?: number };
         Returns: {
@@ -2258,6 +2288,10 @@ export interface Database {
           winner_id: string | null;
           result_reason: string | null;
           invited_user_id: string | null;
+          move_count: number;
+          draw_offered_by: string | null;
+          started_at: string | null;
+          spectator_market_id: string | null;
         }[];
       };
       create_poker_game: {

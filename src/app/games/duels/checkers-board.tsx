@@ -3,7 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { playCheckersMove } from "./checkers-actions";
+import {
+  acceptCheckersDraw,
+  declineCheckersDraw,
+  leaveCheckersGame,
+  offerCheckersDraw,
+  playCheckersMove,
+  resignCheckersGame,
+} from "./checkers-actions";
+import { SkillDuelControls } from "@/components/skill-duel-controls";
 import type { CheckersCell } from "@/lib/checkers-engine";
 
 export function CheckersBoard({
@@ -14,6 +22,9 @@ export function CheckersBoard({
   creatorId,
   status,
   winnerId,
+  moveCount = 0,
+  drawOfferedBy,
+  isSpectator = false,
 }: {
   gameId: string;
   board: CheckersCell[];
@@ -22,11 +33,16 @@ export function CheckersBoard({
   creatorId: string;
   status: string;
   winnerId: string | null;
+  moveCount?: number;
+  drawOfferedBy?: string | null;
+  isSpectator?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [selected, setSelected] = useState<number | null>(null);
-  const isMyTurn = status === "active" && currentTurnId === userId;
+  const inPlay = status === "active" || status === "matched";
+  const isLocked = status === "active";
+  const isMyTurn = inPlay && !isSpectator && currentTurnId === userId;
   const mySign = userId === creatorId ? 1 : -1;
 
   const click = (idx: number) => {
@@ -59,11 +75,14 @@ export function CheckersBoard({
 
   return (
     <div className="space-y-3">
-      {status === "active" && (
+      {inPlay && !isSpectator && (
         <p className="text-sm text-zinc-400">
           {isMyTurn ? <span className="text-emerald-300">Your turn</span> : "Waiting…"}
           {" · "}
           {userId === creatorId ? "Red" : "Black"}
+          {!isLocked && moveCount < 2 && (
+            <span className="ml-2 text-amber-300/90">· Warm-up ({moveCount}/2)</span>
+          )}
         </p>
       )}
       {status === "settled" && winnerId && (
@@ -82,7 +101,7 @@ export function CheckersBoard({
               <button
                 key={idx}
                 type="button"
-                disabled={!isMyTurn || !dark || pending}
+                disabled={isSpectator || !isMyTurn || !dark || pending}
                 onClick={() => click(idx)}
                 className={`flex h-10 w-10 items-center justify-center text-sm ${
                   dark ? "bg-amber-900/80" : "bg-amber-200/20"
@@ -94,6 +113,22 @@ export function CheckersBoard({
           })}
         </div>
       </div>
+      {!isSpectator && (
+        <SkillDuelControls
+          status={status}
+          isLocked={isLocked}
+          drawOfferedBy={drawOfferedBy}
+          userId={userId}
+          pending={pending}
+          onLeave={() => leaveCheckersGame(gameId)}
+          onResign={() => resignCheckersGame(gameId)}
+          onOfferDraw={() => offerCheckersDraw(gameId)}
+          onAcceptDraw={() => acceptCheckersDraw(gameId)}
+          onDeclineDraw={() => declineCheckersDraw(gameId)}
+          onAfterLeave={() => router.push("/games/duels/checkers")}
+          onRefresh={() => router.refresh()}
+        />
+      )}
     </div>
   );
 }

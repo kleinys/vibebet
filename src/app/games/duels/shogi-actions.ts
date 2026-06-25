@@ -55,7 +55,7 @@ export async function playShogiMove(gameId: string, from: string, to: string, pr
   const supabase = await createClient();
   const { data: rows } = await supabase.rpc("get_shogi_game", { p_game_id: gameId });
   const game = Array.isArray(rows) ? rows[0] : null;
-  if (!game || game.status !== "active") return { error: "Game not active." };
+  if (!game || (game.status !== "active" && game.status !== "matched")) return { error: "Game not in play." };
 
   const pos = loadPosition(game.sfen ?? START_SFEN);
   if (!pos) return { error: "Invalid position." };
@@ -112,4 +112,36 @@ export async function resignShogiGame(gameId: string) {
   if (error) return { error: error.message };
   revalidatePath(`/games/duels/shogi/${gameId}`);
   return { ok: "Resigned." };
+}
+
+export async function leaveShogiGame(gameId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("leave_shogi_game", { p_game_id: gameId });
+  if (error) return { error: error.message };
+  revalidatePath("/games/duels/shogi");
+  return { ok: "Left — stakes refunded.", left: true as const };
+}
+
+export async function offerShogiDraw(gameId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("offer_shogi_draw", { p_game_id: gameId });
+  if (error) return { error: error.message };
+  revalidatePath(`/games/duels/shogi/${gameId}`);
+  return { ok: "Draw offered." };
+}
+
+export async function acceptShogiDraw(gameId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("accept_shogi_draw", { p_game_id: gameId });
+  if (error) return { error: error.message };
+  revalidatePath(`/games/duels/shogi/${gameId}`);
+  return { ok: "Draw accepted.", settled: true as const };
+}
+
+export async function declineShogiDraw(gameId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("decline_shogi_draw", { p_game_id: gameId });
+  if (error) return { error: error.message };
+  revalidatePath(`/games/duels/shogi/${gameId}`);
+  return { ok: "Draw declined." };
 }

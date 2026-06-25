@@ -47,7 +47,7 @@ export async function playGoMove(gameId: string, idx: number) {
   const supabase = await createClient();
   const { data: rows } = await supabase.rpc("get_go_game", { p_game_id: gameId });
   const game = Array.isArray(rows) ? rows[0] : null;
-  if (!game || game.status !== "active") return { error: "Game not active." };
+  if (!game || (game.status !== "active" && game.status !== "matched")) return { error: "Game not in play." };
 
   const {
     data: { user },
@@ -81,7 +81,7 @@ export async function passGoGame(gameId: string) {
   const supabase = await createClient();
   const { data: rows } = await supabase.rpc("get_go_game", { p_game_id: gameId });
   const game = Array.isArray(rows) ? rows[0] : null;
-  if (!game || game.status !== "active") return { error: "Game not active." };
+  if (!game || (game.status !== "active" && game.status !== "matched")) return { error: "Game not in play." };
 
   const passCount = (game.pass_count ?? 0) + 1;
   const isCreator = (await supabase.auth.getUser()).data.user?.id === game.creator_id;
@@ -133,4 +133,36 @@ export async function resignGoGame(gameId: string) {
   if (error) return { error: error.message };
   revalidatePath(`/games/duels/go/${gameId}`);
   return { ok: "Resigned." };
+}
+
+export async function leaveGoGame(gameId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("leave_go_game", { p_game_id: gameId });
+  if (error) return { error: error.message };
+  revalidatePath("/games/duels/go");
+  return { ok: "Left — stakes refunded.", left: true as const };
+}
+
+export async function offerGoDraw(gameId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("offer_go_draw", { p_game_id: gameId });
+  if (error) return { error: error.message };
+  revalidatePath(`/games/duels/go/${gameId}`);
+  return { ok: "Draw offered." };
+}
+
+export async function acceptGoDraw(gameId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("accept_go_draw", { p_game_id: gameId });
+  if (error) return { error: error.message };
+  revalidatePath(`/games/duels/go/${gameId}`);
+  return { ok: "Draw accepted.", settled: true as const };
+}
+
+export async function declineGoDraw(gameId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("decline_go_draw", { p_game_id: gameId });
+  if (error) return { error: error.message };
+  revalidatePath(`/games/duels/go/${gameId}`);
+  return { ok: "Draw declined." };
 }

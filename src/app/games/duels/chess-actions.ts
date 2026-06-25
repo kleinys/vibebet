@@ -22,6 +22,7 @@ export async function createChessGame(
     p_stake: fields.stake,
     p_invite_code: fields.inviteCode,
     p_friendly: fields.friendly,
+    p_clock_initial_sec: formData.get("blitz") === "on" ? 300 : null,
   });
   if (error) return { error: error.message };
   revalidatePath("/games/duels/chess");
