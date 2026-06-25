@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { CreateDuelForm } from "@/app/duels/create-duel-form";
-import { CreatePaperDuelForm } from "@/app/games/paper/create-paper-duel-form";
 import { CreateLiveEventForm } from "@/app/live/create-live-event-form";
 
 const TABS = [
@@ -19,13 +18,6 @@ const TABS = [
     icon: "⚔️",
     blurb: "Stake VIBE on opposite sides of an open market.",
     needsFlag: "duels_enabled",
-  },
-  {
-    id: "race",
-    label: "Return race",
-    icon: "🏁",
-    blurb: "Crypto return duel — highest % gain wins.",
-    needsFlag: "paper_trading_duels_enabled",
   },
   {
     id: "arcade",
@@ -45,14 +37,12 @@ export function GameCreateHub({
   flags: {
     liveOn: boolean;
     duelsOn: boolean;
-    paperOn: boolean;
     arcadeOn: boolean;
   };
 }) {
   const flagMap = {
     live_events_enabled: flags.liveOn,
     duels_enabled: flags.duelsOn,
-    paper_trading_duels_enabled: flags.paperOn,
     arcade_games_enabled: flags.arcadeOn,
   };
 
@@ -136,7 +126,6 @@ export function GameCreateHub({
         </div>
       )}
 
-      {flags.paperOn && <CreatePaperDuelForm />}
     </div>
   );
 }

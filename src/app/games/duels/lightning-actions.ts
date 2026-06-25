@@ -107,14 +107,33 @@ export async function createTriviaDuel(
     p_invite_code: fields.inviteCode,
     p_friendly: fields.friendly,
   });
-  if (error) return { error: error.message };
+
+  let duelId = data;
+  let rpcError = error;
+
+  if (
+    rpcError?.message?.includes("Could not find the function") ||
+    rpcError?.message?.includes("schema cache")
+  ) {
+    if (fields.friendly || fields.inviteCode) {
+      return {
+        error:
+          "Friend invites on Trivia need migration phase 33 in Supabase. Run 20260218000000_phase33_lightning_trivia_friends.sql",
+      };
+    }
+    const legacy = await supabase.rpc("create_trivia_duel", { p_stake: fields.stake });
+    duelId = legacy.data;
+    rpcError = legacy.error;
+  }
+
+  if (rpcError) return { error: rpcError.message };
   revalidatePath("/games/duels/trivia");
   const msg = fields.friendly
     ? "Friendly Trivia duel posted — no VIBE wager."
     : fields.inviteCode
       ? `Challenge sent (${fields.stake} VIBE).`
       : `Trivia duel posted (${fields.stake} VIBE).`;
-  return { ok: msg, duelId: String(data) };
+  return { ok: msg, duelId: String(duelId) };
 }
 
 export async function acceptTriviaDuel(duelId: string) {

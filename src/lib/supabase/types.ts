@@ -2042,6 +2042,23 @@ export interface Database {
       };
       resign_chess_game: { Args: { p_game_id: string }; Returns: undefined };
       cancel_chess_game: { Args: { p_game_id: string }; Returns: undefined };
+      leave_chess_game: { Args: { p_game_id: string }; Returns: undefined };
+      offer_chess_draw: { Args: { p_game_id: string }; Returns: undefined };
+      accept_chess_draw: { Args: { p_game_id: string }; Returns: undefined };
+      decline_chess_draw: { Args: { p_game_id: string }; Returns: undefined };
+      get_live_chess_games: {
+        Args: { p_limit?: number };
+        Returns: {
+          id: string;
+          creator_name: string;
+          opponent_name: string;
+          is_friendly: boolean;
+          stake: number;
+          move_count: number;
+          status: string;
+          started_at: string | null;
+        }[];
+      };
       get_open_chess_games: {
         Args: { p_limit?: number };
         Returns: {
@@ -2070,6 +2087,9 @@ export interface Database {
           winner_id: string | null;
           result_reason: string | null;
           invited_user_id: string | null;
+          move_count: number;
+          draw_offered_by: string | null;
+          started_at: string | null;
         }[];
       };
       create_checkers_game: {

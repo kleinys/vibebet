@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { listFastMarkets, tickFastMarkets } from "@/lib/fast-markets";
 import { getActiveSpectatorDuels } from "@/lib/duels";
-import { getActivePaperDuels, tickPaperDuels } from "@/lib/paper-duels";
 import { isEnabled } from "@/lib/feature-flags";
 import {
   fetchLiveArenaPrices,
@@ -10,20 +9,18 @@ import {
 
 export const dynamic = "force-dynamic";
 
-/** Pollable feed for the Live Arena — prices, crypto windows, duel spectators, return races. */
+/** Pollable feed for the Live Arena — prices, crypto windows, duel spectators. */
 export async function GET() {
   try {
-    const [fastOn, equitiesOn, duelsOn, spectatorOn, paperOn] =
-      await Promise.all([
-        isEnabled("fast_markets_enabled"),
-        isEnabled("equities_enabled"),
-        isEnabled("duels_enabled"),
-        isEnabled("duel_spectator_markets_enabled"),
-        isEnabled("paper_trading_duels_enabled"),
-      ]);
+    const [fastOn, equitiesOn, duelsOn, spectatorOn] = await Promise.all([
+      isEnabled("fast_markets_enabled"),
+      isEnabled("equities_enabled"),
+      isEnabled("duels_enabled"),
+      isEnabled("duel_spectator_markets_enabled"),
+    ]);
 
     const prices = await fetchLiveArenaPrices({
-      cryptoOn: fastOn || paperOn,
+      cryptoOn: fastOn,
       equitiesOn,
     });
     const payload = pricesToTickPayload(prices);
@@ -31,15 +28,11 @@ export async function GET() {
     if ((fastOn || equitiesOn) && payload.length > 0) {
       await tickFastMarkets(payload);
     }
-    if (paperOn && payload.length > 0) {
-      await tickPaperDuels(payload);
-    }
 
-    const [windows, equityWindows, duels, paperRaces] = await Promise.all([
+    const [windows, equityWindows, duels] = await Promise.all([
       fastOn ? listFastMarkets(24, "crypto") : Promise.resolve([]),
       equitiesOn ? listFastMarkets(12, "finance") : Promise.resolve([]),
       duelsOn && spectatorOn ? getActiveSpectatorDuels(12) : Promise.resolve([]),
-      paperOn ? getActivePaperDuels(12) : Promise.resolve([]),
     ]);
 
     return NextResponse.json({
@@ -80,16 +73,7 @@ export async function GET() {
         stake: d.stake,
         acceptedAt: d.accepted_at,
       })),
-      paperRaces: paperRaces.map((r) => ({
-        id: r.id,
-        creator: r.creator_name,
-        opponent: r.opponent_name,
-        creatorAsset: r.creator_asset,
-        opponentAsset: r.opponent_asset,
-        stake: r.stake,
-        durationSec: r.duration_sec,
-        endsAt: r.ends_at,
-      })),
+      paperRaces: [],
     });
   } catch (e) {
     if (process.env.NODE_ENV === "development") {

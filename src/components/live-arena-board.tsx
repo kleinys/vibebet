@@ -281,52 +281,6 @@ export function LiveArenaBoard({ initial }: { initial: LivePayload }) {
         </section>
       )}
 
-      {data.paperRaces?.length > 0 && (
-        <section>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-cyan-400">
-              Return races — live
-            </h2>
-            <Link
-              href="/games/paper"
-              className="inline-flex rounded-full border border-cyan-500/35 bg-cyan-500/10 px-3.5 py-1.5 text-xs font-semibold text-cyan-200 hover:bg-cyan-500/20"
-            >
-              All return races →
-            </Link>
-          </div>
-          <p className="mt-1 text-xs text-zinc-500">
-            Pick a crypto, race for highest return. Auto-settled at the bell.
-          </p>
-          <ul className="mt-4 space-y-2">
-            {data.paperRaces.map((r) => (
-              <li key={r.id}>
-                <Link
-                  href={`/games/paper/${r.id}`}
-                  className="block rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-4 transition hover:border-cyan-400/40"
-                >
-                  <p className="text-sm font-medium text-zinc-100">
-                    {r.creator}{" "}
-                    <span className="text-zinc-500">({r.creatorAsset.toUpperCase()})</span>
-                    {" vs "}
-                    {r.opponent}{" "}
-                    <span className="text-zinc-500">({r.opponentAsset.toUpperCase()})</span>
-                  </p>
-                  <p className="mt-1 text-xs text-zinc-500">
-                    {formatVibe(r.stake)} VIBE each · {r.durationSec / 60}m
-                    {r.endsAt && (
-                      <>
-                        {" · "}
-                        <Countdown windowEnd={r.endsAt} />
-                      </>
-                    )}
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
       {data.duels.length > 0 && (
         <section>
           <div className="flex flex-wrap items-center justify-between gap-3">

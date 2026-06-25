@@ -2,7 +2,6 @@ import Link from "next/link";
 import { isEnabled } from "@/lib/feature-flags";
 import { listFastMarkets, tickFastMarkets } from "@/lib/fast-markets";
 import { getActiveSpectatorDuels } from "@/lib/duels";
-import { getActivePaperDuels } from "@/lib/paper-duels";
 import { LiveArenaBoard } from "@/components/live-arena-board";
 import {
   fetchLiveArenaPrices,
@@ -12,18 +11,17 @@ import {
 export const revalidate = 0;
 
 export default async function GamesPage() {
-  const [arenaOn, fastOn, equitiesOn, duelsOn, spectatorOn, paperOn, liveEventsOn] =
+  const [arenaOn, fastOn, equitiesOn, duelsOn, spectatorOn, liveEventsOn] =
     await Promise.all([
       isEnabled("live_arena_enabled"),
       isEnabled("fast_markets_enabled"),
       isEnabled("equities_enabled"),
       isEnabled("duels_enabled"),
       isEnabled("duel_spectator_markets_enabled"),
-      isEnabled("paper_trading_duels_enabled"),
       isEnabled("live_events_enabled"),
     ]);
 
-  if (!arenaOn && !fastOn && !equitiesOn && !duelsOn && !paperOn && !liveEventsOn) {
+  if (!arenaOn && !fastOn && !equitiesOn && !duelsOn && !liveEventsOn) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-16 text-center">
         <h1 className="text-2xl font-semibold">Live Arena off</h1>
@@ -36,7 +34,7 @@ export default async function GamesPage() {
   }
 
   const prices = await fetchLiveArenaPrices({
-    cryptoOn: fastOn || paperOn,
+    cryptoOn: fastOn,
     equitiesOn,
   });
   const payload = pricesToTickPayload(prices);
@@ -44,11 +42,10 @@ export default async function GamesPage() {
     await tickFastMarkets(payload);
   }
 
-  const [windows, equityWindows, duels, paperRaces] = await Promise.all([
+  const [windows, equityWindows, duels] = await Promise.all([
     fastOn ? listFastMarkets(24, "crypto") : Promise.resolve([]),
     equitiesOn ? listFastMarkets(12, "finance") : Promise.resolve([]),
     duelsOn && spectatorOn ? getActiveSpectatorDuels(12) : Promise.resolve([]),
-    paperOn ? getActivePaperDuels(12) : Promise.resolve([]),
   ]);
 
   const initial = {
@@ -91,16 +88,7 @@ export default async function GamesPage() {
       stake: d.stake,
       acceptedAt: d.accepted_at,
     })),
-    paperRaces: paperRaces.map((r) => ({
-      id: r.id,
-      creator: r.creator_name,
-      opponent: r.opponent_name,
-      creatorAsset: r.creator_asset,
-      opponentAsset: r.opponent_asset,
-      stake: r.stake,
-      durationSec: r.duration_sec,
-      endsAt: r.ends_at,
-    })),
+    paperRaces: [],
   };
 
   const roadmap = [
@@ -122,11 +110,6 @@ export default async function GamesPage() {
               },
             ]
           : []),
-        {
-          name: "Return Races",
-          desc: "5–15 min return race on BTC/ETH/SOL. Pick your coin, highest % wins.",
-          href: "/games/paper",
-        },
         {
           name: "Duel spectators",
           desc: "Bet on who wins an accepted head-to-head duel.",
@@ -191,12 +174,6 @@ export default async function GamesPage() {
             className="rounded-md border border-violet-500/40 px-4 py-2 text-sm font-medium text-violet-200 hover:bg-violet-500/10"
           >
             Duel hub
-          </Link>
-          <Link
-            href="/games/paper"
-            className="rounded-md border border-cyan-500/40 px-4 py-2 text-sm font-medium text-cyan-200 hover:bg-cyan-500/10"
-          >
-            Return Races
           </Link>
           <Link
             href="/markets/new/recurring"

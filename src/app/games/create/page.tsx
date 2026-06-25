@@ -14,23 +14,21 @@ export default async function GameCreatePage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/games/create");
 
-  const [duelsOn, paperOn, liveOn, arcadeOn, arenaOn] = await Promise.all([
+  const [duelsOn, liveOn, arcadeOn, arenaOn] = await Promise.all([
     isEnabled("duels_enabled"),
-    isEnabled("paper_trading_duels_enabled"),
     isEnabled("live_events_enabled"),
     isEnabled("arcade_games_enabled"),
     isEnabled("live_arena_enabled"),
   ]);
 
-  if (!duelsOn && !paperOn && !liveOn && !arcadeOn) {
+  if (!duelsOn && !liveOn && !arcadeOn) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-16 text-center">
         <h1 className="text-2xl font-semibold">Game creation off</h1>
         <p className="mt-2 text-sm text-zinc-400">
           Enable at least one flag in Admin:{" "}
           <code className="font-mono">live_events_enabled</code>,{" "}
-          <code className="font-mono">duels_enabled</code>,{" "}
-          <code className="font-mono">paper_trading_duels_enabled</code>, or{" "}
+          <code className="font-mono">duels_enabled</code>, or{" "}
           <code className="font-mono">arcade_games_enabled</code>.
         </p>
         <Link href="/try" className="mt-4 inline-block text-sm text-fuchsia-400 hover:underline">
@@ -57,12 +55,12 @@ export default async function GameCreatePage() {
       <h1 className="mt-3 text-2xl font-semibold">Create a game</h1>
       <p className="mt-1 text-sm text-zinc-400">
         <strong className="text-zinc-200">Live stream:</strong> paste a YouTube/Twitch
-        URL → viewers watch + bet together. Or post a duel, return race, or arcade game.
+        URL → viewers watch + bet together. Or post a market duel or link to arcade games.
       </p>
 
       <GameCreateHub
         markets={markets}
-        flags={{ liveOn, duelsOn, paperOn, arcadeOn }}
+        flags={{ liveOn, duelsOn, arcadeOn }}
       />
     </div>
   );

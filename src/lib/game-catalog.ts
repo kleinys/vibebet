@@ -62,16 +62,6 @@ export const GAME_CATALOG: GameDefinition[] = [
     flag: "arcade_games_enabled",
   },
   {
-    key: "return_race",
-    name: "Return Race",
-    emoji: "🏁",
-    kind: "oracle",
-    status: "live",
-    description: "Crypto return duel — highest % gain wins.",
-    href: "/games/paper",
-    flag: "paper_trading_duels_enabled",
-  },
-  {
     key: "lightning_duel",
     name: "Lightning Duel",
     emoji: "⚡",

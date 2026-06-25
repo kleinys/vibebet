@@ -40,14 +40,14 @@ export default async function TryPage() {
     },
     {
       title: "Create a game",
-      desc: "Host a stream, post a duel, or start a return race.",
+      desc: "Host a stream, post a market duel, or open arcade games.",
       href: "/games/create",
       on: liveOn || duelsOn || paperOn || arcadeOn,
       cta: "Create",
     },
     {
       title: "Live Arena",
-      desc: "Crypto up/down windows, duels, return races — auto-resolved.",
+      desc: "Crypto up/down windows, equities, duel spectators — auto-resolved.",
       href: "/games",
       on: arenaOn || fastOn,
       cta: "Open Live Arena",

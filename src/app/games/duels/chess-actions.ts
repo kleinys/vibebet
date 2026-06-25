@@ -52,7 +52,7 @@ export async function playChessMove(gameId: string, from: string, to: string, pr
   const supabase = await createClient();
   const { data: rows } = await supabase.rpc("get_chess_game", { p_game_id: gameId });
   const game = Array.isArray(rows) ? rows[0] : null;
-  if (!game || game.status !== "active") return { error: "Game not active." };
+  if (!game || (game.status !== "active" && game.status !== "matched")) return { error: "Game not in play." };
 
   const chess = new Chess(game.fen ?? START_FEN);
   const move = chess.move({ from, to, promotion: promotion as "q" | undefined });
@@ -103,6 +103,39 @@ export async function resignChessGame(gameId: string) {
   if (error) return { error: error.message };
   revalidatePath(`/games/duels/chess/${gameId}`);
   return { ok: "You resigned." };
+}
+
+export async function leaveChessGame(gameId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("leave_chess_game", { p_game_id: gameId });
+  if (error) return { error: error.message };
+  revalidatePath("/games/duels/chess");
+  revalidatePath(`/games/duels/chess/${gameId}`);
+  return { ok: "Left the game — stakes refunded.", left: true as const };
+}
+
+export async function offerChessDraw(gameId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("offer_chess_draw", { p_game_id: gameId });
+  if (error) return { error: error.message };
+  revalidatePath(`/games/duels/chess/${gameId}`);
+  return { ok: "Draw offered." };
+}
+
+export async function acceptChessDraw(gameId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("accept_chess_draw", { p_game_id: gameId });
+  if (error) return { error: error.message };
+  revalidatePath(`/games/duels/chess/${gameId}`);
+  return { ok: "Draw accepted.", settled: true as const };
+}
+
+export async function declineChessDraw(gameId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("decline_chess_draw", { p_game_id: gameId });
+  if (error) return { error: error.message };
+  revalidatePath(`/games/duels/chess/${gameId}`);
+  return { ok: "Draw declined." };
 }
 
 export async function getChessLegalMoves(fen: string, from: string) {

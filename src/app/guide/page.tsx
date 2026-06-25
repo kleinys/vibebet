@@ -232,20 +232,8 @@ export default function GuidePage() {
             <Link href="/games/create" className="text-fuchsia-300 hover:underline">
               /games/create
             </Link>{" "}
-            (streams, prediction duels, return races). Enable{" "}
+            (streams, prediction duels, arcade). Enable{" "}
             <code className="rounded bg-zinc-800 px-1">live_events_enabled</code>.
-          </p>
-        </section>
-
-        <section className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-5">
-          <h2 className="text-lg font-semibold text-cyan-100">Return Races</h2>
-          <p className="mt-2 text-zinc-400">
-            Head-to-head return races at{" "}
-            <Link href="/games/paper" className="text-cyan-300 hover:underline">
-              /games/paper
-            </Link>
-            . Each player picks BTC, ETH, or SOL to go long for 5–15 minutes. Highest %
-            return wins the pool — oracle auto-settles, no court.
           </p>
         </section>
 
@@ -296,7 +284,6 @@ export default function GuidePage() {
             <li><span className="text-emerald-300">✓ Phase 20</span> — Daily Hustle earn-back + admin metrics (enable <code className="rounded bg-zinc-800 px-1">daily_hustle_enabled</code>, <code className="rounded bg-zinc-800 px-1">product_metrics_enabled</code>)</li>
             <li><span className="text-emerald-300">✓ Phase 21</span> — Duel spectator markets, guild weekly quest, creator dashboard v2</li>
             <li><span className="text-emerald-300">✓ Phase 22</span> — Live Arena hub at <code className="rounded bg-zinc-800 px-1">/games</code></li>
-            <li><span className="text-emerald-300">✓ Phase 23</span> — Return Races (enable <code className="rounded bg-zinc-800 px-1">paper_trading_duels_enabled</code>)</li>
             <li><span className="text-emerald-300">✓ Phase 24–25</span> — Cancel bet 50% back (enable <code className="rounded bg-zinc-800 px-1">quick_exit_enabled</code>)</li>
             <li><span className="text-emerald-300">✓ Phase 26</span> — Equities Up/Down (enable <code className="rounded bg-zinc-800 px-1">equities_enabled</code>)</li>
             <li><span className="text-emerald-300">✓ Phase 27</span> — Watch &amp; Bet live hub (enable <code className="rounded bg-zinc-800 px-1">live_events_enabled</code>)</li>

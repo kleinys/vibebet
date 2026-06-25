@@ -3,12 +3,27 @@
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { playChessMove, resignChessGame } from "./chess-actions";
+import {
+  acceptChessDraw,
+  declineChessDraw,
+  leaveChessGame,
+  offerChessDraw,
+  playChessMove,
+  resignChessGame,
+} from "./chess-actions";
 
 const PIECES: Record<string, string> = {
   p: "♟", r: "♜", n: "♞", b: "♝", q: "♛", k: "♚",
   P: "♙", R: "♖", N: "♘", B: "♗", Q: "♕", K: "♔",
 };
+
+function pieceClass(piece: string) {
+  const isWhite = piece === piece.toUpperCase();
+  if (isWhite) {
+    return "text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.95)]";
+  }
+  return "text-[#1a1a1a] drop-shadow-[0_0_2px_rgba(255,255,255,0.85)]";
+}
 
 function parseFenBoard(fen: string): (string | null)[][] {
   const rows = fen.split(" ")[0].split("/");
@@ -31,6 +46,9 @@ export function ChessBoard({
   creatorId,
   status,
   winnerId,
+  moveCount = 0,
+  drawOfferedBy,
+  isSpectator = false,
 }: {
   gameId: string;
   fen: string;
@@ -39,24 +57,31 @@ export function ChessBoard({
   creatorId: string;
   status: string;
   winnerId: string | null;
+  moveCount?: number;
+  drawOfferedBy?: string | null;
+  isSpectator?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [selected, setSelected] = useState<string | null>(null);
-  const isMyTurn = status === "active" && currentTurnId === userId;
+  const inPlay = status === "active" || status === "matched";
+  const isLocked = status === "active";
+  const isMyTurn = inPlay && !isSpectator && currentTurnId === userId;
   const board = parseFenBoard(fen);
   const files = "abcdefgh";
+  const myColor = userId === creatorId ? "White" : "Black";
+  const drawPending = drawOfferedBy && drawOfferedBy !== userId;
+  const iOfferedDraw = drawOfferedBy === userId;
 
   const clickSquare = (file: number, rank: number) => {
-    const sq = `${files[file]}${8 - rank}`;
-    if (!isMyTurn || pending) return;
+    if (isSpectator || !isMyTurn || pending) return;
 
+    const sq = `${files[file]}${8 - rank}`;
     if (!selected) {
       const piece = board[rank][file];
       if (!piece) return;
       const isWhite = piece === piece.toUpperCase();
-      const isCreatorWhite = true;
-      const myWhite = userId === creatorId ? isCreatorWhite : !isCreatorWhite;
+      const myWhite = userId === creatorId;
       if (isWhite !== myWhite) return;
       setSelected(sq);
       return;
@@ -78,16 +103,36 @@ export function ChessBoard({
     });
   };
 
+  const run = (fn: () => Promise<{ error?: string; ok?: string; settled?: boolean; left?: boolean }>) => {
+    startTransition(async () => {
+      const r = await fn();
+      if (r.error) toast.error(r.error);
+      else {
+        toast.success(r.ok ?? "Done");
+        if (r.left) router.push("/games/duels/chess");
+        else router.refresh();
+      }
+    });
+  };
+
   return (
     <div className="space-y-3">
-      {status === "active" && (
+      {isSpectator && inPlay && (
+        <p className="text-sm text-violet-300">Spectating — board updates when players move.</p>
+      )}
+      {inPlay && !isSpectator && (
         <p className="text-sm text-zinc-400">
           {isMyTurn ? <span className="text-emerald-300">Your turn</span> : "Waiting for opponent…"}
           {" · You are "}
-          {userId === creatorId ? "White" : "Black"}
+          {myColor}
+          {!isLocked && moveCount < 2 && (
+            <span className="ml-2 text-amber-300/90">
+              · Warm-up ({moveCount}/2 moves until locked)
+            </span>
+          )}
         </p>
       )}
-      {status === "settled" && winnerId && (
+      {status === "settled" && winnerId && !isSpectator && (
         <p className="text-sm text-emerald-300">{winnerId === userId ? "You won!" : "You lost."}</p>
       )}
       {status === "draw" && <p className="text-sm text-zinc-400">Draw.</p>}
@@ -103,13 +148,15 @@ export function ChessBoard({
                 <button
                   key={sq}
                   type="button"
-                  disabled={!isMyTurn || pending}
+                  disabled={isSpectator || !isMyTurn || pending}
                   onClick={() => clickSquare(ci, ri)}
                   className={`flex h-11 w-11 items-center justify-center text-2xl ${
-                    dark ? "bg-zinc-700" : "bg-zinc-500"
-                  } ${sel ? "ring-2 ring-emerald-400" : ""} disabled:cursor-default`}
+                    dark ? "bg-[#769656]" : "bg-[#eeeed2]"
+                  } ${sel ? "ring-2 ring-emerald-400 ring-offset-1 ring-offset-zinc-950" : ""} disabled:cursor-default`}
                 >
-                  {cell ? PIECES[cell] : ""}
+                  {cell ? (
+                    <span className={pieceClass(cell)}>{PIECES[cell]}</span>
+                  ) : null}
                 </button>
               );
             }),
@@ -117,21 +164,64 @@ export function ChessBoard({
         </div>
       </div>
 
-      {status === "active" && isMyTurn && (
-        <button
-          type="button"
-          disabled={pending}
-          onClick={() =>
-            startTransition(async () => {
-              const r = await resignChessGame(gameId);
-              if (r.error) toast.error(r.error);
-              else router.refresh();
-            })
-          }
-          className="text-xs text-rose-400 hover:underline"
-        >
-          Resign
-        </button>
+      {!isSpectator && inPlay && (
+        <div className="flex flex-wrap gap-2">
+          {status === "matched" && (
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => run(() => leaveChessGame(gameId))}
+              className="rounded-md border border-zinc-600 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800"
+            >
+              Leave (before lock)
+            </button>
+          )}
+          {isLocked && (
+            <>
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => run(() => resignChessGame(gameId))}
+                className="rounded-md border border-rose-500/40 px-3 py-1.5 text-xs text-rose-300 hover:bg-rose-500/10"
+              >
+                Resign
+              </button>
+              {!drawOfferedBy && (
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() => run(() => offerChessDraw(gameId))}
+                  className="rounded-md border border-sky-500/40 px-3 py-1.5 text-xs text-sky-300 hover:bg-sky-500/10"
+                >
+                  Offer draw
+                </button>
+              )}
+              {iOfferedDraw && (
+                <span className="self-center text-xs text-zinc-500">Draw offer sent…</span>
+              )}
+              {drawPending && (
+                <>
+                  <button
+                    type="button"
+                    disabled={pending}
+                    onClick={() => run(() => acceptChessDraw(gameId))}
+                    className="rounded-md bg-sky-600 px-3 py-1.5 text-xs text-white hover:bg-sky-500"
+                  >
+                    Accept draw
+                  </button>
+                  <button
+                    type="button"
+                    disabled={pending}
+                    onClick={() => run(() => declineChessDraw(gameId))}
+                    className="rounded-md border border-zinc-600 px-3 py-1.5 text-xs text-zinc-400 hover:bg-zinc-800"
+                  >
+                    Decline
+                  </button>
+                </>
+              )}
+            </>
+          )}
+        </div>
       )}
     </div>
   );
