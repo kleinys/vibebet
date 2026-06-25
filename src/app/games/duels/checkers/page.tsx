@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { PlayerCodeCard } from "@/components/player-code-card";
 import { SkillGameLobby } from "@/components/skill-game-lobby";
+import { LiveSkillGamesList } from "@/components/live-skill-games-list";
 
 export const revalidate = 0;
 
@@ -27,6 +28,10 @@ export default async function CheckersPage() {
   if (!user) redirect("/login?next=/games/duels/checkers");
 
   const { data } = await supabase.rpc("get_open_checkers_games", { p_limit: 20 });
+  const { data: liveGames } = await supabase.rpc("get_live_checkers_games", { p_limit: 12 }).then(
+    (r) => r,
+    () => ({ data: [] }),
+  );
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
@@ -49,6 +54,10 @@ export default async function CheckersPage() {
           userId={user.id}
         />
       </div>
+      <LiveSkillGamesList
+        games={(liveGames ?? []) as never[]}
+        hrefPrefix="/games/duels/checkers"
+      />
     </div>
   );
 }

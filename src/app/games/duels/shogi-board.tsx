@@ -5,7 +5,8 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { parseSfen } from "shogiops/sfen";
 import { makeSquareName } from "shogiops/util";
-import { playShogiMove, resignShogiGame } from "./shogi-actions";
+import { playShogiMove, resignShogiGame, leaveShogiGame, offerShogiDraw, acceptShogiDraw, declineShogiDraw } from "./shogi-actions";
+import { SkillDuelControls } from "@/components/skill-duel-controls";
 
 const PIECE_CHARS: Record<string, string> = {
   p: "歩", l: "香", n: "桂", s: "銀", g: "金", b: "角", r: "飛", k: "玉",
@@ -32,6 +33,9 @@ export function ShogiBoard({
   creatorId,
   status,
   winnerId,
+  moveCount = 0,
+  drawOfferedBy,
+  isSpectator = false,
 }: {
   gameId: string;
   sfen: string;
@@ -40,11 +44,16 @@ export function ShogiBoard({
   creatorId: string;
   status: string;
   winnerId: string | null;
+  moveCount?: number;
+  drawOfferedBy?: string | null;
+  isSpectator?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [from, setFrom] = useState<string | null>(null);
-  const isMyTurn = status === "active" && currentTurnId === userId;
+  const inPlay = status === "active" || status === "matched";
+  const isLocked = status === "active";
+  const isMyTurn = inPlay && !isSpectator && currentTurnId === userId;
   const cells = boardFromSfen(sfen);
   const myColor = userId === creatorId ? "sente" : "gote";
 
@@ -73,11 +82,14 @@ export function ShogiBoard({
 
   return (
     <div className="space-y-3">
-      {status === "active" && (
+      {inPlay && !isSpectator && (
         <p className="text-sm text-zinc-400">
           {isMyTurn ? <span className="text-emerald-300">Your turn</span> : "Waiting…"}
           {" · "}
           {userId === creatorId ? "Black (先手)" : "White (後手)"}
+          {!isLocked && moveCount < 2 && (
+            <span className="ml-2 text-amber-300/90">· Warm-up ({moveCount}/2)</span>
+          )}
         </p>
       )}
       {status === "settled" && winnerId && (
@@ -90,7 +102,7 @@ export function ShogiBoard({
             <button
               key={idx}
               type="button"
-              disabled={!isMyTurn || pending}
+              disabled={isSpectator || !isMyTurn || pending}
               onClick={() => click(idx)}
               className={`flex h-9 w-9 items-center justify-center text-sm ${
                 from === makeSquareName(idx) ? "ring-2 ring-emerald-400" : ""
@@ -106,21 +118,21 @@ export function ShogiBoard({
         </div>
       </div>
 
-      {status === "active" && isMyTurn && (
-        <button
-          type="button"
-          disabled={pending}
-          onClick={() =>
-            startTransition(async () => {
-              const r = await resignShogiGame(gameId);
-              if (r.error) toast.error(r.error);
-              else router.refresh();
-            })
-          }
-          className="text-xs text-rose-400 hover:underline"
-        >
-          Resign
-        </button>
+      {!isSpectator && (
+        <SkillDuelControls
+          status={status}
+          isLocked={isLocked}
+          drawOfferedBy={drawOfferedBy}
+          userId={userId}
+          pending={pending}
+          onLeave={() => leaveShogiGame(gameId)}
+          onResign={() => resignShogiGame(gameId)}
+          onOfferDraw={() => offerShogiDraw(gameId)}
+          onAcceptDraw={() => acceptShogiDraw(gameId)}
+          onDeclineDraw={() => declineShogiDraw(gameId)}
+          onAfterLeave={() => router.push("/games/duels/shogi")}
+          onRefresh={() => router.refresh()}
+        />
       )}
     </div>
   );

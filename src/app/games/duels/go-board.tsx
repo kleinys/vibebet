@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { toast } from "sonner";
 import { GO_BOARD_SIZE } from "@/lib/go-engine";
-import { passGoGame, playGoMove, resignGoGame } from "./go-actions";
+import { passGoGame, playGoMove, resignGoGame, leaveGoGame, offerGoDraw, acceptGoDraw, declineGoDraw } from "./go-actions";
+import { SkillDuelControls } from "@/components/skill-duel-controls";
 import type { GoCell } from "@/lib/go-engine";
 
 export function GoBoard({
@@ -17,6 +18,9 @@ export function GoBoard({
   winnerId,
   blackScore,
   whiteScore,
+  moveCount = 0,
+  drawOfferedBy,
+  isSpectator = false,
 }: {
   gameId: string;
   board: GoCell[];
@@ -27,10 +31,15 @@ export function GoBoard({
   winnerId: string | null;
   blackScore?: number | null;
   whiteScore?: number | null;
+  moveCount?: number;
+  drawOfferedBy?: string | null;
+  isSpectator?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const isMyTurn = status === "active" && currentTurnId === userId;
+  const inPlay = status === "active" || status === "matched";
+  const isLocked = status === "active";
+  const isMyTurn = inPlay && !isSpectator && currentTurnId === userId;
 
   const play = (idx: number) => {
     if (!isMyTurn || pending) return;
@@ -43,11 +52,14 @@ export function GoBoard({
 
   return (
     <div className="space-y-3">
-      {status === "active" && (
+      {inPlay && !isSpectator && (
         <p className="text-sm text-zinc-400">
           {isMyTurn ? <span className="text-emerald-300">Your turn</span> : "Waiting…"}
           {" · "}
           {userId === creatorId ? "Black" : "White"}
+          {!isLocked && moveCount < 2 && (
+            <span className="ml-2 text-amber-300/90">· Warm-up ({moveCount}/2)</span>
+          )}
         </p>
       )}
       {(status === "settled" || status === "draw") && blackScore != null && (
@@ -69,7 +81,7 @@ export function GoBoard({
           <button
             key={idx}
             type="button"
-            disabled={!isMyTurn || pending || cell !== 0}
+            disabled={isSpectator || !isMyTurn || pending || cell !== 0}
             onClick={() => play(idx)}
             className="h-8 w-8 rounded-full border border-zinc-600 bg-amber-100/10 disabled:cursor-default"
           >
@@ -78,7 +90,7 @@ export function GoBoard({
         ))}
       </div>
 
-      {status === "active" && isMyTurn && (
+      {!isSpectator && inPlay && isMyTurn && (
         <div className="flex gap-3">
           <button
             type="button"
@@ -97,21 +109,23 @@ export function GoBoard({
           >
             Pass
           </button>
-          <button
-            type="button"
-            disabled={pending}
-            onClick={() =>
-              startTransition(async () => {
-                const r = await resignGoGame(gameId);
-                if (r.error) toast.error(r.error);
-                else router.refresh();
-              })
-            }
-            className="text-xs text-rose-400 hover:underline"
-          >
-            Resign
-          </button>
         </div>
+      )}
+      {!isSpectator && (
+        <SkillDuelControls
+          status={status}
+          isLocked={isLocked}
+          drawOfferedBy={drawOfferedBy}
+          userId={userId}
+          pending={pending}
+          onLeave={() => leaveGoGame(gameId)}
+          onResign={() => resignGoGame(gameId)}
+          onOfferDraw={() => offerGoDraw(gameId)}
+          onAcceptDraw={() => acceptGoDraw(gameId)}
+          onDeclineDraw={() => declineGoDraw(gameId)}
+          onAfterLeave={() => router.push("/games/duels/go")}
+          onRefresh={() => router.refresh()}
+        />
       )}
     </div>
   );

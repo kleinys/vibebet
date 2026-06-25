@@ -7,6 +7,7 @@ import { SkillGameAcceptButton } from "@/components/skill-game-accept-button";
 import { WaitForOpponentPanel } from "@/components/wait-for-opponent-panel";
 import { serverEnv } from "@/lib/env";
 import { SkillSpectatorPanel } from "@/components/skill-spectator-panel";
+import { ChessLiveClock } from "@/components/chess-live-clock";
 
 export const revalidate = 0;
 
@@ -61,7 +62,8 @@ export default async function ChessGamePage({ params }: { params: Promise<{ id: 
       {game.status === "matched" && isParticipant && (
         <p className="mt-2 text-xs text-amber-300/90">
           Sides locked: {game.creator_name} = White, {game.opponent_name} = Black. Game locks after
-          both players make one move each. No clock yet.
+          both players make one move each.
+          {game.clock_initial_sec == null && " No clock on this game."}
         </p>
       )}
 
@@ -100,10 +102,16 @@ export default async function ChessGamePage({ params }: { params: Promise<{ id: 
           {(game.white_ms_left != null || game.spectator_market_id) && (
             <div className="mb-4 space-y-3">
               {game.white_ms_left != null && game.black_ms_left != null && (
-                <p className="text-xs text-zinc-400">
-                  Clock — White: {Math.ceil((game.white_ms_left ?? 0) / 1000)}s · Black:{" "}
-                  {Math.ceil((game.black_ms_left ?? 0) / 1000)}s
-                </p>
+                <ChessLiveClock
+                  whiteMsLeft={game.white_ms_left}
+                  blackMsLeft={game.black_ms_left}
+                  clockRunningSince={game.clock_running_since}
+                  currentTurnId={game.current_turn_id}
+                  creatorId={game.creator_id}
+                  status={game.status}
+                  creatorName={game.creator_name}
+                  opponentName={game.opponent_name ?? "Opponent"}
+                />
               )}
               <SkillSpectatorPanel
                 marketId={game.spectator_market_id}

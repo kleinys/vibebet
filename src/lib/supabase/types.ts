@@ -1979,6 +1979,7 @@ export interface Database {
           move_count: number;
           draw_offered_by: string | null;
           started_at: string | null;
+          spectator_market_id: string | null;
         }[];
       };
       create_liars_dice_game: {
@@ -2120,6 +2121,8 @@ export interface Database {
           white_ms_left: number | null;
           black_ms_left: number | null;
           clock_initial_sec: number | null;
+          clock_increment_sec: number | null;
+          clock_running_since: string | null;
         }[];
       };
       create_checkers_game: {
@@ -2143,6 +2146,18 @@ export interface Database {
       offer_checkers_draw: { Args: { p_game_id: string }; Returns: undefined };
       accept_checkers_draw: { Args: { p_game_id: string }; Returns: undefined };
       decline_checkers_draw: { Args: { p_game_id: string }; Returns: undefined };
+      get_live_checkers_games: {
+        Args: { p_limit?: number };
+        Returns: {
+          id: string;
+          creator_name: string;
+          opponent_name: string;
+          is_friendly: boolean;
+          stake: number;
+          move_count: number;
+          status: string;
+        }[];
+      };
       get_open_checkers_games: {
         Args: { p_limit?: number };
         Returns: {
@@ -2201,6 +2216,18 @@ export interface Database {
       offer_go_draw: { Args: { p_game_id: string }; Returns: undefined };
       accept_go_draw: { Args: { p_game_id: string }; Returns: undefined };
       decline_go_draw: { Args: { p_game_id: string }; Returns: undefined };
+      get_live_go_games: {
+        Args: { p_limit?: number };
+        Returns: {
+          id: string;
+          creator_name: string;
+          opponent_name: string;
+          is_friendly: boolean;
+          stake: number;
+          move_count: number;
+          status: string;
+        }[];
+      };
       get_open_go_games: {
         Args: { p_limit?: number };
         Returns: {
@@ -2260,6 +2287,18 @@ export interface Database {
       offer_shogi_draw: { Args: { p_game_id: string }; Returns: undefined };
       accept_shogi_draw: { Args: { p_game_id: string }; Returns: undefined };
       decline_shogi_draw: { Args: { p_game_id: string }; Returns: undefined };
+      get_live_shogi_games: {
+        Args: { p_limit?: number };
+        Returns: {
+          id: string;
+          creator_name: string;
+          opponent_name: string;
+          is_friendly: boolean;
+          stake: number;
+          move_count: number;
+          status: string;
+        }[];
+      };
       get_open_shogi_games: {
         Args: { p_limit?: number };
         Returns: {
@@ -2346,6 +2385,18 @@ export interface Database {
           creator_hand_rank: string | null;
           opponent_hand_rank: string | null;
           invited_user_id: string | null;
+        }[];
+      };
+      request_gem_withdrawal: {
+        Args: { p_gems: number; p_method?: string };
+        Returns: string;
+      };
+      convert_gems_to_vibe: {
+        Args: { p_gems: number };
+        Returns: {
+          gems_spent: number;
+          vibe_received: number;
+          transaction_id: string;
         }[];
       };
     };

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getAllBalances } from "@/lib/ledger";
 import { BalanceBadge } from "@/components/balance-badge";
 import { AccountNav } from "@/components/account-nav";
+import { WalletCurrencySection } from "@/components/wallet-currency-section";
 import { formatVibe } from "@/lib/utils";
 import { getStreakInfo, maybeRecordDailyActivity } from "@/lib/streaks";
 import { getUserLeaderboardStats } from "@/lib/leaderboard-stats";
@@ -86,6 +87,8 @@ export default async function AccountPage() {
       </header>
 
       <AccountNav active="/account" />
+
+      <WalletCurrencySection userId={user.id} />
 
       <section className="mt-6 rounded-xl border border-white/5 bg-zinc-900/40 p-4">
         <div className="flex flex-wrap items-start justify-between gap-4">

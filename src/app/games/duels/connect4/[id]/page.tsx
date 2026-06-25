@@ -5,6 +5,7 @@ import { isEnabled } from "@/lib/feature-flags";
 import { Connect4Board } from "../../connect4-board";
 import { AcceptConnect4Button } from "../../connect4-accept-button";
 import { WaitForOpponentPanel } from "@/components/wait-for-opponent-panel";
+import { SkillSpectatorPanel } from "@/components/skill-spectator-panel";
 import { serverEnv } from "@/lib/env";
 
 export const revalidate = 0;
@@ -85,6 +86,11 @@ export default async function Connect4GamePage({
         <p className="mt-8 text-sm text-zinc-400">This game is waiting for another player.</p>
       ) : (
         <div className="mt-8">
+          <SkillSpectatorPanel
+            marketId={game.spectator_market_id}
+            creatorName={game.creator_name}
+            opponentName={game.opponent_name ?? "Opponent"}
+          />
           <Connect4Board
             gameId={id}
             board={(game.board ?? []) as number[]}

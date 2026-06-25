@@ -3,6 +3,9 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { SkillGameAcceptButton } from "@/components/skill-game-accept-button";
+import { WaitForOpponentPanel } from "@/components/wait-for-opponent-panel";
+import { SkillSpectatorPanel } from "@/components/skill-spectator-panel";
+import { serverEnv } from "@/lib/env";
 import { CheckersBoard } from "../../checkers-board";
 import type { CheckersCell } from "@/lib/checkers-engine";
 
@@ -22,10 +25,24 @@ export default async function CheckersGamePage({ params }: { params: Promise<{ i
   const game = Array.isArray(data) ? data[0] : null;
   if (!game) notFound();
 
+  const isParticipant = game.creator_id === user.id || game.opponent_id === user.id;
+  const isSpectator =
+    !isParticipant && ["matched", "active", "settled", "draw"].includes(game.status);
+
+  if (!isParticipant && game.status === "open") {
+    if (game.invited_user_id && game.invited_user_id !== user.id) notFound();
+  } else if (!isParticipant && !isSpectator) {
+    notFound();
+  }
+
   const canJoin =
     game.status === "open" &&
     game.creator_id !== user.id &&
     (game.invited_user_id === null || game.invited_user_id === user.id);
+
+  const siteUrl = serverEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+  const gameUrl = `${siteUrl}/games/duels/checkers/${id}`;
+  const isCreatorWaiting = game.status === "open" && game.creator_id === user.id;
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
@@ -35,15 +52,27 @@ export default async function CheckersGamePage({ params }: { params: Promise<{ i
       <h1 className="mt-3 text-2xl font-semibold">Checkers</h1>
       <p className="mt-1 text-sm text-zinc-400">
         {game.creator_name} vs {game.opponent_name ?? "…"}
+        {isSpectator && <span className="ml-2 text-violet-300">· spectator</span>}
       </p>
       {canJoin ? (
         <div className="mt-8 rounded-xl border border-amber-500/20 bg-amber-500/5 p-5">
-          <SkillGameAcceptButton gameKey="checkers" gameId={id} className="mt-2 rounded-md bg-amber-700 px-4 py-2 text-sm text-white hover:bg-amber-600 disabled:opacity-50" />
+          <SkillGameAcceptButton
+            gameKey="checkers"
+            gameId={id}
+            className="mt-2 rounded-md bg-amber-700 px-4 py-2 text-sm text-white hover:bg-amber-600 disabled:opacity-50"
+          />
         </div>
+      ) : isCreatorWaiting ? (
+        <WaitForOpponentPanel gameUrl={gameUrl} />
       ) : game.status === "open" ? (
         <p className="mt-8 text-sm text-zinc-400">Waiting for opponent…</p>
       ) : (
         <div className="mt-8">
+          <SkillSpectatorPanel
+            marketId={game.spectator_market_id}
+            creatorName={game.creator_name}
+            opponentName={game.opponent_name ?? "Opponent"}
+          />
           <CheckersBoard
             gameId={id}
             board={(game.board ?? []) as CheckersCell[]}
@@ -52,6 +81,9 @@ export default async function CheckersGamePage({ params }: { params: Promise<{ i
             creatorId={game.creator_id}
             status={game.status}
             winnerId={game.winner_id}
+            moveCount={game.move_count ?? 0}
+            drawOfferedBy={game.draw_offered_by}
+            isSpectator={isSpectator}
           />
         </div>
       )}
