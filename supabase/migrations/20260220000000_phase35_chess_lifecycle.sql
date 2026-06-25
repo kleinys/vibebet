@@ -187,6 +187,8 @@ begin
   update public.chess_games set draw_offered_by = null where id = p_game_id;
 end; $$;
 
+drop function if exists public.get_chess_game(uuid);
+
 create or replace function public.get_chess_game(p_game_id uuid)
 returns table (
   id uuid, creator_id uuid, creator_name text, opponent_id uuid, opponent_name text,

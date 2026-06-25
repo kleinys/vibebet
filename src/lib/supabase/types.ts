@@ -1922,6 +1922,24 @@ export interface Database {
         Args: { p_game_id: string };
         Returns: undefined;
       };
+      leave_connect4_game: { Args: { p_game_id: string }; Returns: undefined };
+      resign_connect4_game: { Args: { p_game_id: string }; Returns: undefined };
+      offer_connect4_draw: { Args: { p_game_id: string }; Returns: undefined };
+      accept_connect4_draw: { Args: { p_game_id: string }; Returns: undefined };
+      decline_connect4_draw: { Args: { p_game_id: string }; Returns: undefined };
+      get_live_connect4_games: {
+        Args: { p_limit?: number };
+        Returns: {
+          id: string;
+          creator_name: string;
+          opponent_name: string;
+          is_friendly: boolean;
+          stake: number;
+          move_count: number;
+          status: string;
+          started_at: string | null;
+        }[];
+      };
       play_connect4_move: {
         Args: { p_game_id: string; p_col: number };
         Returns: {
@@ -1958,6 +1976,9 @@ export interface Database {
           status: string;
           winner_id: string | null;
           settled_at: string | null;
+          move_count: number;
+          draw_offered_by: string | null;
+          started_at: string | null;
         }[];
       };
       create_liars_dice_game: {

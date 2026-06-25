@@ -41,14 +41,6 @@ export async function acceptConnect4Game(gameId: string) {
   return { ok: "Game started!" };
 }
 
-export async function cancelConnect4Game(gameId: string) {
-  const supabase = await createClient();
-  const { error } = await supabase.rpc("cancel_connect4_game", { p_game_id: gameId });
-  if (error) return { error: error.message };
-  revalidatePath("/games/duels/connect4");
-  return { ok: "Cancelled." };
-}
-
 export async function playConnect4Move(gameId: string, col: number) {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("play_connect4_move", {
@@ -66,6 +58,55 @@ export async function playConnect4Move(gameId: string, col: number) {
     return { ok: "Draw!", settled: true as const };
   }
   return { ok: "Move played." };
+}
+
+export async function cancelConnect4Game(gameId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("cancel_connect4_game", { p_game_id: gameId });
+  if (error) return { error: error.message };
+  revalidatePath("/games/duels/connect4");
+  return { ok: "Cancelled." };
+}
+
+export async function leaveConnect4Game(gameId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("leave_connect4_game", { p_game_id: gameId });
+  if (error) return { error: error.message };
+  revalidatePath("/games/duels/connect4");
+  revalidatePath(`/games/duels/connect4/${gameId}`);
+  return { ok: "Left — stakes refunded.", left: true as const };
+}
+
+export async function resignConnect4Game(gameId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("resign_connect4_game", { p_game_id: gameId });
+  if (error) return { error: error.message };
+  revalidatePath(`/games/duels/connect4/${gameId}`);
+  return { ok: "You resigned." };
+}
+
+export async function offerConnect4Draw(gameId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("offer_connect4_draw", { p_game_id: gameId });
+  if (error) return { error: error.message };
+  revalidatePath(`/games/duels/connect4/${gameId}`);
+  return { ok: "Draw offered." };
+}
+
+export async function acceptConnect4Draw(gameId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("accept_connect4_draw", { p_game_id: gameId });
+  if (error) return { error: error.message };
+  revalidatePath(`/games/duels/connect4/${gameId}`);
+  return { ok: "Draw accepted.", settled: true as const };
+}
+
+export async function declineConnect4Draw(gameId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("decline_connect4_draw", { p_game_id: gameId });
+  if (error) return { error: error.message };
+  revalidatePath(`/games/duels/connect4/${gameId}`);
+  return { ok: "Draw declined." };
 }
 
 export async function lookupPlayerCode(code: string) {

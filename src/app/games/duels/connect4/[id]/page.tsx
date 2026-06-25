@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { Connect4Board } from "../../connect4-board";
 import { AcceptConnect4Button } from "../../connect4-accept-button";
+import { WaitForOpponentPanel } from "@/components/wait-for-opponent-panel";
+import { serverEnv } from "@/lib/env";
 
 export const revalidate = 0;
 
@@ -26,13 +28,13 @@ export default async function Connect4GamePage({
   const game = Array.isArray(data) ? data[0] : null;
   if (!game) notFound();
 
-  const isParticipant =
-    game.creator_id === user.id ||
-    game.opponent_id === user.id ||
-    (game.status === "open" && game.invited_user_id === user.id);
+  const isParticipant = game.creator_id === user.id || game.opponent_id === user.id;
+  const isSpectator =
+    !isParticipant && ["matched", "active", "settled", "draw"].includes(game.status);
 
-  if (!isParticipant && game.status !== "open") notFound();
-  if (game.status === "open" && game.invited_user_id && game.invited_user_id !== user.id) {
+  if (!isParticipant && game.status === "open") {
+    if (game.invited_user_id && game.invited_user_id !== user.id) notFound();
+  } else if (!isParticipant && !isSpectator) {
     notFound();
   }
 
@@ -40,6 +42,10 @@ export default async function Connect4GamePage({
     game.status === "open" &&
     game.creator_id !== user.id &&
     (game.invited_user_id === null || game.invited_user_id === user.id);
+
+  const siteUrl = serverEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+  const gameUrl = `${siteUrl}/games/duels/connect4/${id}`;
+  const isCreatorWaiting = game.status === "open" && game.creator_id === user.id;
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
@@ -54,7 +60,14 @@ export default async function Connect4GamePage({
         ) : (
           <> · {game.stake} VIBE</>
         )}
+        {isSpectator && <span className="ml-2 text-violet-300">· spectator</span>}
       </p>
+      {game.status === "matched" && isParticipant && (
+        <p className="mt-2 text-xs text-amber-300/90">
+          {game.creator_name} = Red, {game.opponent_name} = Yellow. Locked after both drop one disc
+          each.
+        </p>
+      )}
 
       {canJoin ? (
         <div className="mt-8 rounded-xl border border-indigo-500/20 bg-indigo-500/5 p-5">
@@ -63,8 +76,13 @@ export default async function Connect4GamePage({
           </p>
           <AcceptConnect4Button gameId={id} />
         </div>
+      ) : isCreatorWaiting ? (
+        <>
+          <WaitForOpponentPanel gameUrl={gameUrl} />
+          <p className="mt-6 text-xs text-zinc-500">Board appears when your opponent joins.</p>
+        </>
       ) : game.status === "open" ? (
-        <p className="mt-8 text-sm text-zinc-400">Waiting for an opponent to join…</p>
+        <p className="mt-8 text-sm text-zinc-400">This game is waiting for another player.</p>
       ) : (
         <div className="mt-8">
           <Connect4Board
@@ -75,6 +93,9 @@ export default async function Connect4GamePage({
             creatorId={game.creator_id}
             status={game.status}
             winnerId={game.winner_id}
+            moveCount={game.move_count ?? 0}
+            drawOfferedBy={game.draw_offered_by}
+            isSpectator={isSpectator}
           />
         </div>
       )}
