@@ -71,8 +71,9 @@ export default async function RootLayout({
                 : "border-t border-white/5 px-4 py-6 text-center text-xs text-zinc-500"
             }
           >
-            VIBE and Gems are for in-app use. USD buys Gems in the Shop only;
-            Gems cannot be cashed out during early beta.{" "}
+            VIBE and Gems are for in-app use. USD buys Gems in the Shop; Gem
+            cash-out to USD/EUR/GBP/JPY is planned for when the community is
+            larger — not available yet. VIBE never converts to real money.{" "}
             <Link href="/account#wallet" className="text-zinc-400 underline hover:text-zinc-300">
               Wallet
             </Link>

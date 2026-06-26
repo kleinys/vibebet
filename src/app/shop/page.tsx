@@ -68,9 +68,10 @@ export default async function ShopPage() {
         <div>
           <h1 className="text-2xl font-semibold">Shop</h1>
           <p className="mt-1 text-sm text-zinc-400">
-            The only way to spend real money on Vibebet: buy Gems here, then spend
-            on cosmetics or convert to VIBE in your wallet (one-way). No cash
-            withdrawals yet.
+            The only way to spend real money on Vibebet: buy Gems here (USD
+            pricing today). Spend on cosmetics or convert to VIBE in your wallet.
+            Cash-out to USD/EUR/GBP/etc. is planned for later — not enough users
+            yet. VIBE never converts to cash.
           </p>
         </div>
         {user && (

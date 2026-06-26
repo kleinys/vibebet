@@ -32,7 +32,8 @@ export function WalletGemConvertPanel({
           <span className="text-zinc-300">not reversible and not cashable</span>.
         </p>
         <p className="mt-2 text-xs text-zinc-500">
-          Disabled in admin until you flip <code className="font-mono">gem_to_vibe_conversion_enabled</code>.
+          Coming soon when enabled — one-way only, not cashable. See &quot;What
+          we&apos;re planning&quot; below for why VIBE never converts to USD/EUR.
         </p>
       </section>
     );
