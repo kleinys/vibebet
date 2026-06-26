@@ -1,8 +1,13 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import {
+  FEATURE_FLAG_CATALOG,
+  FEATURE_FLAGS_KEEP_OFF,
+} from "@/lib/feature-flag-catalog";
+import { FLAGS_TAG } from "@/lib/feature-flags";
 
 const ResolveSchema = z.object({
   marketId: z.string().uuid(),
@@ -94,8 +99,74 @@ export async function setFlag(
 
   if (error) return { error: error.message };
 
+  revalidateTag(FLAGS_TAG, "max");
   revalidatePath("/admin");
   return { ok: `Flag ${parsed.data.key} → ${parsed.data.enabled}` };
+}
+
+export async function syncMissingFeatureFlags(): Promise<ResolveState> {
+  const supabase = await createClient();
+  const { data: existing, error: readErr } = await supabase
+    .from("feature_flags")
+    .select("key");
+  if (readErr) return { error: readErr.message };
+
+  const have = new Set((existing ?? []).map((r) => r.key));
+  const missing = FEATURE_FLAG_CATALOG.filter((f) => !have.has(f.key));
+  if (missing.length === 0) {
+    return { ok: "All catalog flags already exist in the database." };
+  }
+
+  const { error } = await supabase.from("feature_flags").insert(
+    missing.map((f) => ({
+      key: f.key,
+      enabled: false,
+      description: f.description,
+    })),
+  );
+  if (error) return { error: error.message };
+
+  revalidateTag(FLAGS_TAG, "max");
+  revalidatePath("/admin");
+  return {
+    ok: `Inserted ${missing.length} missing flag(s): ${missing.map((f) => f.key).join(", ")}. Toggle them on below.`,
+  };
+}
+
+export async function syncMissingFeatureFlagsForm(
+  _prev: ResolveState,
+  _formData: FormData,
+): Promise<ResolveState> {
+  void _prev;
+  void _formData;
+  return syncMissingFeatureFlags();
+}
+
+export async function bulkEnableFlags(): Promise<ResolveState> {
+  const supabase = await createClient();
+  const keys = FEATURE_FLAG_CATALOG.map((f) => f.key).filter(
+    (k) => !FEATURE_FLAGS_KEEP_OFF.has(k),
+  );
+
+  const { error } = await supabase
+    .from("feature_flags")
+    .update({ enabled: true })
+    .in("key", keys);
+
+  if (error) return { error: error.message };
+
+  revalidateTag(FLAGS_TAG, "max");
+  revalidatePath("/admin");
+  return { ok: `Enabled ${keys.length} flags (kept real_money and gems_cashout off).` };
+}
+
+export async function bulkEnableFlagsForm(
+  _prev: ResolveState,
+  _formData: FormData,
+): Promise<ResolveState> {
+  void _prev;
+  void _formData;
+  return bulkEnableFlags();
 }
 
 export async function seedOfficialMarkets(): Promise<ResolveState> {

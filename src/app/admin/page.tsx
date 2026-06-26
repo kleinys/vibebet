@@ -5,8 +5,8 @@ import { listMarkets } from "@/lib/markets";
 import { listCategoricalMarkets } from "@/lib/categorical";
 import { ResolveMarketForm } from "@/components/resolve-market-form";
 import { ResolveCategoricalForm } from "@/components/resolve-categorical-form";
-import { FlagToggle } from "@/components/flag-toggle";
 import { AdminSeedPanel } from "@/components/admin-seed-panel";
+import { AdminFlagsPanel } from "@/components/admin-flags-panel";
 import { AdminSuggestionsPanel } from "@/components/admin-suggestions-panel";
 import { AdminTournamentPanel } from "@/components/admin-tournament-panel";
 import { AdminAnalyticsPanel } from "@/components/admin-analytics-panel";
@@ -84,35 +84,7 @@ export default async function AdminPage() {
       <h1 className="text-2xl font-semibold">Admin</h1>
       <p className="mt-1 text-sm text-zinc-400">Phase 1 admin tools.</p>
 
-      <section className="mt-10">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">
-          Feature flags
-        </h2>
-        <div className="mt-3 overflow-hidden rounded-lg border border-white/5">
-          <table className="w-full text-sm">
-            <thead className="bg-zinc-900/60 text-left text-xs uppercase tracking-wider text-zinc-500">
-              <tr>
-                <th className="px-4 py-2 font-medium">Key</th>
-                <th className="px-4 py-2 font-medium">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {Object.entries(flags).map(([key, enabled]) => (
-                <tr key={key}>
-                  <td className="px-4 py-2 font-mono text-xs">{key}</td>
-                  <td className="px-4 py-2">
-                    <FlagToggle flagKey={key} enabled={enabled} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <p className="mt-3 text-xs text-zinc-500">
-          Click a status badge to toggle. `real_money_enabled` must stay off
-          until licensing is in place.
-        </p>
-      </section>
+      <AdminFlagsPanel flags={flags} />
 
       <AdminSeedPanel stats={catalogStats} />
 

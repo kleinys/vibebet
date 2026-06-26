@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
-import { getWeeklyDigest } from "@/lib/weekly-digest";
 import { AccountNav } from "@/components/account-nav";
 import { DigestToggle } from "@/components/digest-toggle";
 import { formatVibe } from "@/lib/utils";
@@ -16,8 +15,22 @@ export default async function DigestPage() {
       <div className="mx-auto max-w-2xl px-6 py-16 text-center">
         <h1 className="text-2xl font-semibold">Weekly digest off</h1>
         <p className="mt-2 text-sm text-zinc-400">
-          Enable <code className="font-mono">weekly_digest_enabled</code> in Admin.
+          The flag <code className="font-mono">weekly_digest_enabled</code> is off or
+          missing from your database.
         </p>
+        <p className="mt-3 text-xs text-zinc-500">
+          In Admin → Feature flags, click{" "}
+          <strong className="text-zinc-300">Sync missing flags</strong>, then enable{" "}
+          <code className="font-mono">weekly_digest_enabled</code>.
+          If you used &quot;enable all&quot; before syncing, that flag was never in the
+          list to toggle.
+        </p>
+        <Link
+          href="/admin"
+          className="mt-6 inline-block text-sm text-fuchsia-400 hover:underline"
+        >
+          Open Admin →
+        </Link>
       </div>
     );
   }
@@ -28,6 +41,7 @@ export default async function DigestPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/account/digest");
 
+  const { getWeeklyDigest } = await import("@/lib/weekly-digest");
   const digest = await getWeeklyDigest();
 
   return (
