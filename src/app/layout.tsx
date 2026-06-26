@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
@@ -70,8 +71,11 @@ export default async function RootLayout({
                 : "border-t border-white/5 px-4 py-6 text-center text-xs text-zinc-500"
             }
           >
-            VIBE Points and Gems are virtual currency for in-app use only. They
-            have no cash value and cannot be withdrawn or transferred.
+            VIBE and Gems are for in-app use. USD buys Gems in the Shop only;
+            Gems cannot be cashed out during early beta.{" "}
+            <Link href="/account#wallet" className="text-zinc-400 underline hover:text-zinc-300">
+              Wallet
+            </Link>
           </footer>
           <MobileNavShell />
         </Providers>

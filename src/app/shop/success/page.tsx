@@ -32,8 +32,8 @@ export default async function ShopSuccessPage() {
       </p>
       {user && (
         <div className="mt-6 flex items-center justify-center gap-2">
-          <BalanceBadge currency="vibe" amount={balances.vibe} />
-          <BalanceBadge currency="gem" amount={balances.gem} />
+          <BalanceBadge currency="vibe" amount={balances.vibe} href="/account#wallet" />
+          <BalanceBadge currency="gem" amount={balances.gem} href="/account#wallet" />
         </div>
       )}
       <div className="mt-8 flex items-center justify-center gap-3">

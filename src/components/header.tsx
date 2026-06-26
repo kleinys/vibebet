@@ -132,7 +132,7 @@ export async function Header({ mobileNavOn }: { mobileNavOn: boolean }) {
                       🔥{streak}
                     </span>
                   )}
-                  <BalanceBadge currency="vibe" amount={balances.vibe} />
+                  <BalanceBadge currency="vibe" amount={balances.vibe} href="/account#wallet" />
                 </div>
               )}
               <div className="hidden items-center gap-2 sm:flex">
@@ -145,8 +145,8 @@ export async function Header({ mobileNavOn }: { mobileNavOn: boolean }) {
                     🔥 {streak}
                   </Link>
                 )}
-                <BalanceBadge currency="vibe" amount={balances.vibe} />
-                <BalanceBadge currency="gem" amount={balances.gem} />
+                <BalanceBadge currency="vibe" amount={balances.vibe} href="/account#wallet" />
+                <BalanceBadge currency="gem" amount={balances.gem} href="/account#wallet" />
               </div>
               <NotificationBell />
               <UserAvatarLink

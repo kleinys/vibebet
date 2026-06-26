@@ -64,8 +64,8 @@ export default async function AccountPage() {
             : "—"}
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <BalanceBadge currency="vibe" amount={balances.vibe} />
-          <BalanceBadge currency="gem" amount={balances.gem} />
+          <BalanceBadge currency="vibe" amount={balances.vibe} href="#wallet" />
+          <BalanceBadge currency="gem" amount={balances.gem} href="#wallet" />
           {streak.currentStreak > 0 && (
             <Link
               href="/account/achievements"

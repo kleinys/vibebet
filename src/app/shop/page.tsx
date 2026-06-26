@@ -7,6 +7,7 @@ import { BundleCard } from "@/components/bundle-card";
 import { ShopItemCard } from "@/components/shop-item-card";
 import { BalanceBadge } from "@/components/balance-badge";
 import { ProCheckoutButton } from "@/components/pro-checkout-button";
+import { CurrencyModelNote } from "@/components/currency-model-note";
 
 export const revalidate = 0;
 
@@ -67,14 +68,15 @@ export default async function ShopPage() {
         <div>
           <h1 className="text-2xl font-semibold">Shop</h1>
           <p className="mt-1 text-sm text-zinc-400">
-            Buy Gems with real money. Spend Gems on cosmetics. Gems never cash
-            out.
+            The only way to spend real money on Vibebet: buy Gems here, then spend
+            on cosmetics or convert to VIBE in your wallet (one-way). No cash
+            withdrawals yet.
           </p>
         </div>
         {user && (
           <div className="flex gap-2">
-            <BalanceBadge currency="vibe" amount={balances.vibe} />
-            <BalanceBadge currency="gem" amount={balances.gem} />
+            <BalanceBadge currency="vibe" amount={balances.vibe} href="/account#wallet" />
+            <BalanceBadge currency="gem" amount={balances.gem} href="/account#wallet" />
           </div>
         )}
       </header>
@@ -120,7 +122,7 @@ export default async function ShopPage() {
           Gem bundles
         </h2>
         <p className="mt-1 text-xs text-zinc-500">
-          Purchases are final. Gems have no cash value.
+          Purchases are final. Gems cannot be cashed out during early beta.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {(bundles ?? []).map((b) => (
@@ -163,6 +165,10 @@ export default async function ShopPage() {
           })}
         </div>
       </section>
+
+      <div className="mt-10">
+        <CurrencyModelNote />
+      </div>
     </div>
   );
 }
