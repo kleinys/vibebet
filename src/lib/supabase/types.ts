@@ -94,6 +94,7 @@ export interface Database {
           referral_code: string | null;
           referred_by: string | null;
           email_digest_enabled: boolean;
+          player_path: string;
           created_at: string;
           updated_at: string;
         };
@@ -108,6 +109,7 @@ export interface Database {
           is_pro?: boolean;
           pro_expires_at?: string | null;
           streak_shields?: number;
+          player_path?: string;
         };
         Update: {
           username?: string | null;
@@ -119,6 +121,7 @@ export interface Database {
           is_pro?: boolean;
           pro_expires_at?: string | null;
           streak_shields?: number;
+          player_path?: string;
         };
         Relationships: [];
       };
@@ -1115,6 +1118,14 @@ export interface Database {
       };
       save_onboarding_interests: {
         Args: { p_interests: string[] };
+        Returns: undefined;
+      };
+      save_onboarding_path: {
+        Args: { p_path: string };
+        Returns: undefined;
+      };
+      set_player_path: {
+        Args: { p_path: string };
         Returns: undefined;
       };
       complete_onboarding: {

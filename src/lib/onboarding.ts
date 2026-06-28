@@ -7,6 +7,7 @@ export interface OnboardingState {
   first_bet_at: string | null;
   completed: boolean;
   skipped: boolean;
+  playerPath: import("@/lib/player-path").PlayerPath;
 }
 
 export async function getOnboardingState(): Promise<OnboardingState | null> {
@@ -26,6 +27,12 @@ export async function getOnboardingState(): Promise<OnboardingState | null> {
     first_bet_at: (raw?.first_bet_at as string) ?? null,
     completed: Boolean(raw?.completed),
     skipped: Boolean(raw?.skipped),
+    playerPath:
+      raw?.player_path === "predict" ||
+      raw?.player_path === "compete" ||
+      raw?.player_path === "watch"
+        ? raw.player_path
+        : "explore",
   };
 }
 

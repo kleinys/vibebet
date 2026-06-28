@@ -5,6 +5,16 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { trackEvent } from "@/lib/analytics";
 import { listMarkets } from "@/lib/markets";
+import { hubForPath, type PlayerPath } from "@/lib/player-path";
+
+export async function savePlayerPath(path: PlayerPath): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("save_onboarding_path", { p_path: path });
+  if (error) return { error: error.message };
+  await trackEvent("onboarding_path_saved", { path });
+  revalidatePath("/onboarding");
+  return {};
+}
 
 export async function saveInterests(interests: string[]): Promise<{ error?: string }> {
   const supabase = await createClient();
@@ -17,12 +27,15 @@ export async function saveInterests(interests: string[]): Promise<{ error?: stri
   return {};
 }
 
-export async function finishOnboarding(skip = false): Promise<void> {
+export async function finishOnboarding(
+  skip = false,
+  path: PlayerPath = "explore",
+): Promise<void> {
   const supabase = await createClient();
   await supabase.rpc("complete_onboarding", { p_skip: skip });
-  await trackEvent(skip ? "onboarding_skipped" : "onboarding_completed");
+  await trackEvent(skip ? "onboarding_skipped" : "onboarding_completed", { path });
   revalidatePath("/", "layout");
-  redirect("/markets");
+  redirect(hubForPath(skip ? "explore" : path));
 }
 
 export async function getStarterMarketId(): Promise<string | null> {

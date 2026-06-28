@@ -16,7 +16,10 @@ export default async function OnboardingPage() {
   if (!user) redirect("/login?next=/onboarding");
 
   const state = await getOnboardingState();
-  if (state?.completed || state?.skipped) redirect("/markets");
+  if (state?.completed || state?.skipped) {
+    const { hubForPath } = await import("@/lib/player-path");
+    redirect(hubForPath(state.playerPath));
+  }
 
   const starterMarketId = await getStarterMarketId();
 
@@ -24,6 +27,7 @@ export default async function OnboardingPage() {
     <OnboardingWizard
       starterMarketId={starterMarketId}
       initialStep={state?.step ?? 0}
+      initialPath={state?.playerPath ?? "explore"}
     />
   );
 }

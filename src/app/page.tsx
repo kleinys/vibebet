@@ -171,9 +171,12 @@ export default async function HomePage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("display_name")
+    .select("display_name, player_path")
     .eq("id", user.id)
     .maybeSingle();
+
+  const { pathOption } = await import("@/lib/player-path");
+  const playerPath = pathOption(profile?.player_path);
 
   const [liveArenaOn, fastOn, paperOn] = await Promise.all([
     isEnabled("live_arena_enabled"),
@@ -190,22 +193,35 @@ export default async function HomePage() {
             <h1 className="text-2xl font-semibold">
               Welcome back, {profile?.display_name ?? "player"}.
             </h1>
-            <p className="mt-1 text-sm text-zinc-400">
-              Pick a market, place a bet, watch the curve move.
-            </p>
+            <p className="mt-1 text-sm text-zinc-400">{playerPath.welcomeLine}</p>
           </div>
-          {showLiveArena && (
+          <div className="flex flex-wrap gap-2">
             <Link
-              href="/games"
-              className="inline-flex items-center gap-2 rounded-xl border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-200 shadow-lg shadow-emerald-500/10 transition hover:border-emerald-300/55 hover:bg-emerald-500/20"
+              href={playerPath.hubHref}
+              className="rounded-md bg-fuchsia-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-fuchsia-500"
             >
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400" />
-              </span>
-              Live Arena — crypto &amp; stock windows
+              {playerPath.emoji} {playerPath.label} hub
             </Link>
-          )}
+            <Link
+              href={playerPath.createHref}
+              className="rounded-md bg-violet-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-violet-500"
+            >
+              Create →
+            </Link>
+            {showLiveArena &&
+              profile?.player_path !== "compete" && (
+                <Link
+                  href="/games"
+                  className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500"
+                >
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-300 opacity-60" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-200" />
+                  </span>
+                  Live Arena
+                </Link>
+              )}
+          </div>
         </div>
       </section>
 

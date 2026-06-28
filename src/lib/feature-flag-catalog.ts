@@ -31,6 +31,7 @@ export const FEATURE_FLAG_CATALOG: FeatureFlagDefinition[] = [
   { key: "weekly_quests_enabled", description: "Weekly quest board with VIBE rewards" },
   { key: "tournaments_enabled", description: "Weekly volume tournament leaderboard" },
   { key: "onboarding_wizard_enabled", description: "First-run onboarding wizard" },
+  { key: "player_path_picker_enabled", description: "Predict / Compete / Watch top bar + onboarding fork" },
   { key: "accuracy_leaderboard_enabled", description: "Accuracy leaderboard page" },
   { key: "creator_hub_enabled", description: "Creator dashboard and tools" },
   { key: "market_suggestions_enabled", description: "Community market suggestions flow" },

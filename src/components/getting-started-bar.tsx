@@ -75,7 +75,7 @@ export async function GettingStartedBar({
             href="/onboarding"
             className="rounded-full border border-violet-400/40 bg-violet-500/10 px-3.5 py-1 font-medium text-violet-200 hover:bg-violet-500/20"
           >
-            Finish setup — step {(onboarding?.step ?? 0) + 1}/5
+            Finish setup — step {Math.min((onboarding?.step ?? 0) + 1, 5)}/5
           </Link>
         )}
 
