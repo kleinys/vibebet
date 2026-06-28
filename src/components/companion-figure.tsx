@@ -1,4 +1,5 @@
 import type { AnimalKind, FigureConfig, HumanArchetype } from "@/lib/companion-figure";
+import { FantasySvgDefs } from "@/components/fantasy-icons";
 
 function AnimalSvg({
   kind,
@@ -236,19 +237,27 @@ export function CompanionFigure({
     <div
       className={`relative inline-flex shrink-0 items-center justify-center ${dim} ${className}`}
     >
+      <div
+        className="absolute inset-0 rounded-full opacity-60 blur-md"
+        style={{
+          background: `radial-gradient(circle, ${palette.aura}66 0%, transparent 70%)`,
+        }}
+      />
       <svg
         viewBox="0 0 120 100"
-        className="h-full w-full drop-shadow-lg"
+        className="relative h-full w-full drop-shadow-[0_0_12px_rgba(167,139,250,0.35)]"
         aria-hidden
       >
+        <FantasySvgDefs id={`fig-${size}`} />
         <defs>
-          <radialGradient id={`aura-${size}`} cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor={palette.aura} stopOpacity="0.35" />
-            <stop offset="100%" stopColor={palette.aura} stopOpacity="0" />
+          <radialGradient id={`aura-${size}`} cx="50%" cy="45%" r="55%">
+            <stop offset="0%" stopColor={palette.aura} stopOpacity="0.55" />
+            <stop offset="70%" stopColor={palette.aura} stopOpacity="0.15" />
+            <stop offset="100%" stopColor="#020617" stopOpacity="0" />
           </radialGradient>
         </defs>
-        <ellipse cx="60" cy="88" rx="42" ry="8" fill="#000" opacity="0.25" />
-        <circle cx="60" cy="50" r="46" fill={`url(#aura-${size})`} />
+        <ellipse cx="60" cy="90" rx="38" ry="7" fill="#020617" opacity="0.6" />
+        <circle cx="60" cy="48" r="44" fill={`url(#aura-${size})`} />
 
         {companion.stage <= 2 && (
           <ellipse cx="60" cy="78" rx="28" ry="10" fill="#27272a" opacity="0.6" />
@@ -304,12 +313,16 @@ export function CompanionFigureScene({
   labels?: { humanTitle: string; animalTitle: string };
 }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-fuchsia-500/25 bg-gradient-to-b from-zinc-900 via-zinc-950 to-black p-4 shadow-inner shadow-fuchsia-900/20">
+    <div className="relative overflow-hidden rounded-2xl border border-violet-500/30 bg-gradient-to-b from-[#0a1628] via-[#020617] to-black p-4 shadow-inner shadow-violet-900/30 ring-1 ring-violet-400/10">
       <div
-        className="pointer-events-none absolute inset-0 opacity-40"
+        className="pointer-events-none absolute inset-0 opacity-50"
         style={{
-          background: `radial-gradient(circle at 50% 80%, ${config.palette.aura}55 0%, transparent 65%)`,
+          background: `radial-gradient(circle at 50% 75%, ${config.palette.aura}44 0%, transparent 60%)`,
         }}
+      />
+      <div
+        className="pointer-events-none absolute -top-8 left-1/2 h-24 w-24 -translate-x-1/2 rounded-full blur-2xl"
+        style={{ backgroundColor: `${config.palette.aura}33` }}
       />
       <div className="relative flex flex-col items-center">
         <CompanionFigure config={config} size="xl" />

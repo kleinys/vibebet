@@ -48,7 +48,10 @@ export function VibeCompanionLink({
   title?: string;
 }) {
   return (
-    <Link href={href} className="inline-flex shrink-0 rounded-full ring-2 ring-fuchsia-500/30 hover:ring-fuchsia-400/50">
+    <Link
+      href={href}
+      className="inline-flex shrink-0 rounded-full ring-2 ring-violet-500/40 shadow-lg shadow-violet-900/30 transition hover:ring-fuchsia-400/60 hover:shadow-fuchsia-900/40"
+    >
       <VibeCompanion input={input} title={title} />
     </Link>
   );

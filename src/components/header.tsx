@@ -9,8 +9,6 @@ import {
 } from "@/lib/streaks";
 import { getCompanionInput } from "@/lib/companion-stats";
 import { VibeCompanionLink } from "@/components/vibe-companion";
-import { resolveFigureConfig } from "@/lib/companion-figure";
-import { CompanionFigure } from "@/components/companion-figure";
 import { isEnabled } from "@/lib/feature-flags";
 
 export async function Header({ mobileNavOn }: { mobileNavOn: boolean }) {
@@ -128,34 +126,26 @@ export async function Header({ mobileNavOn }: { mobileNavOn: boolean }) {
             <>
               {mobileNavOn && (
                 <div className="flex items-center gap-1.5 sm:hidden">
-                  {streak >= 1 && companionInput && (
+                  {streak >= 1 && (
                     <Link
                       href="/account/achievements"
-                      className="inline-flex items-center gap-1 rounded-md bg-amber-600 px-1.5 py-1 text-xs font-medium text-white shadow-sm hover:bg-amber-500"
-                      title="Daily streak & companion"
+                      className="inline-flex items-center gap-1 rounded-md bg-gradient-to-r from-amber-600 to-orange-600 px-2 py-1 text-xs font-medium text-white shadow-md shadow-amber-900/40 ring-1 ring-amber-400/30 hover:from-amber-500 hover:to-orange-500"
+                      title="Daily login streak"
                     >
-                      <CompanionFigure
-                        config={resolveFigureConfig(companionInput)}
-                        size="sm"
-                      />
-                      {streak}
+                      🔥 {streak}
                     </Link>
                   )}
                   <BalanceBadge currency="vibe" amount={balances.vibe} href="/account#wallet" />
                 </div>
               )}
               <div className="hidden items-center gap-2 sm:flex">
-                {streak >= 1 && companionInput && (
+                {streak >= 1 && (
                   <Link
                     href="/account/achievements"
-                    className="inline-flex items-center gap-1.5 rounded-md bg-amber-600 px-2 py-1 text-xs font-medium text-white shadow-sm hover:bg-amber-500"
-                    title="Daily streak & companion"
+                    className="inline-flex items-center gap-1.5 rounded-md bg-gradient-to-r from-amber-600 to-orange-600 px-2.5 py-1 text-xs font-medium text-white shadow-md shadow-amber-900/40 ring-1 ring-amber-400/30 hover:from-amber-500 hover:to-orange-500"
+                    title="Daily login streak"
                   >
-                    <CompanionFigure
-                      config={resolveFigureConfig(companionInput)}
-                      size="sm"
-                    />
-                    {streak} day{streak === 1 ? "" : "s"}
+                    🔥 {streak} day{streak === 1 ? "" : "s"}
                   </Link>
                 )}
                 <BalanceBadge currency="vibe" amount={balances.vibe} href="/account#wallet" />

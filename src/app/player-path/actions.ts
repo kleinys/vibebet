@@ -20,8 +20,14 @@ export async function setPlayerPath(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Sign in required." };
 
-  const { error } = await supabase.rpc("set_player_path", { p_path: path });
-  if (error) return { error: error.message };
+  const { error: rpcError } = await supabase.rpc("set_player_path", { p_path: path });
+  if (rpcError) {
+    const { error: updError } = await supabase
+      .from("profiles")
+      .update({ player_path: path })
+      .eq("id", user.id);
+    if (updError) return { error: updError.message };
+  }
 
   await trackEvent("player_path_set", { path });
   revalidatePath("/", "layout");
