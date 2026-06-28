@@ -6,7 +6,12 @@ import {
   getStreaksForUsers,
   getUserLeaderboardStats,
 } from "@/lib/leaderboard-stats";
+import {
+  getEquippedCosmeticsForUsers,
+  getUsernamesForUsers,
+} from "@/lib/cosmetics";
 import { tierFromProfit } from "@/lib/ranks";
+import { UserAvatarLink } from "@/components/user-avatar";
 
 export const revalidate = 0;
 
@@ -25,9 +30,12 @@ export default async function LeaderboardPage() {
     errorMessage = e instanceof Error ? e.message : "Failed to load leaderboard.";
   }
 
-  const [streaks, myStats] = await Promise.all([
-    getStreaksForUsers(rows.map((r) => r.user_id)),
+  const userIds = rows.map((r) => r.user_id);
+  const [streaks, myStats, cosmetics, usernames] = await Promise.all([
+    getStreaksForUsers(userIds),
     user ? getUserLeaderboardStats(user.id) : Promise.resolve(null),
+    getEquippedCosmeticsForUsers(userIds),
+    getUsernamesForUsers(userIds),
   ]);
 
   const podium = rows.slice(0, 3);
@@ -114,6 +122,9 @@ export default async function LeaderboardPage() {
           {podium.map((r, i) => {
             const tier = tierFromProfit(r.profit);
             const medals = ["🥇", "🥈", "🥉"];
+            const look = cosmetics.get(r.user_id);
+            const username = usernames.get(r.user_id);
+            const playerHref = username ? `/players/${username}` : null;
             return (
               <div
                 key={r.user_id}
@@ -124,8 +135,34 @@ export default async function LeaderboardPage() {
                 }`}
               >
                 <div className="text-2xl">{medals[i]}</div>
-                <div className="mt-2 font-medium text-zinc-100">
-                  {r.display_name}
+                <div className="mt-2 flex items-center gap-2">
+                  {playerHref ? (
+                    <UserAvatarLink
+                      slug={look?.skin?.slug}
+                      badgeSlug={look?.badge?.slug}
+                      href={playerHref}
+                      title={r.display_name}
+                    />
+                  ) : (
+                    <UserAvatarLink
+                      slug={look?.skin?.slug}
+                      badgeSlug={look?.badge?.slug}
+                      href="/leaderboard"
+                      title={r.display_name}
+                    />
+                  )}
+                  {playerHref ? (
+                    <Link
+                      href={playerHref}
+                      className="font-medium text-zinc-100 hover:underline"
+                    >
+                      {r.display_name}
+                    </Link>
+                  ) : (
+                    <div className="font-medium text-zinc-100">
+                      {r.display_name}
+                    </div>
+                  )}
                 </div>
                 <div className={`mt-0.5 text-xs ${tier.colorClass}`}>
                   {tier.emoji} {tier.title}
@@ -161,6 +198,9 @@ export default async function LeaderboardPage() {
                 const tier = tierFromProfit(r.profit);
                 const streak = streaks.get(r.user_id) ?? 0;
                 const isMe = user?.id === r.user_id;
+                const look = cosmetics.get(r.user_id);
+                const username = usernames.get(r.user_id);
+                const playerHref = username ? `/players/${username}` : null;
                 return (
                   <tr
                     key={r.user_id}
@@ -168,12 +208,35 @@ export default async function LeaderboardPage() {
                   >
                     <td className="px-4 py-2 text-zinc-500">{r.rank}</td>
                     <td className="px-4 py-2 text-zinc-200">
-                      {r.display_name}
-                      {isMe && (
-                        <span className="ml-2 text-[10px] text-fuchsia-400">
-                          you
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {playerHref ? (
+                          <UserAvatarLink
+                            slug={look?.skin?.slug}
+                            badgeSlug={look?.badge?.slug}
+                            href={playerHref}
+                            title={r.display_name}
+                          />
+                        ) : (
+                          <UserAvatarLink
+                            slug={look?.skin?.slug}
+                            badgeSlug={look?.badge?.slug}
+                            href="/leaderboard"
+                            title={r.display_name}
+                          />
+                        )}
+                        {playerHref ? (
+                          <Link href={playerHref} className="hover:underline">
+                            {r.display_name}
+                          </Link>
+                        ) : (
+                          r.display_name
+                        )}
+                        {isMe && (
+                          <span className="text-[10px] text-fuchsia-400">
+                            you
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className={`px-4 py-2 text-xs ${tier.colorClass}`}>
                       {tier.emoji} {tier.title}

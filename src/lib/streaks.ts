@@ -5,6 +5,7 @@ export interface StreakInfo {
   currentStreak: number;
   longestStreak: number;
   lastActiveDate: string | null;
+  streakShields: number;
 }
 
 export async function maybeRecordDailyActivity(): Promise<void> {
@@ -27,7 +28,7 @@ export async function getStreakInfo(userId: string): Promise<StreakInfo> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("profiles")
-    .select("current_streak, longest_streak, last_active_date")
+    .select("current_streak, longest_streak, last_active_date, streak_shields")
     .eq("id", userId)
     .maybeSingle();
 
@@ -35,6 +36,7 @@ export async function getStreakInfo(userId: string): Promise<StreakInfo> {
     currentStreak: data?.current_streak ?? 0,
     longestStreak: data?.longest_streak ?? 0,
     lastActiveDate: data?.last_active_date ?? null,
+    streakShields: data?.streak_shields ?? 0,
   };
 }
 

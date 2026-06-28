@@ -8,6 +8,8 @@ import { WalletCurrencySection } from "@/components/wallet-currency-section";
 import { formatVibe } from "@/lib/utils";
 import { getStreakInfo, maybeRecordDailyActivity } from "@/lib/streaks";
 import { getUserLeaderboardStats } from "@/lib/leaderboard-stats";
+import { InventoryItemCard } from "@/components/inventory-item-card";
+import type { ItemKind, Rarity } from "@/lib/supabase/types";
 import { progressToNextTier } from "@/lib/ranks";
 
 export const revalidate = 0;
@@ -73,6 +75,11 @@ export default async function AccountPage() {
             >
               🔥 {streak.currentStreak}-day streak
             </Link>
+          )}
+          {streak.streakShields > 0 && (
+            <span className="rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-sm text-emerald-200">
+              🛡 {streak.streakShields} shield{streak.streakShields === 1 ? "" : "s"}
+            </span>
           )}
           <Link
             href="/leaderboard"
@@ -215,16 +222,17 @@ export default async function AccountPage() {
               const item = Array.isArray(inv.shop_items)
                 ? inv.shop_items[0]
                 : inv.shop_items;
+              if (!item) return null;
               return (
-                <li
+                <InventoryItemCard
                   key={inv.id}
-                  className="rounded-lg border border-white/5 bg-zinc-900/40 p-3"
-                >
-                  <div className="text-[10px] uppercase tracking-wider text-zinc-500">
-                    {item?.kind} · {item?.rarity}
-                  </div>
-                  <div className="mt-1 text-sm font-medium">{item?.name}</div>
-                </li>
+                  inventoryId={inv.id}
+                  slug={item.slug}
+                  name={item.name}
+                  kind={item.kind as ItemKind}
+                  rarity={item.rarity as Rarity}
+                  isEquipped={inv.is_equipped}
+                />
               );
             })}
           </ul>

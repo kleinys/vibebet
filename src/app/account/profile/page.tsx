@@ -3,10 +3,12 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AccountNav } from "@/components/account-nav";
 import { ProfileForm } from "@/components/profile-form";
-import { getEquippedCosmetic } from "@/lib/cosmetics";
-import { UserAvatar } from "@/components/user-avatar";
+import { getEquippedCosmetics } from "@/lib/cosmetics";
+import { getCompanionInput } from "@/lib/companion-stats";
+import { VibeCompanionCard } from "@/components/vibe-companion";
 import { getMyGuild } from "@/lib/guilds";
 import { isEnabled } from "@/lib/feature-flags";
+import { getStreakInfo } from "@/lib/streaks";
 
 export const revalidate = 0;
 
@@ -23,40 +25,49 @@ export default async function ProfilePage() {
     .eq("id", user.id)
     .maybeSingle();
 
-  const equipped = await getEquippedCosmetic(user.id).catch(() => null);
   const guildsOn = await isEnabled("guilds_enabled");
-  const myGuild = guildsOn ? await getMyGuild().catch(() => null) : null;
+  const [equipped, streak, companionInput, myGuild] = await Promise.all([
+    getEquippedCosmetics(user.id).catch(() => ({ skin: null, badge: null })),
+    getStreakInfo(user.id),
+    getCompanionInput(user.id).catch(() => ({
+      currentStreak: 0,
+      streakShields: 0,
+      inventoryCount: 0,
+    })),
+    guildsOn ? getMyGuild().catch(() => null) : Promise.resolve(null),
+  ]);
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
       <h1 className="text-2xl font-semibold">Account</h1>
       <AccountNav active="/account/profile" />
 
-      <section className="mt-6 rounded-xl border border-white/5 bg-zinc-900/40 p-5">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-          Equipped look
+      <section className="mt-6 overflow-hidden rounded-2xl border border-fuchsia-500/30 bg-gradient-to-br from-zinc-900/80 to-zinc-950 p-6 shadow-lg shadow-fuchsia-950/30">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-fuchsia-300/90">
+          Your trainer &amp; companion
         </h2>
-        <div className="mt-3 flex items-center gap-3">
-          <UserAvatar slug={equipped?.slug} size="md" />
-          <div>
-            <p className="text-sm font-medium text-zinc-100">
-              {equipped?.name ?? "Default Oracle"}
-            </p>
-            <p className="text-xs text-zinc-500">
-              {equipped
-                ? "Visible in the header and on your profile."
-                : "Equip a skin from the Shop to customize your avatar."}
-            </p>
-            {!equipped && (
-              <Link
-                href="/shop"
-                className="mt-1 inline-block text-xs text-fuchsia-400 hover:underline"
-              >
-                Browse shop →
-              </Link>
-            )}
-          </div>
+        <p className="mt-1 text-xs text-zinc-500">
+          Human form + spirit animal — both evolve with streaks and shop items.
+        </p>
+        <div className="mt-5">
+          <VibeCompanionCard input={companionInput} />
         </div>
+        <p className="mt-4 text-xs text-zinc-500">
+          Equipped: {equipped.skin?.name ?? "Default Oracle"}
+          {equipped.badge ? ` · ${equipped.badge.name}` : ""}.
+          {" "}
+          <Link href="/shop" className="text-fuchsia-400 hover:underline">
+            Get more items →
+          </Link>
+        </p>
+        {profile?.username && (
+          <Link
+            href={`/players/${profile.username}`}
+            className="mt-2 inline-block text-xs text-fuchsia-400 hover:underline"
+          >
+            View public profile →
+          </Link>
+        )}
       </section>
 
       {myGuild && (
@@ -95,7 +106,14 @@ export default async function ProfilePage() {
           {profile?.username && (
             <div className="flex items-center justify-between">
               <dt className="text-zinc-500">Username</dt>
-              <dd className="text-zinc-200">@{profile.username}</dd>
+              <dd className="text-zinc-200">
+                <Link
+                  href={`/players/${profile.username}`}
+                  className="text-fuchsia-300 hover:underline"
+                >
+                  @{profile.username}
+                </Link>
+              </dd>
             </div>
           )}
           <div className="flex items-center justify-between">

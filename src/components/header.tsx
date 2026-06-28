@@ -7,8 +7,10 @@ import {
   getStreakInfo,
   maybeRecordDailyActivity,
 } from "@/lib/streaks";
-import { getEquippedCosmetic } from "@/lib/cosmetics";
-import { UserAvatarLink } from "@/components/user-avatar";
+import { getCompanionInput } from "@/lib/companion-stats";
+import { VibeCompanionLink } from "@/components/vibe-companion";
+import { resolveFigureConfig } from "@/lib/companion-figure";
+import { CompanionFigure } from "@/components/companion-figure";
 import { isEnabled } from "@/lib/feature-flags";
 
 export async function Header({ mobileNavOn }: { mobileNavOn: boolean }) {
@@ -29,7 +31,7 @@ export async function Header({ mobileNavOn }: { mobileNavOn: boolean }) {
 
   let balances = { vibe: 0, gem: 0 };
   let streak = 0;
-  let equippedSlug: string | undefined;
+  let companionInput: Awaited<ReturnType<typeof getCompanionInput>> | null = null;
   let duelsOn = false;
   let guildsOn = false;
   let copyOn = false;
@@ -59,8 +61,7 @@ export async function Header({ mobileNavOn }: { mobileNavOn: boolean }) {
       // Profile columns may not exist until migration 16.
     }
     try {
-      const cosmetic = await getEquippedCosmetic(user.id);
-      equippedSlug = cosmetic?.slug;
+      companionInput = await getCompanionInput(user.id);
     } catch {
       // Shop tables may not exist yet.
     }
@@ -127,33 +128,57 @@ export async function Header({ mobileNavOn }: { mobileNavOn: boolean }) {
             <>
               {mobileNavOn && (
                 <div className="flex items-center gap-1.5 sm:hidden">
-                  {streak >= 1 && (
-                    <span className="text-xs text-amber-200" title="Daily streak">
-                      🔥{streak}
-                    </span>
+                  {streak >= 1 && companionInput && (
+                    <Link
+                      href="/account/achievements"
+                      className="inline-flex items-center gap-1 rounded-md bg-amber-600 px-1.5 py-1 text-xs font-medium text-white shadow-sm hover:bg-amber-500"
+                      title="Daily streak & companion"
+                    >
+                      <CompanionFigure
+                        config={resolveFigureConfig(companionInput)}
+                        size="sm"
+                      />
+                      {streak}
+                    </Link>
                   )}
                   <BalanceBadge currency="vibe" amount={balances.vibe} href="/account#wallet" />
                 </div>
               )}
               <div className="hidden items-center gap-2 sm:flex">
-                {streak >= 1 && (
+                {streak >= 1 && companionInput && (
                   <Link
                     href="/account/achievements"
-                    className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-xs font-medium text-amber-200"
-                    title="Daily login streak"
+                    className="inline-flex items-center gap-1.5 rounded-md bg-amber-600 px-2 py-1 text-xs font-medium text-white shadow-sm hover:bg-amber-500"
+                    title="Daily streak & companion"
                   >
-                    🔥 {streak}
+                    <CompanionFigure
+                      config={resolveFigureConfig(companionInput)}
+                      size="sm"
+                    />
+                    {streak} day{streak === 1 ? "" : "s"}
                   </Link>
                 )}
                 <BalanceBadge currency="vibe" amount={balances.vibe} href="/account#wallet" />
                 <BalanceBadge currency="gem" amount={balances.gem} href="/account#wallet" />
               </div>
               <NotificationBell />
-              <UserAvatarLink
-                slug={equippedSlug}
-                href="/account/profile"
-                title="Your profile"
-              />
+              {companionInput ? (
+                <VibeCompanionLink
+                  input={companionInput}
+                  href="/account/profile"
+                  title="Your Vibe companion"
+                />
+              ) : (
+                <VibeCompanionLink
+                  input={{
+                    currentStreak: streak,
+                    streakShields: 0,
+                    inventoryCount: 0,
+                  }}
+                  href="/account/profile"
+                  title="Your profile"
+                />
+              )}
               <Link
                 href="/account"
                 className="hidden max-w-[140px] truncate text-sm text-zinc-300 hover:text-white lg:inline"

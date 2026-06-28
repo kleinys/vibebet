@@ -8,6 +8,7 @@ import { ShopItemCard } from "@/components/shop-item-card";
 import { BalanceBadge } from "@/components/balance-badge";
 import { ProCheckoutButton } from "@/components/pro-checkout-button";
 import { CurrencyModelNote } from "@/components/currency-model-note";
+import { getStreakInfo } from "@/lib/streaks";
 
 export const revalidate = 0;
 
@@ -32,7 +33,7 @@ export default async function ShopPage() {
 
   const proEnabled = await isEnabled("pro_subscription_enabled");
 
-  const [{ data: bundles }, { data: items }, balances, inventoryRows, isPro] =
+  const [{ data: bundles }, { data: items }, balances, inventoryRows, isPro, streakInfo] =
     await Promise.all([
       supabase
         .from("gem_bundles")
@@ -55,6 +56,9 @@ export default async function ShopPage() {
             .then((r) => r.data ?? [])
         : Promise.resolve([]),
       user ? isProUser(user.id) : Promise.resolve(false),
+      user
+        ? getStreakInfo(user.id)
+        : Promise.resolve({ streakShields: 0 } as Awaited<ReturnType<typeof getStreakInfo>>),
     ]);
 
   const ownedItems = new Set(inventoryRows.map((x) => x.item_id));
@@ -161,6 +165,7 @@ export default async function ShopPage() {
               isEquipped={inv?.is_equipped ?? false}
               affordable={balances.gem >= it.price_gems}
               signedIn={!!user}
+              streakShields={streakInfo.streakShields}
             />
             );
           })}

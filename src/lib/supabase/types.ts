@@ -88,6 +88,7 @@ export interface Database {
           brier_sum: number;
           is_pro: boolean;
           pro_expires_at: string | null;
+          streak_shields: number;
           stripe_customer_id: string | null;
           push_notifications_enabled: boolean;
           referral_code: string | null;
@@ -106,6 +107,7 @@ export interface Database {
           last_active_date?: string | null;
           is_pro?: boolean;
           pro_expires_at?: string | null;
+          streak_shields?: number;
         };
         Update: {
           username?: string | null;
@@ -116,6 +118,7 @@ export interface Database {
           last_active_date?: string | null;
           is_pro?: boolean;
           pro_expires_at?: string | null;
+          streak_shields?: number;
         };
         Relationships: [];
       };
@@ -605,7 +608,15 @@ export interface Database {
         };
         Insert: never;
         Update: { is_equipped?: boolean };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "user_inventory_item_id_fkey";
+            columns: ["item_id"];
+            isOneToOne: false;
+            referencedRelation: "shop_items";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       gem_bundles: {
         Row: {
@@ -969,6 +980,10 @@ export interface Database {
       record_daily_activity: {
         Args: Record<string, never>;
         Returns: Record<string, unknown>;
+      };
+      get_public_profile: {
+        Args: { p_username: string };
+        Returns: Record<string, unknown> | null;
       };
       check_achievements: {
         Args: { p_user_id?: string };

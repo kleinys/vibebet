@@ -3,6 +3,7 @@ import { isEnabled } from "@/lib/feature-flags";
 import { listFastMarkets, tickFastMarkets } from "@/lib/fast-markets";
 import { getActiveSpectatorDuels } from "@/lib/duels";
 import { LiveArenaBoard } from "@/components/live-arena-board";
+import { FilledNavLink } from "@/components/filled-nav-link";
 import {
   fetchLiveArenaPrices,
   pricesToTickPayload,
@@ -148,39 +149,24 @@ export default async function GamesPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           {equitiesOn && (
-            <Link
-              href="/markets/equities"
-              className="rounded-md border border-sky-500/40 px-4 py-2 text-sm font-medium text-sky-200 hover:bg-sky-500/10"
-            >
+            <FilledNavLink href="/markets/equities" tone="sky">
               Equities
-            </Link>
+            </FilledNavLink>
           )}
           {liveEventsOn && (
-            <Link
-              href="/live"
-              className="rounded-md border border-fuchsia-500/40 px-4 py-2 text-sm font-medium text-fuchsia-200 hover:bg-fuchsia-500/10"
-            >
+            <FilledNavLink href="/live" tone="fuchsia">
               Watch &amp; Bet
-            </Link>
+            </FilledNavLink>
           )}
-          <Link
-            href="/games/create"
-            className="rounded-md bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-500"
-          >
+          <FilledNavLink href="/games/create" tone="violet">
             Create game
-          </Link>
-          <Link
-            href="/games/duels"
-            className="rounded-md border border-violet-500/40 px-4 py-2 text-sm font-medium text-violet-200 hover:bg-violet-500/10"
-          >
+          </FilledNavLink>
+          <FilledNavLink href="/games/duels" tone="violet">
             Duel hub
-          </Link>
-          <Link
-            href="/markets/new/recurring"
-            className="rounded-md border border-violet-500/40 px-4 py-2 text-sm font-medium text-violet-200 hover:bg-violet-500/10"
-          >
+          </FilledNavLink>
+          <FilledNavLink href="/markets/new/recurring" tone="emerald">
             Run your crypto series
-          </Link>
+          </FilledNavLink>
         </div>
       </div>
 

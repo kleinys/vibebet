@@ -125,7 +125,7 @@ export async function buyItem(
 }
 
 /**
- * Equip / unequip a skin. (Phase 1.5 just tracks state; no rendering yet.)
+ * Equip / unequip a skin or badge. Only one item per kind can be equipped.
  */
 export async function setEquipped(
   _prev: ShopState,
@@ -144,12 +144,40 @@ export async function setEquipped(
   } = await supabase.auth.getUser();
   if (!user) return { error: "Sign in required." };
 
+  const { data: target } = await supabase
+    .from("user_inventory")
+    .select("id, shop_items (kind)")
+    .eq("id", inventoryId.data)
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (!target?.shop_items) return { error: "Item not found." };
+  const item = Array.isArray(target.shop_items)
+    ? target.shop_items[0]
+    : target.shop_items;
+  const kind = item?.kind;
+  if (kind !== "skin" && kind !== "badge") {
+    return { error: "Only skins and badges can be equipped." };
+  }
+
   if (equip.data) {
-    await supabase
+    const { data: owned } = await supabase
       .from("user_inventory")
-      .update({ is_equipped: false })
+      .select("id, shop_items!inner (kind)")
       .eq("user_id", user.id)
-      .neq("id", inventoryId.data);
+      .eq("shop_items.kind", kind);
+
+    const idsToClear = (owned ?? [])
+      .map((row) => row.id)
+      .filter((id) => id !== inventoryId.data);
+
+    if (idsToClear.length > 0) {
+      await supabase
+        .from("user_inventory")
+        .update({ is_equipped: false })
+        .eq("user_id", user.id)
+        .in("id", idsToClear);
+    }
   }
 
   const { error } = await supabase
@@ -159,7 +187,9 @@ export async function setEquipped(
     .eq("user_id", user.id);
   if (error) return { error: error.message };
   revalidatePath("/account");
+  revalidatePath("/account/profile");
   revalidatePath("/shop");
+  revalidatePath("/leaderboard");
   revalidatePath("/");
   return { ok: equip.data ? "Equipped." : "Unequipped." };
 }

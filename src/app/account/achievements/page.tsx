@@ -8,6 +8,8 @@ import {
   getUnlockedAchievementIds,
   maybeRecordDailyActivity,
 } from "@/lib/streaks";
+import { getCompanionInput } from "@/lib/companion-stats";
+import { VibeCompanionCard } from "@/components/vibe-companion";
 
 export const revalidate = 0;
 
@@ -20,9 +22,14 @@ export default async function AchievementsPage() {
 
   await maybeRecordDailyActivity();
 
-  const [streak, unlocked] = await Promise.all([
+  const [streak, unlocked, companionInput] = await Promise.all([
     getStreakInfo(user.id),
     getUnlockedAchievementIds(user.id),
+    getCompanionInput(user.id).catch(() => ({
+      currentStreak: 0,
+      streakShields: 0,
+      inventoryCount: 0,
+    })),
   ]);
 
   const unlockedCount = ACHIEVEMENTS.filter((a) => unlocked.has(a.id)).length;
@@ -38,9 +45,22 @@ export default async function AchievementsPage() {
 
       <AccountNav active="/account/achievements" />
 
-      <section className="mt-6 grid gap-4 sm:grid-cols-3">
+      <section className="mt-6 rounded-xl border border-fuchsia-500/20 bg-fuchsia-500/5 p-5">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-fuchsia-300/80">
+          Vibe companion
+        </h2>
+        <div className="mt-4">
+          <VibeCompanionCard input={companionInput} />
+        </div>
+      </section>
+
+      <section className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Current streak" value={`${streak.currentStreak} days`} />
         <StatCard label="Longest streak" value={`${streak.longestStreak} days`} />
+        <StatCard
+          label="Streak shields"
+          value={`${streak.streakShields} ready`}
+        />
         <StatCard
           label="Last active"
           value={
