@@ -100,19 +100,20 @@ body {
 /* Elliptical orbit around centered trainer */
 .companion-orbit-track {
   position: absolute;
+  top: 44%;
   left: 50%;
-  bottom: 8%;
-  width: min(92%, 400px);
-  height: min(62%, 280px);
-  transform: translateX(-50%);
+  bottom: auto;
+  width: min(112%, 520px);
+  height: min(82%, 420px);
+  transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 2;
 }
 
 .companion-orbit-track--spirit {
-  bottom: 6%;
-  width: min(98%, 440px);
-  height: min(68%, 310px);
+  top: 44%;
+  width: min(118%, 560px);
+  height: min(88%, 460px);
   z-index: 10;
 }
 
@@ -120,9 +121,9 @@ body {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 1px solid color-mix(in srgb, var(--spirit-element) 35%, transparent);
-  box-shadow: 0 0 20px var(--spirit-element-soft);
-  opacity: 0.45;
+  border: 1px solid color-mix(in srgb, var(--spirit-element) 18%, transparent);
+  box-shadow: 0 0 14px var(--spirit-element-soft);
+  opacity: 0.18;
 }
 
 .companion-orbit-carrier {
@@ -134,10 +135,10 @@ body {
 .companion-orbit-spirit-anchor {
   position: absolute;
   left: 50%;
-  top: -4%;
-  width: 52%;
-  height: 58%;
-  transform: translateX(-50%);
+  top: 0;
+  width: 44%;
+  height: 50%;
+  transform: translate(-50%, -6%);
 }
 
 .companion-orbit-spirit {
@@ -151,13 +152,134 @@ body {
 }
 
 .companion-orbit-spirit-inner {
+  position: relative;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   width: 100%;
   height: 100%;
   transform-origin: center bottom;
-  animation: companion-spirit-morph var(--orbit-duration, 16s) ease-in-out infinite;
+}
+
+.companion-orbit-animal-img {
+  position: relative;
+  z-index: 2;
+  background: transparent;
+  animation: companion-animal-form var(--orbit-duration, 14s) ease-in-out infinite;
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.45))
+    drop-shadow(0 0 18px var(--spirit-element-soft));
+}
+
+/* Spirit element ball — fox becomes fire while passing behind trainer */
+.companion-spirit-element {
+  position: absolute;
+  left: 50%;
+  bottom: 8%;
+  z-index: 1;
+  width: 80px;
+  height: 80px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  animation: companion-element-form var(--orbit-duration, 14s) ease-in-out infinite;
+}
+
+.companion-spirit-element__core {
+  position: absolute;
+  inset: 22%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #fff7c2 0%, #ffb020 35%, #ff5a00 72%, #8b1a00 100%);
+  box-shadow:
+    0 0 24px 8px rgba(255, 120, 0, 0.85),
+    0 0 48px 16px rgba(255, 60, 0, 0.45);
+  animation: companion-fire-core-flicker 0.45s ease-in-out infinite alternate;
+}
+
+.companion-spirit-element__halo {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 180, 60, 0.55) 0%, transparent 68%);
+  filter: blur(2px);
+  animation: companion-fire-halo-pulse 0.8s ease-in-out infinite alternate;
+}
+
+.companion-spirit-element__flame {
+  position: absolute;
+  left: 50%;
+  bottom: 38%;
+  width: 28px;
+  height: 44px;
+  margin-left: -14px;
+  border-radius: 50% 50% 20% 20%;
+  background: linear-gradient(to top, #ff5a00 0%, #ffb020 55%, transparent 100%);
+  filter: blur(1px);
+  transform-origin: center bottom;
+  opacity: 0.85;
+}
+
+.companion-spirit-element__flame--1 {
+  animation: companion-fire-flame-a 0.55s ease-in-out infinite alternate;
+}
+
+.companion-spirit-element__flame--2 {
+  width: 22px;
+  height: 36px;
+  margin-left: -24px;
+  transform: rotate(-18deg);
+  animation: companion-fire-flame-b 0.7s ease-in-out infinite alternate-reverse;
+}
+
+.companion-spirit-element__flame--3 {
+  width: 22px;
+  height: 36px;
+  margin-left: 2px;
+  transform: rotate(18deg);
+  animation: companion-fire-flame-c 0.62s ease-in-out infinite alternate;
+}
+
+.companion-spirit-element__trail {
+  position: absolute;
+  left: 50%;
+  bottom: 18%;
+  width: 52px;
+  height: 52px;
+  margin-left: -26px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 140, 0, 0.5) 0%, transparent 72%);
+  filter: blur(6px);
+  animation: companion-fire-trail-spin var(--orbit-duration, 14s) linear infinite;
+}
+
+.companion-spirit-element--arcane .companion-spirit-element__core {
+  background: radial-gradient(circle at 40% 35%, #f5e6ff 0%, var(--spirit-element) 45%, #4c1d95 100%);
+  box-shadow: 0 0 28px 10px var(--spirit-element-soft);
+}
+
+.companion-spirit-element--arcane .companion-spirit-element__flame {
+  background: linear-gradient(to top, var(--spirit-element) 0%, #e9d5ff 60%, transparent 100%);
+}
+
+.companion-spirit-element--storm .companion-spirit-element__core {
+  background: radial-gradient(circle at 40% 35%, #e0f2fe 0%, #38bdf8 40%, #1d4ed8 100%);
+  box-shadow: 0 0 28px 10px rgba(56, 189, 248, 0.55);
+}
+
+.companion-spirit-element--storm .companion-spirit-element__flame {
+  background: linear-gradient(to top, #1d4ed8 0%, #7dd3fc 55%, transparent 100%);
+}
+
+.companion-spirit-element--lunar .companion-spirit-element__core {
+  background: radial-gradient(circle at 40% 35%, #fafafa 0%, #cbd5e1 40%, #64748b 100%);
+  box-shadow: 0 0 28px 10px rgba(203, 213, 225, 0.55);
+}
+
+.companion-spirit-element--lunar .companion-spirit-element__flame {
+  background: linear-gradient(to top, #64748b 0%, #e2e8f0 55%, transparent 100%);
+}
+
+.companion-spirit-element--solar .companion-spirit-element__core {
+  background: radial-gradient(circle at 40% 35%, #fffbeb 0%, #fbbf24 40%, #ea580c 100%);
+  box-shadow: 0 0 28px 10px rgba(251, 191, 36, 0.55);
 }
 
 .companion-element-wisp-host {
@@ -286,8 +408,8 @@ body {
 }
 
 .companion-figure-raster--orbit {
-  max-height: min(58vw, 320px);
-  min-height: 160px;
+  max-height: min(46vw, 240px);
+  min-height: 120px;
   height: auto;
   width: auto;
 }
@@ -412,25 +534,111 @@ body {
   }
 }
 
-@keyframes companion-spirit-morph {
+@keyframes companion-animal-form {
   0%,
-  14%,
-  86%,
+  12%,
+  88%,
   100% {
     opacity: 1;
     transform: scale(1);
-    filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 20px var(--figure-aura));
+    filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.45))
+      drop-shadow(0 0 18px var(--spirit-element-soft));
   }
-  42%,
-  58% {
-    opacity: 0.82;
-    transform: scale(0.78);
-    filter: blur(3px) brightness(1.35) drop-shadow(0 0 28px var(--spirit-element));
+  6%,
+  94% {
+    opacity: 0.55;
+    transform: scale(0.82);
+    filter: blur(2px) brightness(1.35) drop-shadow(0 0 24px var(--spirit-element));
   }
-  50% {
-    opacity: 0.72;
-    transform: scale(0.68);
-    filter: blur(5px) brightness(1.5) drop-shadow(0 0 36px var(--spirit-element));
+  68%,
+  78% {
+    opacity: 0;
+    transform: scale(0.12);
+    filter: blur(6px) brightness(1.8);
+  }
+}
+
+@keyframes companion-element-form {
+  0%,
+  12%,
+  88%,
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.25);
+  }
+  6%,
+  94% {
+    opacity: 0.65;
+    transform: translateX(-50%) scale(0.75);
+  }
+  68%,
+  78% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.15);
+  }
+}
+
+@keyframes companion-fire-core-flicker {
+  from {
+    transform: scale(0.92);
+    filter: brightness(0.95);
+  }
+  to {
+    transform: scale(1.06);
+    filter: brightness(1.15);
+  }
+}
+
+@keyframes companion-fire-halo-pulse {
+  from {
+    opacity: 0.65;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes companion-fire-flame-a {
+  from {
+    transform: scaleY(0.88);
+    opacity: 0.7;
+  }
+  to {
+    transform: scaleY(1.12);
+    opacity: 1;
+  }
+}
+
+@keyframes companion-fire-flame-b {
+  from {
+    transform: rotate(-18deg) scaleY(0.86);
+    opacity: 0.65;
+  }
+  to {
+    transform: rotate(-18deg) scaleY(1.1);
+    opacity: 0.95;
+  }
+}
+
+@keyframes companion-fire-flame-c {
+  from {
+    transform: rotate(18deg) scaleY(0.86);
+    opacity: 0.65;
+  }
+  to {
+    transform: rotate(18deg) scaleY(1.1);
+    opacity: 0.95;
+  }
+}
+
+@keyframes companion-fire-trail-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
 

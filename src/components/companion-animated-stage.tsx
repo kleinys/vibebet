@@ -3,7 +3,7 @@
 import type { CSSProperties } from "react";
 import type { FigureConfig } from "@/lib/companion-figure";
 import { animalImagePath, humanImagePath } from "@/lib/character-art";
-import { companionMotion, HUMAN_MOTION_CLASS } from "@/lib/companion-motion";
+import { companionMotion, HUMAN_MOTION_CLASS, type SpiritMorphElement } from "@/lib/companion-motion";
 import { stageBackdropStyle } from "@/lib/companion-stage-style";
 import { AnimalSprite, HumanSprite, SpriteGlowDefs } from "@/components/companion-sprites";
 import { FantasySvgDefs } from "@/components/fantasy-icons";
@@ -17,6 +17,19 @@ function EyeGlow() {
       <span className="companion-eye-glow companion-eye-glow--left" aria-hidden />
       <span className="companion-eye-glow companion-eye-glow--right" aria-hidden />
     </>
+  );
+}
+
+function SpiritElementBall({ morph }: { morph: SpiritMorphElement }) {
+  return (
+    <div className={`companion-spirit-element companion-spirit-element--${morph}`} aria-hidden>
+      <span className="companion-spirit-element__core" />
+      <span className="companion-spirit-element__halo" />
+      <span className="companion-spirit-element__flame companion-spirit-element__flame--1" />
+      <span className="companion-spirit-element__flame companion-spirit-element__flame--2" />
+      <span className="companion-spirit-element__flame companion-spirit-element__flame--3" />
+      <span className="companion-spirit-element__trail" />
+    </div>
   );
 }
 
@@ -98,18 +111,24 @@ export function CompanionAnimatedStage({ config }: { config: FigureConfig }) {
             <div className="companion-orbit-carrier">
               <div className="companion-orbit-spirit-anchor">
                 <div className="companion-orbit-spirit">
-                  <div className="companion-orbit-spirit-inner">
+                  <div
+                    className={`companion-orbit-spirit-inner companion-orbit-spirit-inner--${motion.morph}`}
+                  >
+                    <SpiritElementBall morph={motion.morph} />
                     {animalSrc ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={animalSrc}
                         alt=""
                         draggable={false}
-                        className="companion-figure-raster companion-figure-raster--orbit"
-                        style={{ filter: FIGURE_SHADOW }}
+                        className="companion-figure-raster companion-figure-raster--orbit companion-orbit-animal-img"
                       />
                     ) : (
-                      <svg viewBox="0 0 72 80" className="companion-figure-svg companion-figure-svg--orbit" aria-hidden>
+                      <svg
+                        viewBox="0 0 72 80"
+                        className="companion-figure-svg companion-figure-svg--orbit companion-orbit-animal-img"
+                        aria-hidden
+                      >
                         <FantasySvgDefs id="stage-animal-orbit" />
                         <SpriteGlowDefs />
                         <AnimalSprite
