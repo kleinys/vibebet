@@ -14,5 +14,9 @@ export function stageBackdropStyle(palette: {
     "--stage-spirit": palette.animal,
     "--figure-aura": `${palette.aura}55`,
     "--figure-aura-strong": `${palette.aura}aa`,
+    "--eye-glow": palette.accent,
+    "--eye-glow-soft": `${palette.accent}99`,
+    "--spirit-element": palette.animal,
+    "--spirit-element-soft": `${palette.animal}66`,
   } as CSSProperties;
 }

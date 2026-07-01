@@ -91,6 +91,115 @@ body {
   pointer-events: none;
 }
 
+.companion-stage__focal {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Elliptical orbit around centered trainer */
+.companion-orbit-track {
+  position: absolute;
+  left: 50%;
+  bottom: 10%;
+  width: min(78%, 340px);
+  height: min(52%, 240px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.companion-orbit-track--spirit {
+  bottom: 8%;
+  width: min(88%, 380px);
+  height: min(58%, 270px);
+  z-index: 4;
+}
+
+.companion-orbit-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--spirit-element) 35%, transparent);
+  box-shadow: 0 0 20px var(--spirit-element-soft);
+  opacity: 0.45;
+}
+
+.companion-orbit-carrier {
+  position: absolute;
+  inset: 0;
+  animation: companion-orbit-spin var(--orbit-duration, 16s) linear infinite;
+}
+
+.companion-orbit-spirit-anchor {
+  position: absolute;
+  left: 50%;
+  top: -2%;
+  width: 42%;
+  height: 52%;
+  transform: translateX(-50%);
+}
+
+.companion-orbit-spirit {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  transform-origin: center bottom;
+  animation: companion-orbit-counter var(--orbit-duration, 16s) linear infinite;
+}
+
+.companion-orbit-spirit-inner {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  transform-origin: center bottom;
+  animation: companion-spirit-morph var(--orbit-duration, 16s) ease-in-out infinite;
+}
+
+.companion-element-wisp-host {
+  position: absolute;
+  inset: 0;
+  transform: rotate(var(--wisp-angle, 0deg));
+}
+
+.companion-element-wisp-host .companion-element-wisp {
+  position: absolute;
+  left: 50%;
+  top: 0;
+}
+
+.companion-element-wisp {
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: var(--spirit-element);
+  box-shadow: 0 0 16px 4px var(--spirit-element-soft);
+  animation: companion-wisp-orbit var(--orbit-duration, 16s) ease-in-out infinite;
+}
+
+.companion-element-wisp--a {
+  animation-delay: calc(var(--orbit-duration, 16s) * -0.05);
+}
+
+.companion-element-wisp--b {
+  animation-delay: calc(var(--orbit-duration, 16s) * -0.38);
+  width: 7px;
+  height: 7px;
+  margin-left: -3.5px;
+}
+
+.companion-element-wisp--c {
+  animation-delay: calc(var(--orbit-duration, 16s) * -0.72);
+  width: 5px;
+  height: 5px;
+  margin-left: -2.5px;
+}
+
 .companion-figure-slot {
   position: absolute;
   display: flex;
@@ -98,25 +207,51 @@ body {
   justify-content: center;
 }
 
-/* Duo: trainer tall left, companion overlapping right */
-.companion-stage--duo .companion-figure-slot--human {
-  left: -8%;
-  bottom: -2%;
-  width: 68%;
-  height: 102%;
-  z-index: 1;
+.companion-stage--duo .companion-figure-slot--human-center {
+  left: 50%;
+  bottom: 0;
+  width: 76%;
+  height: 98%;
+  transform: translateX(-50%);
+  z-index: 8;
 }
 
-.companion-stage--duo .companion-figure-slot--animal {
-  right: -10%;
-  bottom: -2%;
-  width: 62%;
-  height: 96%;
-  z-index: 2;
+.companion-human-wrap {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  transform-origin: bottom center;
 }
 
-/* Solo: one big spirit front and center */
-.companion-stage--solo .companion-figure-slot--animal {
+.companion-eye-glow {
+  position: absolute;
+  z-index: 12;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--eye-glow);
+  box-shadow:
+    0 0 10px 3px var(--eye-glow),
+    0 0 22px 8px var(--eye-glow-soft),
+    0 0 36px 14px var(--eye-glow-soft);
+  animation: companion-eye-pulse 2.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.companion-eye-glow--left {
+  left: 41%;
+  top: 16%;
+}
+
+.companion-eye-glow--right {
+  left: 53%;
+  top: 16%;
+}
+
+.companion-stage--solo .companion-figure-slot--animal-solo {
   left: 8%;
   right: 8%;
   bottom: 0;
@@ -145,36 +280,36 @@ body {
   user-select: none;
 }
 
-.companion-stage--duo .companion-figure-raster--human {
-  max-height: min(95vw, 520px);
+.companion-figure-raster--human-center {
+  max-height: min(98vw, 540px);
 }
 
-.companion-stage--duo .companion-figure-raster--animal {
-  max-height: min(88vw, 480px);
+.companion-figure-raster--orbit {
+  max-height: min(42vw, 200px);
+  height: 100%;
 }
 
-.companion-stage--solo .companion-figure-raster--animal {
+.companion-figure-raster--solo {
   max-height: min(100vw, 560px);
 }
 
 .companion-figure-svg {
   height: 100%;
   width: auto;
-  max-height: min(74vw, 400px);
   overflow: visible;
   filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.55));
 }
 
-.companion-figure-svg--human {
-  max-height: min(74vw, 400px);
+.companion-figure-svg--human-center {
+  max-height: min(98vw, 540px);
 }
 
-.companion-figure-svg--animal {
-  max-height: min(66vw, 360px);
+.companion-figure-svg--orbit {
+  max-height: min(42vw, 200px);
 }
 
-.companion-stage--solo .companion-figure-svg--animal {
-  max-height: min(84vw, 440px);
+.companion-figure-svg--solo {
+  max-height: min(100vw, 560px);
 }
 
 /* Human idle */
@@ -255,13 +390,82 @@ body {
   }
 }
 
+@keyframes companion-orbit-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes companion-orbit-counter {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes companion-spirit-morph {
+  0%,
+  14%,
+  86%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 20px var(--figure-aura));
+  }
+  42%,
+  58% {
+    opacity: 0.3;
+    transform: scale(0.55);
+    filter: blur(6px) brightness(1.6) drop-shadow(0 0 32px var(--spirit-element));
+  }
+  50% {
+    opacity: 0.15;
+    transform: scale(0.4);
+    filter: blur(10px) brightness(2) drop-shadow(0 0 48px var(--spirit-element));
+  }
+}
+
+@keyframes companion-wisp-orbit {
+  0%,
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.4);
+  }
+  15%,
+  85% {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: translate(-50%, -50%) scale(0.7);
+  }
+}
+
+@keyframes companion-eye-pulse {
+  0%,
+  100% {
+    opacity: 0.75;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.35);
+  }
+}
+
 @keyframes companion-human-idle {
   0%,
   100% {
-    transform: translateY(0) scale(1) rotate(0deg);
+    transform: translateY(0) scale(1);
   }
   50% {
-    transform: translateY(-10px) scale(1.025) rotate(-0.8deg);
+    transform: translateY(-8px) scale(1.02);
   }
 }
 
