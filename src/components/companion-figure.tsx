@@ -116,32 +116,20 @@ export function CompanionFigureScene({
   labels?: { humanTitle: string; animalTitle: string };
 }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-teal-500/25 bg-gradient-to-b from-[#0f172a] via-[#020617] to-black p-3 shadow-[inset_0_0_48px_rgba(139,92,246,0.12)] ring-1 ring-violet-500/25 sm:p-4">
-      <div
-        className="pointer-events-none absolute inset-0 opacity-70"
-        style={{
-          background: `radial-gradient(circle at 50% 78%, ${config.palette.aura}44 0%, transparent 58%)`,
-        }}
-      />
-      <div
-        className="pointer-events-none absolute -top-16 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full blur-3xl"
-        style={{ backgroundColor: `${config.palette.aura}30` }}
-      />
-      <div className="relative flex flex-col items-center">
-        <CompanionAnimatedStage config={config} />
-        {labels && (
-          <div className="mt-2 flex flex-wrap justify-center gap-2 text-center sm:mt-3">
-            {config.showHuman && (
-              <span className="rounded-full border border-fuchsia-400/35 bg-fuchsia-500/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-fuchsia-100 shadow-sm shadow-fuchsia-900/40">
-                {labels.humanTitle}
-              </span>
-            )}
-            <span className="rounded-full border border-teal-400/35 bg-teal-500/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-teal-100 shadow-sm shadow-teal-900/40">
-              {labels.animalTitle}
+    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#020617] ring-1 ring-white/5">
+      <CompanionAnimatedStage config={config} />
+      {labels && (
+        <div className="relative z-10 flex flex-wrap justify-center gap-2 px-3 pb-3 pt-1 text-center sm:px-4 sm:pb-4">
+          {config.showHuman && (
+            <span className="rounded-full border border-fuchsia-400/35 bg-fuchsia-500/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-fuchsia-100 shadow-sm shadow-fuchsia-900/40">
+              {labels.humanTitle}
             </span>
-          </div>
+          )}
+          <span className="rounded-full border border-teal-400/35 bg-teal-500/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-teal-100 shadow-sm shadow-teal-900/40">
+            {labels.animalTitle}
+          </span>
+        </div>
         )}
-      </div>
     </div>
   );
 }

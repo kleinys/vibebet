@@ -4,6 +4,7 @@
  *   npm run matte:characters
  */
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
@@ -11,7 +12,7 @@ import sharp from "sharp";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
 const dirs = ["public/characters/animals", "public/characters/humans"];
-const THRESHOLD = 242;
+const THRESHOLD = 235;
 
 const WEBP = { quality: 82, effort: 4, alphaQuality: 92 };
 
@@ -39,7 +40,7 @@ for (const dir of dirs) {
     }
 
     const outPath = path.join(fullDir, file);
-    const tmpPath = outPath + ".next";
+    const tmpPath = path.join(os.tmpdir(), `vibebet-matte-${file}`);
 
     await sharp(data, {
       raw: { width: info.width, height: info.height, channels: 4 },
@@ -47,8 +48,12 @@ for (const dir of dirs) {
       .webp(WEBP)
       .toFile(tmpPath);
 
-    fs.unlinkSync(outPath);
-    fs.renameSync(tmpPath, outPath);
+    fs.copyFileSync(tmpPath, outPath);
+    try {
+      fs.unlinkSync(tmpPath);
+    } catch {
+      /* ignore */
+    }
     console.log(`matted ${dir}/${file}`);
   }
 }

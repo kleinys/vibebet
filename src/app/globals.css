@@ -31,170 +31,155 @@ body {
   }
 }
 
-/* ── Companion figure stage (profile / public profile) ── */
+/* ── Companion figure stage — Fortnite-style locker showcase ── */
 
 .companion-stage {
-  --figure-aura: rgba(168, 85, 247, 0.4);
-  --figure-aura-strong: rgba(168, 85, 247, 0.6);
+  --figure-aura: rgba(168, 85, 247, 0.35);
+  --figure-aura-strong: rgba(168, 85, 247, 0.65);
+  --stage-hot: #f0abfc;
+  --stage-mid: #d946ef;
+  --stage-deep: #86198f;
+  --stage-spirit: #f97316;
   position: relative;
   width: 100%;
-  min-height: 280px;
-  aspect-ratio: 5 / 4;
+  min-height: 360px;
+  aspect-ratio: 4 / 5;
   isolation: isolate;
   overflow: hidden;
 }
 
-.companion-stage__sky {
+.companion-stage__backdrop {
   position: absolute;
-  inset: 0;
+  inset: -8%;
   background:
-    radial-gradient(circle at 50% 88%, var(--figure-aura) 0%, transparent 52%),
-    radial-gradient(circle at 30% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 45%),
-    radial-gradient(circle at 72% 24%, rgba(45, 212, 191, 0.08) 0%, transparent 40%);
-  animation: companion-sky-breathe 5s ease-in-out infinite;
+    radial-gradient(
+      ellipse 72% 58% at 50% 36%,
+      color-mix(in srgb, var(--stage-hot) 62%, transparent) 0%,
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse 88% 72% at 50% 40%,
+      color-mix(in srgb, var(--stage-mid) 48%, transparent) 0%,
+      transparent 64%
+    ),
+    radial-gradient(
+      ellipse 100% 88% at 50% 88%,
+      color-mix(in srgb, var(--stage-spirit) 32%, #020617) 0%,
+      #020617 68%
+    );
+  animation: companion-backdrop-breathe 6s ease-in-out infinite;
 }
 
-.companion-stage__stars {
+.companion-stage__vignette {
   position: absolute;
   inset: 0;
-  opacity: 0.45;
-  background-image:
-    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.7) 0 1px, transparent 1px),
-    radial-gradient(circle at 76% 18%, rgba(255, 255, 255, 0.55) 0 1px, transparent 1px),
-    radial-gradient(circle at 62% 38%, rgba(255, 255, 255, 0.35) 0 1px, transparent 1px),
-    radial-gradient(circle at 28% 44%, rgba(255, 255, 255, 0.4) 0 1px, transparent 1px);
-  animation: companion-stars-twinkle 4s ease-in-out infinite alternate;
+  background: radial-gradient(ellipse at 50% 44%, transparent 38%, rgba(2, 6, 23, 0.72) 100%);
+  pointer-events: none;
 }
 
-.companion-stage__bond {
+.companion-stage__floor-glow {
   position: absolute;
   left: 50%;
-  bottom: 28%;
-  width: 38%;
-  height: 38%;
+  bottom: 5%;
+  width: 58%;
+  height: 14%;
   transform: translateX(-50%);
   border-radius: 50%;
-  background: radial-gradient(circle, var(--figure-aura-strong) 0%, transparent 72%);
-  filter: blur(10px);
-  opacity: 0.55;
+  background: radial-gradient(ellipse, var(--figure-aura-strong) 0%, transparent 72%);
+  filter: blur(14px);
+  opacity: 0.7;
   pointer-events: none;
-}
-
-.companion-stage__platform {
-  position: absolute;
-  left: 50%;
-  bottom: 4%;
-  width: 84%;
-  transform: translateX(-50%);
-  pointer-events: none;
-}
-
-.companion-stage__platform-ring {
-  height: 22px;
-  border-radius: 50%;
-  border: 1px solid rgba(94, 234, 212, 0.28);
-  background: radial-gradient(
-    ellipse at 50% 40%,
-    rgba(20, 184, 166, 0.22) 0%,
-    rgba(2, 6, 23, 0.85) 72%
-  );
-  box-shadow:
-    0 0 24px var(--figure-aura),
-    inset 0 4px 16px rgba(255, 255, 255, 0.06);
-  animation: companion-platform-pulse 3.2s ease-in-out infinite;
-}
-
-.companion-stage__platform-core {
-  position: absolute;
-  left: 50%;
-  top: 45%;
-  width: 62%;
-  height: 8px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(ellipse, var(--figure-aura-strong) 0%, transparent 75%);
-  filter: blur(6px);
-}
-
-.companion-stage__sparkles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.35;
-  background-image:
-    radial-gradient(circle at 22% 62%, var(--figure-aura) 0 2px, transparent 2px),
-    radial-gradient(circle at 78% 58%, var(--figure-aura) 0 2px, transparent 2px);
-  animation: companion-sparkle-drift 6s linear infinite;
 }
 
 .companion-figure-slot {
   position: absolute;
-  bottom: 10%;
   display: flex;
   align-items: flex-end;
   justify-content: center;
+}
+
+/* Duo: trainer tall left, companion overlapping right */
+.companion-stage--duo .companion-figure-slot--human {
+  left: -4%;
+  bottom: 0;
+  width: 62%;
+  height: 96%;
+  z-index: 1;
+}
+
+.companion-stage--duo .companion-figure-slot--animal {
+  right: -6%;
+  bottom: 0;
+  width: 56%;
+  height: 90%;
+  z-index: 2;
+}
+
+/* Solo: one big spirit front and center */
+.companion-stage--solo .companion-figure-slot--animal {
+  left: 8%;
+  right: 8%;
+  bottom: 0;
+  width: auto;
+  height: 98%;
+  z-index: 2;
+}
+
+.companion-figure-motion {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
   transform-origin: bottom center;
   will-change: transform;
 }
 
-.companion-figure-slot--human {
-  left: 0;
-  width: 46%;
-  z-index: 2;
-}
-
-.companion-figure-slot--animal {
-  right: -2%;
-  width: 54%;
-  z-index: 3;
-}
-
-.companion-figure-backing {
-  position: absolute;
-  bottom: -2%;
-  left: 50%;
-  z-index: 0;
-  width: 88%;
-  height: 72%;
-  transform: translateX(-50%);
-  border-radius: 50%;
-  background: radial-gradient(
-    ellipse at 50% 68%,
-    rgba(255, 255, 255, 0.94) 0%,
-    rgba(226, 232, 240, 0.55) 42%,
-    transparent 72%
-  );
-  opacity: 0.88;
-  pointer-events: none;
-}
-
 .companion-figure-raster {
-  position: relative;
-  z-index: 1;
-  max-height: min(52vw, 240px);
+  height: 100%;
   width: auto;
-  max-width: 100%;
+  max-width: none;
   object-fit: contain;
   object-position: bottom center;
-  filter:
-    drop-shadow(0 14px 28px rgba(0, 0, 0, 0.55))
-    drop-shadow(0 0 22px var(--figure-aura));
   pointer-events: none;
   user-select: none;
 }
 
+.companion-stage--duo .companion-figure-raster--human {
+  max-height: min(74vw, 400px);
+}
+
+.companion-stage--duo .companion-figure-raster--animal {
+  max-height: min(66vw, 360px);
+}
+
+.companion-stage--solo .companion-figure-raster--animal {
+  max-height: min(84vw, 440px);
+}
+
 .companion-figure-svg {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-height: min(48vw, 210px);
+  height: 100%;
+  width: auto;
+  max-height: min(74vw, 400px);
   overflow: visible;
-  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 16px 32px rgba(0, 0, 0, 0.55));
+}
+
+.companion-figure-svg--human {
+  max-height: min(74vw, 400px);
+}
+
+.companion-figure-svg--animal {
+  max-height: min(66vw, 360px);
+}
+
+.companion-stage--solo .companion-figure-svg--animal {
+  max-height: min(84vw, 440px);
 }
 
 /* Human idle */
 .companion-motion-human {
-  animation: companion-human-idle 4.2s ease-in-out infinite;
+  animation: companion-human-idle 4.8s ease-in-out infinite;
 }
 
 /* Animal motions */
@@ -258,55 +243,25 @@ body {
   animation: companion-aura-arcane 3.5s ease-in-out infinite;
 }
 
-@keyframes companion-sky-breathe {
+@keyframes companion-backdrop-breathe {
   0%,
   100% {
-    opacity: 0.92;
+    opacity: 0.94;
     transform: scale(1);
   }
   50% {
     opacity: 1;
-    transform: scale(1.02);
-  }
-}
-
-@keyframes companion-stars-twinkle {
-  from {
-    opacity: 0.28;
-  }
-  to {
-    opacity: 0.55;
-  }
-}
-
-@keyframes companion-platform-pulse {
-  0%,
-  100% {
-    transform: scaleX(1);
-    box-shadow: 0 0 20px var(--figure-aura), inset 0 4px 16px rgba(255, 255, 255, 0.06);
-  }
-  50% {
-    transform: scaleX(1.04);
-    box-shadow: 0 0 32px var(--figure-aura-strong), inset 0 4px 20px rgba(255, 255, 255, 0.1);
-  }
-}
-
-@keyframes companion-sparkle-drift {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(-8px);
+    transform: scale(1.04);
   }
 }
 
 @keyframes companion-human-idle {
   0%,
   100% {
-    transform: translateY(0) scale(1);
+    transform: translateY(0) scale(1) rotate(0deg);
   }
   50% {
-    transform: translateY(-5px) scale(1.015);
+    transform: translateY(-10px) scale(1.025) rotate(-0.8deg);
   }
 }
 
@@ -405,12 +360,12 @@ body {
 @keyframes companion-bond-playful {
   0%,
   100% {
-    opacity: 0.45;
-    transform: translateX(-50%) scale(0.95);
+    opacity: 0.5;
+    transform: translateX(-50%) scale(0.92);
   }
   50% {
-    opacity: 0.7;
-    transform: translateX(-50%) scale(1.08);
+    opacity: 0.85;
+    transform: translateX(-50%) scale(1.1);
   }
 }
 
