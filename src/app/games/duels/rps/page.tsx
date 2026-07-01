@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { PlayerCodeCard } from "@/components/player-code-card";
 import { RpsDuelPanel } from "../duel-panels";
+import { getShareProfile } from "@/lib/share-profile";
 
 export const revalidate = 0;
 
@@ -40,6 +41,10 @@ export default async function RpsDuelsPage() {
   if (!user) redirect("/login?next=/games/duels/rps");
 
   const openDuels = await getOpenRpsDuels();
+  const shareProfile = (await getShareProfile(user.id)) ?? {
+    displayName: "Player",
+    username: null,
+  };
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
@@ -53,7 +58,7 @@ export default async function RpsDuelsPage() {
       <div className="mt-6">
         <PlayerCodeCard />
       </div>
-      <RpsDuelPanel openDuels={openDuels} userId={user.id} />
+      <RpsDuelPanel openDuels={openDuels} userId={user.id} shareProfile={shareProfile} />
     </div>
   );
 }

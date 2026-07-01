@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { TriviaPlayForm } from "../../trivia-panels";
+import { DuelWinShareBlock } from "@/components/duel-win-share-block";
 
 export const revalidate = 0;
 
@@ -66,6 +67,11 @@ export default async function TriviaDuelPlayPage({
                 : "You lost."
               : "Draw — stakes refunded."}
           </p>
+          <DuelWinShareBlock
+            userId={user.id}
+            winnerId={duelRow.winner_id}
+            headline="Won Trivia Blitz on Vibebet"
+          />
         </div>
       ) : (
         <div className="mt-6">

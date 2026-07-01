@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { HighCardDuelPanel } from "../duel-panels";
+import { getShareProfile } from "@/lib/share-profile";
 
 export const revalidate = 0;
 
@@ -39,6 +40,10 @@ export default async function HighCardDuelsPage() {
   if (!user) redirect("/login?next=/games/duels/high-card");
 
   const openDuels = await getOpenHighCardDuels();
+  const shareProfile = (await getShareProfile(user.id)) ?? {
+    displayName: "Player",
+    username: null,
+  };
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
@@ -49,7 +54,7 @@ export default async function HighCardDuelsPage() {
       <p className="mt-1 text-sm text-zinc-400">
         Draw a card (Ace=1 … King=13). Higher card wins. Includes online matchmaking.
       </p>
-      <HighCardDuelPanel openDuels={openDuels} userId={user.id} />
+      <HighCardDuelPanel openDuels={openDuels} userId={user.id} shareProfile={shareProfile} />
     </div>
   );
 }

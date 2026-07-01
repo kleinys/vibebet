@@ -5,6 +5,7 @@ import { isEnabled } from "@/lib/feature-flags";
 import { SkillGameAcceptButton } from "@/components/skill-game-accept-button";
 import { PokerBoard } from "../../poker-board";
 import type { PokerState } from "@/lib/poker-holdem";
+import { DuelWinShareBlock } from "@/components/duel-win-share-block";
 
 export const revalidate = 0;
 
@@ -59,6 +60,11 @@ export default async function PokerGamePage({ params }: { params: Promise<{ id: 
             creatorId={game.creator_id}
             creatorHandRank={game.creator_hand_rank}
             opponentHandRank={game.opponent_hand_rank}
+          />
+          <DuelWinShareBlock
+            userId={user.id}
+            winnerId={game.winner_id}
+            headline="Won Hold'em Showdown on Vibebet"
           />
         </div>
       )}

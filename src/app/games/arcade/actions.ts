@@ -5,9 +5,9 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
 export async function playCoinFlip(
-  _prev: { error?: string; result?: string } | null,
+  _prev: { error?: string; result?: string; won?: boolean } | null,
   formData: FormData,
-): Promise<{ error?: string; result?: string }> {
+): Promise<{ error?: string; result?: string; won?: boolean }> {
   const parsed = z
     .object({
       side: z.enum(["heads", "tails"]),
@@ -34,6 +34,7 @@ export async function playCoinFlip(
     result: row.won
       ? `It was ${row.flip_side}! You won ${row.payout} VIBE.`
       : `It was ${row.flip_side}. You lost ${parsed.data.stake} VIBE.`,
+    won: row.won,
   };
 }
 
@@ -51,14 +52,18 @@ export async function createDiceDuel(
 
 export async function acceptDiceDuel(duelId: string) {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const { data, error } = await supabase.rpc("accept_dice_duel", { p_duel_id: duelId });
   if (error) return { error: error.message };
   const row = Array.isArray(data) ? data[0] : null;
   revalidatePath("/games/arcade");
+  if (!row) return { ok: "Duel settled." };
+  const won = !!(user && row.winner_id === user.id);
   return {
-    ok: row
-      ? `You rolled ${row.opponent_roll} vs ${row.creator_roll}. Payout ${row.payout} VIBE.`
-      : "Duel settled.",
+    ok: `You rolled ${row.opponent_roll} vs ${row.creator_roll}. ${won ? "You won" : "Payout"} ${row.payout} VIBE.`,
+    won,
   };
 }
 

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { createClient as createSb } from "@/lib/supabase/server";
 import { CoinFlipPanel, DiceDuelPanel } from "./arcade-panels";
+import { getShareProfile } from "@/lib/share-profile";
 
 export const revalidate = 0;
 
@@ -41,6 +42,10 @@ export default async function ArcadePage() {
   if (!user) redirect("/login?next=/games/arcade");
 
   const openDuels = await getOpenDiceDuels();
+  const shareProfile = (await getShareProfile(user.id)) ?? {
+    displayName: "Player",
+    username: null,
+  };
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
@@ -52,8 +57,8 @@ export default async function ArcadePage() {
         Quick games — coin flip vs the house, dice duels vs other players.
       </p>
       <div className="mt-8 space-y-8">
-        <CoinFlipPanel />
-        <DiceDuelPanel openDuels={openDuels} userId={user.id} />
+        <CoinFlipPanel shareProfile={shareProfile} />
+        <DiceDuelPanel openDuels={openDuels} userId={user.id} shareProfile={shareProfile} />
       </div>
     </div>
   );

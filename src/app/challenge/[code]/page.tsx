@@ -1,8 +1,10 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { resolvePlayerCode } from "@/lib/resolve-player";
 import { challengeUrl } from "@/lib/site-url";
+import { ogImageUrl } from "@/lib/og-image";
 import { ChallengeActions } from "./challenge-actions";
 
 export const revalidate = 0;
@@ -15,6 +17,38 @@ const DUEL_LINKS = [
   { href: "/games/duels/trivia", label: "Trivia Blitz", emoji: "🧠" },
   { href: "/duels", label: "Prediction duel", emoji: "📊" },
 ] as const;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ code: string }>;
+}): Promise<Metadata> {
+  const { code } = await params;
+  const player = await resolvePlayerCode(code);
+  if (!player) {
+    return { title: "Challenge not found · Vibebet" };
+  }
+
+  const title = `Challenge ${player.display_name} on Vibebet`;
+  const description = `Pick a duel and challenge ${player.display_name} — predictions, skill games, and arcade duels.`;
+  const image = ogImageUrl({ kind: "challenge", name: player.display_name });
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [{ url: image, width: 1200, height: 630, alt: title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+    },
+  };
+}
 
 export default async function ChallengePage({
   params,

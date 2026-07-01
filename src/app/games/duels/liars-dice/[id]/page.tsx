@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { LiarsDicePlayPanel } from "../../liars-dice-panels";
 import { acceptLiarsDiceGame } from "../../liars-dice-actions";
+import { DuelWinShareBlock } from "@/components/duel-win-share-block";
 
 export const revalidate = 0;
 
@@ -86,6 +87,11 @@ export default async function LiarsDiceGamePage({
             winnerId={game.winner_id}
             creatorDice={(game.creator_dice ?? null) as number[] | null}
             opponentDice={(game.opponent_dice ?? null) as number[] | null}
+          />
+          <DuelWinShareBlock
+            userId={user.id}
+            winnerId={game.winner_id}
+            headline="Won Liar's Dice on Vibebet"
           />
         </div>
       )}

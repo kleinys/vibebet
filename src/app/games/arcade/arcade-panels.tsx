@@ -1,8 +1,10 @@
 "use client";
 
-import { useActionState, useTransition } from "react";
+import { useActionState, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { MatchmakingButton } from "@/components/matchmaking-button";
+import { WinSharePanel } from "@/components/win-share-panel";
+import type { ShareProfile } from "@/lib/share-profile";
 import {
   acceptDiceDuel,
   cancelDiceDuel,
@@ -10,7 +12,7 @@ import {
   playCoinFlip,
 } from "./actions";
 
-export function CoinFlipPanel() {
+export function CoinFlipPanel({ shareProfile }: { shareProfile: ShareProfile }) {
   const [state, action, pending] = useActionState(playCoinFlip, null);
 
   return (
@@ -46,6 +48,13 @@ export function CoinFlipPanel() {
       {state?.result && (
         <p className="mt-3 text-xs text-emerald-300">{state.result}</p>
       )}
+      {state?.won && (
+        <WinSharePanel
+          displayName={shareProfile.displayName}
+          username={shareProfile.username}
+          headline="Won a coin flip on Vibebet"
+        />
+      )}
     </form>
   );
 }
@@ -53,6 +62,7 @@ export function CoinFlipPanel() {
 export function DiceDuelPanel({
   openDuels,
   userId,
+  shareProfile,
 }: {
   openDuels: {
     id: string;
@@ -61,9 +71,11 @@ export function DiceDuelPanel({
     stake: number;
   }[];
   userId: string;
+  shareProfile: ShareProfile;
 }) {
   const [createState, createAction, createPending] = useActionState(createDiceDuel, null);
   const [pending, startTransition] = useTransition();
+  const [showWinShare, setShowWinShare] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -120,7 +132,10 @@ export function DiceDuelPanel({
                     startTransition(async () => {
                       const r = await acceptDiceDuel(d.id);
                       if (r.error) toast.error(r.error);
-                      else toast.success(r.ok ?? "Done!");
+                      else {
+                        toast.success(r.ok ?? "Done!");
+                        setShowWinShare(!!r.won);
+                      }
                     })
                   }
                   className="mt-2 rounded-md bg-sky-600 px-3 py-1 text-xs text-white hover:bg-sky-500"
@@ -147,6 +162,13 @@ export function DiceDuelPanel({
             </li>
           ))}
         </ul>
+      )}
+      {showWinShare && (
+        <WinSharePanel
+          displayName={shareProfile.displayName}
+          username={shareProfile.username}
+          headline="Won a dice duel on Vibebet"
+        />
       )}
     </div>
   );

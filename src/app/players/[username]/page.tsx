@@ -1,12 +1,51 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPublicProfile } from "@/lib/cosmetics";
 import { resolveFigureConfig, figureLabels } from "@/lib/companion-figure";
 import { CompanionFigureScene } from "@/components/companion-figure";
 import { formatVibe } from "@/lib/utils";
 import { tierFromProfit } from "@/lib/ranks";
+import { ogImageUrl } from "@/lib/og-image";
 
 export const revalidate = 60;
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ username: string }>;
+}): Promise<Metadata> {
+  const { username } = await params;
+  const profile = await getPublicProfile(username);
+  if (!profile) {
+    return { title: "Player not found · Vibebet" };
+  }
+
+  const tier = tierFromProfit(profile.profit);
+  const title = `${profile.display_name} (@${profile.username}) · Vibebet`;
+  const description = `${tier.emoji} ${tier.title} · ${formatVibe(profile.profit)} VIBE lifetime profit on Vibebet.`;
+  const image = ogImageUrl({
+    kind: "profile",
+    name: profile.display_name,
+    subline: `${tier.title} · Hall of Fame player`,
+  });
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [{ url: image, width: 1200, height: 630, alt: profile.display_name }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [image],
+    },
+  };
+}
 
 export default async function PublicPlayerPage({
   params,

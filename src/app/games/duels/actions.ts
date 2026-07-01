@@ -48,6 +48,9 @@ export async function createRpsDuel(
 
 export async function acceptRpsDuel(duelId: string, move: "rock" | "paper" | "scissors") {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const { data, error } = await supabase.rpc("accept_rps_duel", {
     p_duel_id: duelId,
     p_move: move,
@@ -63,8 +66,10 @@ export async function acceptRpsDuel(duelId: string, move: "rock" | "paper" | "sc
       ok: `Draw! ${row.creator_move} vs ${row.opponent_move}. Stakes refunded.`,
     };
   }
+  const won = user?.id === row.winner_id;
   return {
-    ok: `${row.creator_move} vs ${row.opponent_move}. Winner paid ${row.payout} VIBE.`,
+    ok: `${row.creator_move} vs ${row.opponent_move}. ${won ? "You won" : "Winner paid"} ${row.payout} VIBE.`,
+    won,
   };
 }
 
@@ -105,6 +110,9 @@ export async function createHighCardDuel(
 
 export async function acceptHighCardDuel(duelId: string) {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const { data, error } = await supabase.rpc("accept_high_card_duel", {
     p_duel_id: duelId,
   });
@@ -113,8 +121,10 @@ export async function acceptHighCardDuel(duelId: string) {
   const row = Array.isArray(data) ? data[0] : null;
   revalidatePath("/games/duels/high-card");
   if (!row) return { ok: "Duel settled." };
+  const won = !!(user && row.winner_id === user.id);
   return {
-    ok: `Cards: ${row.creator_card} vs ${row.opponent_card}. Payout ${row.payout} VIBE.`,
+    ok: `Cards: ${row.creator_card} vs ${row.opponent_card}. ${won ? "You won" : "Payout"} ${row.payout} VIBE.`,
+    won,
   };
 }
 

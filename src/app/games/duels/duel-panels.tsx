@@ -4,6 +4,8 @@ import { useActionState, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { MatchmakingButton } from "@/components/matchmaking-button";
 import { FriendChallengeFields } from "@/components/friend-challenge-fields";
+import { WinSharePanel } from "@/components/win-share-panel";
+import type { ShareProfile } from "@/lib/share-profile";
 import {
   acceptHighCardDuel,
   acceptRpsDuel,
@@ -98,12 +100,15 @@ function OpenDuelList({
 export function RpsDuelPanel({
   openDuels,
   userId,
+  shareProfile,
 }: {
   openDuels: OpenDuel[];
   userId: string;
+  shareProfile: ShareProfile;
 }) {
   const [createState, createAction, createPending] = useActionState(createRpsDuel, null);
   const [move, setMove] = useState<"rock" | "paper" | "scissors">("rock");
+  const [showWinShare, setShowWinShare] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -161,7 +166,10 @@ export function RpsDuelPanel({
             onAccept={async (id) => {
               const r = await acceptRpsDuel(id, move);
               if (r.error) toast.error(r.error);
-              else toast.success(r.ok ?? "Done");
+              else {
+                toast.success(r.ok ?? "Done");
+                setShowWinShare(!!r.won);
+              }
             }}
             onCancel={async (id) => {
               const r = await cancelRpsDuel(id);
@@ -171,6 +179,13 @@ export function RpsDuelPanel({
           />
         </div>
       </section>
+      {showWinShare && (
+        <WinSharePanel
+          displayName={shareProfile.displayName}
+          username={shareProfile.username}
+          headline="Won Rock Paper Scissors on Vibebet"
+        />
+      )}
     </div>
   );
 }
@@ -178,11 +193,14 @@ export function RpsDuelPanel({
 export function HighCardDuelPanel({
   openDuels,
   userId,
+  shareProfile,
 }: {
   openDuels: OpenDuel[];
   userId: string;
+  shareProfile: ShareProfile;
 }) {
   const [createState, createAction, createPending] = useActionState(createHighCardDuel, null);
+  const [showWinShare, setShowWinShare] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -230,7 +248,10 @@ export function HighCardDuelPanel({
             onAccept={async (id) => {
               const r = await acceptHighCardDuel(id);
               if (r.error) toast.error(r.error);
-              else toast.success(r.ok ?? "Done");
+              else {
+                toast.success(r.ok ?? "Done");
+                setShowWinShare(!!r.won);
+              }
             }}
             onCancel={async (id) => {
               const r = await cancelHighCardDuel(id);
@@ -240,6 +261,13 @@ export function HighCardDuelPanel({
           />
         </div>
       </section>
+      {showWinShare && (
+        <WinSharePanel
+          displayName={shareProfile.displayName}
+          username={shareProfile.username}
+          headline="Won High Card on Vibebet"
+        />
+      )}
     </div>
   );
 }

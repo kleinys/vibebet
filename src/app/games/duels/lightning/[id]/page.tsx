@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { LightningLiveView } from "../../lightning-panels";
 import { tickLightningDuels } from "../../lightning-actions";
+import { DuelWinShareBlock } from "@/components/duel-win-share-block";
 
 export const revalidate = 0;
 
@@ -39,6 +40,11 @@ export default async function LightningDuelPage({
       </p>
       <div className="mt-6">
         <LightningLiveView duel={duel} userId={user.id} />
+        <DuelWinShareBlock
+          userId={user.id}
+          winnerId={duel.winner_id}
+          headline="Won a Lightning BTC duel on Vibebet"
+        />
       </div>
     </div>
   );
