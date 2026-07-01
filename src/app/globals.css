@@ -42,30 +42,30 @@ body {
   --stage-spirit: #f97316;
   position: relative;
   width: 100%;
-  min-height: 360px;
-  aspect-ratio: 4 / 5;
+  min-height: 420px;
+  aspect-ratio: 3 / 4;
   isolation: isolate;
   overflow: hidden;
 }
 
 .companion-stage__backdrop {
   position: absolute;
-  inset: -8%;
+  inset: -10%;
   background:
     radial-gradient(
-      ellipse 72% 58% at 50% 36%,
-      color-mix(in srgb, var(--stage-hot) 62%, transparent) 0%,
-      transparent 58%
+      ellipse 78% 68% at 50% 32%,
+      color-mix(in srgb, var(--stage-hot) 72%, transparent) 0%,
+      transparent 52%
     ),
     radial-gradient(
-      ellipse 88% 72% at 50% 40%,
-      color-mix(in srgb, var(--stage-mid) 48%, transparent) 0%,
-      transparent 64%
+      ellipse 95% 80% at 50% 38%,
+      color-mix(in srgb, var(--stage-mid) 55%, transparent) 0%,
+      transparent 60%
     ),
     radial-gradient(
-      ellipse 100% 88% at 50% 88%,
-      color-mix(in srgb, var(--stage-spirit) 32%, #020617) 0%,
-      #020617 68%
+      ellipse 110% 95% at 50% 92%,
+      color-mix(in srgb, var(--stage-spirit) 38%, #020617) 0%,
+      #020617 65%
     );
   animation: companion-backdrop-breathe 6s ease-in-out infinite;
 }
@@ -73,7 +73,7 @@ body {
 .companion-stage__vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at 50% 44%, transparent 38%, rgba(2, 6, 23, 0.72) 100%);
+  background: radial-gradient(ellipse at 50% 40%, transparent 52%, rgba(2, 6, 23, 0.55) 100%);
   pointer-events: none;
 }
 
@@ -100,18 +100,18 @@ body {
 
 /* Duo: trainer tall left, companion overlapping right */
 .companion-stage--duo .companion-figure-slot--human {
-  left: -4%;
-  bottom: 0;
-  width: 62%;
-  height: 96%;
+  left: -8%;
+  bottom: -2%;
+  width: 68%;
+  height: 102%;
   z-index: 1;
 }
 
 .companion-stage--duo .companion-figure-slot--animal {
-  right: -6%;
-  bottom: 0;
-  width: 56%;
-  height: 90%;
+  right: -10%;
+  bottom: -2%;
+  width: 62%;
+  height: 96%;
   z-index: 2;
 }
 
@@ -136,7 +136,7 @@ body {
 }
 
 .companion-figure-raster {
-  height: 100%;
+  height: 108%;
   width: auto;
   max-width: none;
   object-fit: contain;
@@ -146,15 +146,15 @@ body {
 }
 
 .companion-stage--duo .companion-figure-raster--human {
-  max-height: min(74vw, 400px);
+  max-height: min(95vw, 520px);
 }
 
 .companion-stage--duo .companion-figure-raster--animal {
-  max-height: min(66vw, 360px);
+  max-height: min(88vw, 480px);
 }
 
 .companion-stage--solo .companion-figure-raster--animal {
-  max-height: min(84vw, 440px);
+  max-height: min(100vw, 560px);
 }
 
 .companion-figure-svg {

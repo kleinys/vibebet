@@ -72,11 +72,9 @@ export function VibeCompanionCard({
   const { companion } = config;
 
   return (
-    <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
-      <div className="mx-auto w-full max-w-[min(100%,420px)] shrink-0 lg:mx-0">
-        <CompanionFigureScene config={config} labels={labels} />
-      </div>
-      <div className="min-w-0 flex-1">
+    <div className="flex flex-col gap-6">
+      <CompanionFigureScene config={config} labels={labels} />
+      <div className="min-w-0">
         <p className="text-lg font-semibold text-zinc-100">
           {companion.name}{" "}
           <span className="text-sm font-normal text-zinc-500">

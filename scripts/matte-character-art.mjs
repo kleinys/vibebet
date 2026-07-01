@@ -4,7 +4,6 @@
  *   npm run matte:characters
  */
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
@@ -39,22 +38,18 @@ for (const dir of dirs) {
       }
     }
 
-    const outPath = path.join(fullDir, file);
-    const tmpPath = path.join(os.tmpdir(), `vibebet-matte-${file}`);
-
-    await sharp(data, {
+    const buf = await sharp(data, {
       raw: { width: info.width, height: info.height, channels: 4 },
     })
       .webp(WEBP)
-      .toFile(tmpPath);
+      .toBuffer();
 
-    fs.copyFileSync(tmpPath, outPath);
     try {
-      fs.unlinkSync(tmpPath);
+      fs.writeFileSync(filePath, buf);
+      console.log(`matted ${dir}/${file}`);
     } catch {
-      /* ignore */
+      console.warn(`skip ${dir}/${file} (file locked — stop dev server or matte runs on Vercel build)`);
     }
-    console.log(`matted ${dir}/${file}`);
   }
 }
 
