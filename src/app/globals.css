@@ -30,3 +30,462 @@ body {
     padding-right: env(safe-area-inset-right);
   }
 }
+
+/* ── Companion figure stage (profile / public profile) ── */
+
+.companion-stage {
+  --figure-aura: rgba(168, 85, 247, 0.4);
+  --figure-aura-strong: rgba(168, 85, 247, 0.6);
+  position: relative;
+  width: 100%;
+  min-height: 280px;
+  aspect-ratio: 5 / 4;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.companion-stage__sky {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 88%, var(--figure-aura) 0%, transparent 52%),
+    radial-gradient(circle at 30% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 72% 24%, rgba(45, 212, 191, 0.08) 0%, transparent 40%);
+  animation: companion-sky-breathe 5s ease-in-out infinite;
+}
+
+.companion-stage__stars {
+  position: absolute;
+  inset: 0;
+  opacity: 0.45;
+  background-image:
+    radial-gradient(circle at 18% 22%, rgba(255, 255, 255, 0.7) 0 1px, transparent 1px),
+    radial-gradient(circle at 76% 18%, rgba(255, 255, 255, 0.55) 0 1px, transparent 1px),
+    radial-gradient(circle at 62% 38%, rgba(255, 255, 255, 0.35) 0 1px, transparent 1px),
+    radial-gradient(circle at 28% 44%, rgba(255, 255, 255, 0.4) 0 1px, transparent 1px);
+  animation: companion-stars-twinkle 4s ease-in-out infinite alternate;
+}
+
+.companion-stage__bond {
+  position: absolute;
+  left: 50%;
+  bottom: 28%;
+  width: 38%;
+  height: 38%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--figure-aura-strong) 0%, transparent 72%);
+  filter: blur(10px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.companion-stage__platform {
+  position: absolute;
+  left: 50%;
+  bottom: 4%;
+  width: 84%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.companion-stage__platform-ring {
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid rgba(94, 234, 212, 0.28);
+  background: radial-gradient(
+    ellipse at 50% 40%,
+    rgba(20, 184, 166, 0.22) 0%,
+    rgba(2, 6, 23, 0.85) 72%
+  );
+  box-shadow:
+    0 0 24px var(--figure-aura),
+    inset 0 4px 16px rgba(255, 255, 255, 0.06);
+  animation: companion-platform-pulse 3.2s ease-in-out infinite;
+}
+
+.companion-stage__platform-core {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  width: 62%;
+  height: 8px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, var(--figure-aura-strong) 0%, transparent 75%);
+  filter: blur(6px);
+}
+
+.companion-stage__sparkles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  background-image:
+    radial-gradient(circle at 22% 62%, var(--figure-aura) 0 2px, transparent 2px),
+    radial-gradient(circle at 78% 58%, var(--figure-aura) 0 2px, transparent 2px);
+  animation: companion-sparkle-drift 6s linear infinite;
+}
+
+.companion-figure-slot {
+  position: absolute;
+  bottom: 10%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  transform-origin: bottom center;
+  will-change: transform;
+}
+
+.companion-figure-slot--human {
+  left: 0;
+  width: 46%;
+  z-index: 2;
+}
+
+.companion-figure-slot--animal {
+  right: -2%;
+  width: 54%;
+  z-index: 3;
+}
+
+.companion-figure-backing {
+  position: absolute;
+  bottom: -2%;
+  left: 50%;
+  z-index: 0;
+  width: 88%;
+  height: 72%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at 50% 68%,
+    rgba(255, 255, 255, 0.94) 0%,
+    rgba(226, 232, 240, 0.55) 42%,
+    transparent 72%
+  );
+  opacity: 0.88;
+  pointer-events: none;
+}
+
+.companion-figure-raster {
+  position: relative;
+  z-index: 1;
+  max-height: min(52vw, 240px);
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: bottom center;
+  filter:
+    drop-shadow(0 14px 28px rgba(0, 0, 0, 0.55))
+    drop-shadow(0 0 22px var(--figure-aura));
+  pointer-events: none;
+  user-select: none;
+}
+
+.companion-figure-svg {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-height: min(48vw, 210px);
+  overflow: visible;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.45));
+}
+
+/* Human idle */
+.companion-motion-human {
+  animation: companion-human-idle 4.2s ease-in-out infinite;
+}
+
+/* Animal motions */
+.companion-motion-fox {
+  animation: companion-fox-idle 3.6s ease-in-out infinite;
+}
+
+.companion-motion-cat {
+  animation: companion-cat-idle 2.8s ease-in-out infinite;
+}
+
+.companion-motion-owl {
+  animation: companion-owl-idle 5s ease-in-out infinite;
+}
+
+.companion-motion-wolf {
+  animation: companion-wolf-idle 4s ease-in-out infinite;
+}
+
+.companion-motion-dragon {
+  animation: companion-dragon-idle 4.5s ease-in-out infinite;
+}
+
+.companion-motion-stag {
+  animation: companion-stag-idle 5.5s ease-in-out infinite;
+}
+
+.companion-motion-phoenix {
+  animation: companion-phoenix-idle 3.8s ease-in-out infinite;
+}
+
+.companion-motion-raven {
+  animation: companion-raven-idle 3.2s ease-in-out infinite;
+}
+
+.companion-motion-bond-playful {
+  animation: companion-bond-playful 3.6s ease-in-out infinite;
+}
+
+.companion-motion-bond-calm {
+  animation: companion-bond-calm 5s ease-in-out infinite;
+}
+
+.companion-motion-bond-alert {
+  animation: companion-bond-alert 3.8s ease-in-out infinite;
+}
+
+.companion-motion-bond-arcane {
+  animation: companion-bond-arcane 4.2s ease-in-out infinite;
+}
+
+.companion-motion-aura-warm {
+  animation: companion-aura-warm 4s ease-in-out infinite;
+}
+
+.companion-motion-aura-cool {
+  animation: companion-aura-cool 5s ease-in-out infinite;
+}
+
+.companion-motion-aura-arcane {
+  animation: companion-aura-arcane 3.5s ease-in-out infinite;
+}
+
+@keyframes companion-sky-breathe {
+  0%,
+  100% {
+    opacity: 0.92;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes companion-stars-twinkle {
+  from {
+    opacity: 0.28;
+  }
+  to {
+    opacity: 0.55;
+  }
+}
+
+@keyframes companion-platform-pulse {
+  0%,
+  100% {
+    transform: scaleX(1);
+    box-shadow: 0 0 20px var(--figure-aura), inset 0 4px 16px rgba(255, 255, 255, 0.06);
+  }
+  50% {
+    transform: scaleX(1.04);
+    box-shadow: 0 0 32px var(--figure-aura-strong), inset 0 4px 20px rgba(255, 255, 255, 0.1);
+  }
+}
+
+@keyframes companion-sparkle-drift {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes companion-human-idle {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.015);
+  }
+}
+
+@keyframes companion-fox-idle {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  35% {
+    transform: translateY(-7px) rotate(-1.5deg);
+  }
+  70% {
+    transform: translateY(-3px) rotate(1deg);
+  }
+}
+
+@keyframes companion-cat-idle {
+  0%,
+  100% {
+    transform: translateY(0) scaleY(1);
+  }
+  45% {
+    transform: translateY(-4px) scaleY(1.03);
+  }
+  55% {
+    transform: translateY(-2px) scaleY(0.98);
+  }
+}
+
+@keyframes companion-owl-idle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-9px);
+  }
+}
+
+@keyframes companion-wolf-idle {
+  0%,
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+  50% {
+    transform: translateX(-4px) translateY(-5px);
+  }
+}
+
+@keyframes companion-dragon-idle {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-10px) scale(1.03);
+  }
+}
+
+@keyframes companion-stag-idle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-6px);
+  }
+  60% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes companion-phoenix-idle {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-12px) scale(1.04);
+  }
+}
+
+@keyframes companion-raven-idle {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-6px) rotate(-2deg);
+  }
+  75% {
+    transform: translateY(-4px) rotate(2deg);
+  }
+}
+
+@keyframes companion-bond-playful {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: translateX(-50%) scale(0.95);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translateX(-50%) scale(1.08);
+  }
+}
+
+@keyframes companion-bond-calm {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.62;
+  }
+}
+
+@keyframes companion-bond-alert {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: translateX(-50%) scaleX(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: translateX(-50%) scaleX(1.12);
+  }
+}
+
+@keyframes companion-bond-arcane {
+  0%,
+  100% {
+    opacity: 0.42;
+    filter: blur(10px);
+  }
+  50% {
+    opacity: 0.78;
+    filter: blur(14px);
+  }
+}
+
+@keyframes companion-aura-warm {
+  0%,
+  100% {
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    filter: hue-rotate(8deg);
+  }
+}
+
+@keyframes companion-aura-cool {
+  0%,
+  100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes companion-aura-arcane {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  33% {
+    opacity: 1;
+  }
+  66% {
+    opacity: 0.92;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .companion-stage *,
+  .companion-stage *::before,
+  .companion-stage *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

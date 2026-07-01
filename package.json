@@ -7,7 +7,8 @@
     "build": "cross-env NODE_OPTIONS=--use-system-ca next build",
     "start": "cross-env NODE_OPTIONS=--use-system-ca next start",
     "lint": "eslint",
-    "compress:characters": "node scripts/compress-character-art.mjs"
+    "compress:characters": "node scripts/compress-character-art.mjs",
+    "matte:characters": "node scripts/matte-character-art.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",

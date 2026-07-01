@@ -1,5 +1,6 @@
 import type { FigureConfig } from "@/lib/companion-figure";
 import { FantasySvgDefs } from "@/components/fantasy-icons";
+import { CompanionAnimatedStage } from "@/components/companion-animated-stage";
 import {
   AnimalSprite,
   HumanSprite,
@@ -115,27 +116,27 @@ export function CompanionFigureScene({
   labels?: { humanTitle: string; animalTitle: string };
 }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-teal-500/20 bg-gradient-to-b from-[#0a1628] via-[#020617] to-black p-5 shadow-[inset_0_0_40px_rgba(139,92,246,0.08)] ring-1 ring-violet-500/20">
+    <div className="relative overflow-hidden rounded-2xl border border-teal-500/25 bg-gradient-to-b from-[#0f172a] via-[#020617] to-black p-3 shadow-[inset_0_0_48px_rgba(139,92,246,0.12)] ring-1 ring-violet-500/25 sm:p-4">
       <div
-        className="pointer-events-none absolute inset-0 opacity-60"
+        className="pointer-events-none absolute inset-0 opacity-70"
         style={{
-          background: `radial-gradient(circle at 50% 70%, ${config.palette.aura}33 0%, transparent 55%)`,
+          background: `radial-gradient(circle at 50% 78%, ${config.palette.aura}44 0%, transparent 58%)`,
         }}
       />
       <div
-        className="pointer-events-none absolute -top-10 left-1/2 h-28 w-28 -translate-x-1/2 rounded-full blur-3xl"
-        style={{ backgroundColor: `${config.palette.aura}28` }}
+        className="pointer-events-none absolute -top-16 left-1/2 h-40 w-40 -translate-x-1/2 rounded-full blur-3xl"
+        style={{ backgroundColor: `${config.palette.aura}30` }}
       />
       <div className="relative flex flex-col items-center">
-        <CompanionFigure config={config} size="xl" />
+        <CompanionAnimatedStage config={config} />
         {labels && (
-          <div className="mt-3 flex flex-wrap justify-center gap-2 text-center">
+          <div className="mt-2 flex flex-wrap justify-center gap-2 text-center sm:mt-3">
             {config.showHuman && (
-              <span className="rounded-full border border-fuchsia-400/30 bg-fuchsia-500/15 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-fuchsia-100 shadow-sm shadow-fuchsia-900/30">
+              <span className="rounded-full border border-fuchsia-400/35 bg-fuchsia-500/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-fuchsia-100 shadow-sm shadow-fuchsia-900/40">
                 {labels.humanTitle}
               </span>
             )}
-            <span className="rounded-full border border-teal-400/30 bg-teal-500/15 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-teal-100 shadow-sm shadow-teal-900/30">
+            <span className="rounded-full border border-teal-400/35 bg-teal-500/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-teal-100 shadow-sm shadow-teal-900/40">
               {labels.animalTitle}
             </span>
           </div>

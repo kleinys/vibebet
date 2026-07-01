@@ -76,7 +76,7 @@ export default async function PublicPlayerPage({
       </Link>
 
       <header className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-start">
-        <div className="w-full max-w-[200px] shrink-0">
+        <div className="w-full max-w-[min(100%,380px)] shrink-0">
           <CompanionFigureScene config={figureConfig} labels={figureLabel} />
         </div>
         <div>

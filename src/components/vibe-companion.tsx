@@ -73,7 +73,7 @@ export function VibeCompanionCard({
 
   return (
     <div className="flex flex-col gap-5 lg:flex-row lg:items-start">
-      <div className="mx-auto w-full max-w-[220px] shrink-0 lg:mx-0">
+      <div className="mx-auto w-full max-w-[min(100%,380px)] shrink-0 lg:mx-0">
         <CompanionFigureScene config={config} labels={labels} />
       </div>
       <div className="min-w-0 flex-1">
