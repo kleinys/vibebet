@@ -5,7 +5,9 @@ import { isEnabled } from "@/lib/feature-flags";
 import { SkillGameAcceptButton } from "@/components/skill-game-accept-button";
 import { WaitForOpponentPanel } from "@/components/wait-for-opponent-panel";
 import { SkillSpectatorPanel } from "@/components/skill-spectator-panel";
-import { serverEnv } from "@/lib/env";
+import { WatchLinkBar } from "@/components/watch-link-bar";
+import { WinSharePanel } from "@/components/win-share-panel";
+import { watchSkillGameUrl } from "@/lib/site-url";
 import { GoBoard } from "../../go-board";
 import type { GoCell } from "@/lib/go-engine";
 
@@ -40,9 +42,17 @@ export default async function GoGamePage({ params }: { params: Promise<{ id: str
     game.creator_id !== user.id &&
     (game.invited_user_id === null || game.invited_user_id === user.id);
 
-  const siteUrl = serverEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
-  const gameUrl = `${siteUrl}/games/duels/go/${id}`;
+  const gameUrl = watchSkillGameUrl("go", id);
   const isCreatorWaiting = game.status === "open" && game.creator_id === user.id;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("display_name, username")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const userWon =
+    isParticipant && game.status === "settled" && game.winner_id === user.id;
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
@@ -50,6 +60,7 @@ export default async function GoGamePage({ params }: { params: Promise<{ id: str
         ← Go
       </Link>
       <h1 className="mt-3 text-2xl font-semibold">Go</h1>
+      {!isCreatorWaiting && game.status !== "open" && <WatchLinkBar url={gameUrl} />}
       {canJoin ? (
         <div className="mt-8 rounded-xl border border-slate-500/20 bg-slate-500/5 p-5">
           <SkillGameAcceptButton
@@ -68,6 +79,7 @@ export default async function GoGamePage({ params }: { params: Promise<{ id: str
             marketId={game.spectator_market_id}
             creatorName={game.creator_name}
             opponentName={game.opponent_name ?? "Opponent"}
+            watchUrl={gameUrl}
           />
           <GoBoard
             gameId={id}
@@ -83,6 +95,13 @@ export default async function GoGamePage({ params }: { params: Promise<{ id: str
             drawOfferedBy={game.draw_offered_by}
             isSpectator={isSpectator}
           />
+          {userWon && (
+            <WinSharePanel
+              displayName={profile?.display_name ?? "Player"}
+              username={profile?.username}
+              headline="Won a Go duel on Vibebet"
+            />
+          )}
         </div>
       )}
     </div>

@@ -5,7 +5,9 @@ import { isEnabled } from "@/lib/feature-flags";
 import { SkillGameAcceptButton } from "@/components/skill-game-accept-button";
 import { WaitForOpponentPanel } from "@/components/wait-for-opponent-panel";
 import { SkillSpectatorPanel } from "@/components/skill-spectator-panel";
-import { serverEnv } from "@/lib/env";
+import { WatchLinkBar } from "@/components/watch-link-bar";
+import { WinSharePanel } from "@/components/win-share-panel";
+import { watchSkillGameUrl } from "@/lib/site-url";
 import { CheckersBoard } from "../../checkers-board";
 import type { CheckersCell } from "@/lib/checkers-engine";
 
@@ -40,9 +42,17 @@ export default async function CheckersGamePage({ params }: { params: Promise<{ i
     game.creator_id !== user.id &&
     (game.invited_user_id === null || game.invited_user_id === user.id);
 
-  const siteUrl = serverEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
-  const gameUrl = `${siteUrl}/games/duels/checkers/${id}`;
+  const gameUrl = watchSkillGameUrl("checkers", id);
   const isCreatorWaiting = game.status === "open" && game.creator_id === user.id;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("display_name, username")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const userWon =
+    isParticipant && game.status === "settled" && game.winner_id === user.id;
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
@@ -54,6 +64,7 @@ export default async function CheckersGamePage({ params }: { params: Promise<{ i
         {game.creator_name} vs {game.opponent_name ?? "…"}
         {isSpectator && <span className="ml-2 text-violet-300">· spectator</span>}
       </p>
+      {!isCreatorWaiting && game.status !== "open" && <WatchLinkBar url={gameUrl} />}
       {canJoin ? (
         <div className="mt-8 rounded-xl border border-amber-500/20 bg-amber-500/5 p-5">
           <SkillGameAcceptButton
@@ -72,6 +83,7 @@ export default async function CheckersGamePage({ params }: { params: Promise<{ i
             marketId={game.spectator_market_id}
             creatorName={game.creator_name}
             opponentName={game.opponent_name ?? "Opponent"}
+            watchUrl={gameUrl}
           />
           <CheckersBoard
             gameId={id}
@@ -85,6 +97,13 @@ export default async function CheckersGamePage({ params }: { params: Promise<{ i
             drawOfferedBy={game.draw_offered_by}
             isSpectator={isSpectator}
           />
+          {userWon && (
+            <WinSharePanel
+              displayName={profile?.display_name ?? "Player"}
+              username={profile?.username}
+              headline="Won a checkers duel on Vibebet"
+            />
+          )}
         </div>
       )}
     </div>

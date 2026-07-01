@@ -6,7 +6,9 @@ import { Connect4Board } from "../../connect4-board";
 import { AcceptConnect4Button } from "../../connect4-accept-button";
 import { WaitForOpponentPanel } from "@/components/wait-for-opponent-panel";
 import { SkillSpectatorPanel } from "@/components/skill-spectator-panel";
-import { serverEnv } from "@/lib/env";
+import { WatchLinkBar } from "@/components/watch-link-bar";
+import { WinSharePanel } from "@/components/win-share-panel";
+import { watchSkillGameUrl } from "@/lib/site-url";
 
 export const revalidate = 0;
 
@@ -44,9 +46,17 @@ export default async function Connect4GamePage({
     game.creator_id !== user.id &&
     (game.invited_user_id === null || game.invited_user_id === user.id);
 
-  const siteUrl = serverEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
-  const gameUrl = `${siteUrl}/games/duels/connect4/${id}`;
+  const gameUrl = watchSkillGameUrl("connect4", id);
   const isCreatorWaiting = game.status === "open" && game.creator_id === user.id;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("display_name, username")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const userWon =
+    isParticipant && game.status === "settled" && game.winner_id === user.id;
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
@@ -63,6 +73,9 @@ export default async function Connect4GamePage({
         )}
         {isSpectator && <span className="ml-2 text-violet-300">· spectator</span>}
       </p>
+      {!isCreatorWaiting && game.status !== "open" && (
+        <WatchLinkBar url={gameUrl} />
+      )}
       {game.status === "matched" && isParticipant && (
         <p className="mt-2 text-xs text-amber-300/90">
           {game.creator_name} = Red, {game.opponent_name} = Yellow. Locked after both drop one disc
@@ -90,6 +103,7 @@ export default async function Connect4GamePage({
             marketId={game.spectator_market_id}
             creatorName={game.creator_name}
             opponentName={game.opponent_name ?? "Opponent"}
+            watchUrl={gameUrl}
           />
           <Connect4Board
             gameId={id}
@@ -103,6 +117,13 @@ export default async function Connect4GamePage({
             drawOfferedBy={game.draw_offered_by}
             isSpectator={isSpectator}
           />
+          {userWon && (
+            <WinSharePanel
+              displayName={profile?.display_name ?? "Player"}
+              username={profile?.username}
+              headline="Won a Connect Four duel on Vibebet"
+            />
+          )}
         </div>
       )}
     </div>

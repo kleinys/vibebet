@@ -7,6 +7,8 @@ import { LIVE_EVENT_CATEGORIES } from "@/lib/stream-url";
 import { formatVibe } from "@/lib/utils";
 import type { LiveEventSummary } from "@/lib/live-events";
 import { LiveEventHostControls } from "../live-event-host-controls";
+import { WatchLinkBar } from "@/components/watch-link-bar";
+import { watchLiveUrl } from "@/lib/site-url";
 
 export function LiveEventWatchView({
   event,
@@ -63,6 +65,7 @@ export function LiveEventWatchView({
             {event.starts_at &&
               ` · ${new Date(event.starts_at).toLocaleString()}`}
           </p>
+          <WatchLinkBar url={watchLiveUrl(event.id)} />
         </div>
         {isHost && (
           <LiveEventHostControls eventId={event.id} status={event.status} />

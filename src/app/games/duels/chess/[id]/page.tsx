@@ -5,8 +5,10 @@ import { isEnabled } from "@/lib/feature-flags";
 import { ChessBoard } from "../../chess-board";
 import { SkillGameAcceptButton } from "@/components/skill-game-accept-button";
 import { WaitForOpponentPanel } from "@/components/wait-for-opponent-panel";
-import { serverEnv } from "@/lib/env";
 import { SkillSpectatorPanel } from "@/components/skill-spectator-panel";
+import { WatchLinkBar } from "@/components/watch-link-bar";
+import { WinSharePanel } from "@/components/win-share-panel";
+import { watchSkillGameUrl } from "@/lib/site-url";
 import { ChessLiveClock } from "@/components/chess-live-clock";
 
 export const revalidate = 0;
@@ -40,9 +42,17 @@ export default async function ChessGamePage({ params }: { params: Promise<{ id: 
     game.creator_id !== user.id &&
     (game.invited_user_id === null || game.invited_user_id === user.id);
 
-  const siteUrl = serverEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
-  const gameUrl = `${siteUrl}/games/duels/chess/${id}`;
+  const gameUrl = watchSkillGameUrl("chess", id);
   const isCreatorWaiting = game.status === "open" && game.creator_id === user.id;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("display_name, username")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const userWon =
+    isParticipant && game.status === "settled" && game.winner_id === user.id;
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-10">
@@ -59,6 +69,7 @@ export default async function ChessGamePage({ params }: { params: Promise<{ id: 
         )}
         {isSpectator && <span className="ml-2 text-violet-300">· spectator</span>}
       </p>
+      {!isCreatorWaiting && game.status !== "open" && <WatchLinkBar url={gameUrl} />}
       {game.status === "matched" && isParticipant && (
         <p className="mt-2 text-xs text-amber-300/90">
           Sides locked: {game.creator_name} = White, {game.opponent_name} = Black. Game locks after
@@ -117,6 +128,7 @@ export default async function ChessGamePage({ params }: { params: Promise<{ id: 
                 marketId={game.spectator_market_id}
                 creatorName={game.creator_name}
                 opponentName={game.opponent_name ?? "Opponent"}
+                watchUrl={gameUrl}
               />
             </div>
           )}
@@ -132,6 +144,13 @@ export default async function ChessGamePage({ params }: { params: Promise<{ id: 
             drawOfferedBy={game.draw_offered_by}
             isSpectator={isSpectator}
           />
+          {userWon && (
+            <WinSharePanel
+              displayName={profile?.display_name ?? "Player"}
+              username={profile?.username}
+              headline="Won a chess duel on Vibebet"
+            />
+          )}
         </div>
       )}
     </div>

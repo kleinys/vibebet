@@ -228,6 +228,12 @@ function RavenSprite({ fill, dark, accent }: { fill: string; dark: string; accen
       <path d="M28 30 L24 22 L30 28" stroke={accent} strokeWidth="0.8" opacity="0.6" />
       <path d="M44 30 L48 22 L42 28" stroke={accent} strokeWidth="0.8" opacity="0.6" />
       <GlowEyes y={35} leftX={32} rightX={40} glow={accent} />
+      <path
+        d="M28 68 L26 72 M30 68 L30 72 M32 68 L32 72 M40 68 L40 72 M42 68 L42 72 M44 68 L44 72"
+        stroke="#f8fafc"
+        strokeWidth="1"
+        strokeLinecap="round"
+      />
       <path d="M48 56 Q58 60 62 68" stroke={dark} strokeWidth="2.5" fill="none" strokeLinecap="round" />
     </g>
   );
