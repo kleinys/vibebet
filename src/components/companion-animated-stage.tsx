@@ -61,7 +61,39 @@ export function CompanionAnimatedStage({ config }: { config: FigureConfig }) {
             </div>
           </div>
 
-          {/* Spirit animal orbits trainer */}
+          {/* Trainer centered (painted first, lower layer) */}
+          <div className="companion-figure-slot companion-figure-slot--human-center">
+            <div className={`companion-human-wrap ${HUMAN_MOTION_CLASS}`}>
+              {humanSrc && <EyeGlow />}
+              {humanSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={humanSrc}
+                  alt=""
+                  draggable={false}
+                  className="companion-figure-raster companion-figure-raster--human-center"
+                  style={{ filter: FIGURE_SHADOW }}
+                />
+              ) : (
+                <svg viewBox="0 0 72 88" className="companion-figure-svg companion-figure-svg--human-center" aria-hidden>
+                  <FantasySvgDefs id="stage-human" />
+                  <SpriteGlowDefs />
+                  <HumanSprite
+                    archetype={human}
+                    palette={palette}
+                    scale={humanScale * 1.55}
+                    x={0}
+                    y={0}
+                    badge={badge}
+                    skinSlug={skinSlug}
+                    preferRaster={false}
+                  />
+                </svg>
+              )}
+            </div>
+          </div>
+
+          {/* Spirit animal orbits trainer (painted on top) */}
           <div className="companion-orbit-track companion-orbit-track--spirit">
             <div className="companion-orbit-carrier">
               <div className="companion-orbit-spirit-anchor">
@@ -93,38 +125,6 @@ export function CompanionAnimatedStage({ config }: { config: FigureConfig }) {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Trainer centered */}
-          <div className="companion-figure-slot companion-figure-slot--human-center">
-            <div className={`companion-human-wrap ${HUMAN_MOTION_CLASS}`}>
-              {humanSrc && <EyeGlow />}
-              {humanSrc ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={humanSrc}
-                  alt=""
-                  draggable={false}
-                  className="companion-figure-raster companion-figure-raster--human-center"
-                  style={{ filter: FIGURE_SHADOW }}
-                />
-              ) : (
-                <svg viewBox="0 0 72 88" className="companion-figure-svg companion-figure-svg--human-center" aria-hidden>
-                  <FantasySvgDefs id="stage-human" />
-                  <SpriteGlowDefs />
-                  <HumanSprite
-                    archetype={human}
-                    palette={palette}
-                    scale={humanScale * 1.55}
-                    x={0}
-                    y={0}
-                    badge={badge}
-                    skinSlug={skinSlug}
-                    preferRaster={false}
-                  />
-                </svg>
-              )}
             </div>
           </div>
         </div>

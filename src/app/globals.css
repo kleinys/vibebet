@@ -101,18 +101,19 @@ body {
 .companion-orbit-track {
   position: absolute;
   left: 50%;
-  bottom: 10%;
-  width: min(78%, 340px);
-  height: min(52%, 240px);
+  bottom: 8%;
+  width: min(92%, 400px);
+  height: min(62%, 280px);
   transform: translateX(-50%);
   pointer-events: none;
+  z-index: 2;
 }
 
 .companion-orbit-track--spirit {
-  bottom: 8%;
-  width: min(88%, 380px);
-  height: min(58%, 270px);
-  z-index: 4;
+  bottom: 6%;
+  width: min(98%, 440px);
+  height: min(68%, 310px);
+  z-index: 10;
 }
 
 .companion-orbit-ring {
@@ -133,9 +134,9 @@ body {
 .companion-orbit-spirit-anchor {
   position: absolute;
   left: 50%;
-  top: -2%;
-  width: 42%;
-  height: 52%;
+  top: -4%;
+  width: 52%;
+  height: 58%;
   transform: translateX(-50%);
 }
 
@@ -210,10 +211,10 @@ body {
 .companion-stage--duo .companion-figure-slot--human-center {
   left: 50%;
   bottom: 0;
-  width: 76%;
+  width: 72%;
   height: 98%;
   transform: translateX(-50%);
-  z-index: 8;
+  z-index: 5;
 }
 
 .companion-human-wrap {
@@ -242,13 +243,13 @@ body {
 }
 
 .companion-eye-glow--left {
-  left: 41%;
-  top: 16%;
+  left: 42%;
+  top: 21%;
 }
 
 .companion-eye-glow--right {
-  left: 53%;
-  top: 16%;
+  left: 52%;
+  top: 21%;
 }
 
 .companion-stage--solo .companion-figure-slot--animal-solo {
@@ -285,8 +286,10 @@ body {
 }
 
 .companion-figure-raster--orbit {
-  max-height: min(42vw, 200px);
+  max-height: min(52vw, 280px);
+  min-height: 140px;
   height: 100%;
+  width: auto;
 }
 
 .companion-figure-raster--solo {
@@ -305,7 +308,8 @@ body {
 }
 
 .companion-figure-svg--orbit {
-  max-height: min(42vw, 200px);
+  max-height: min(52vw, 280px);
+  min-height: 140px;
 }
 
 .companion-figure-svg--solo {
@@ -419,14 +423,14 @@ body {
   }
   42%,
   58% {
-    opacity: 0.3;
-    transform: scale(0.55);
-    filter: blur(6px) brightness(1.6) drop-shadow(0 0 32px var(--spirit-element));
+    opacity: 0.82;
+    transform: scale(0.78);
+    filter: blur(3px) brightness(1.35) drop-shadow(0 0 28px var(--spirit-element));
   }
   50% {
-    opacity: 0.15;
-    transform: scale(0.4);
-    filter: blur(10px) brightness(2) drop-shadow(0 0 48px var(--spirit-element));
+    opacity: 0.72;
+    transform: scale(0.68);
+    filter: blur(5px) brightness(1.5) drop-shadow(0 0 36px var(--spirit-element));
   }
 }
 
