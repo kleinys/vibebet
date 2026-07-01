@@ -25,9 +25,57 @@ function SpiritElementBall({ morph }: { morph: SpiritMorphElement }) {
     <div className={`companion-spirit-element companion-spirit-element--${morph}`} aria-hidden>
       <span className="companion-spirit-element__core" />
       <span className="companion-spirit-element__halo" />
-      <span className="companion-spirit-element__flame companion-spirit-element__flame--1" />
-      <span className="companion-spirit-element__flame companion-spirit-element__flame--2" />
-      <span className="companion-spirit-element__flame companion-spirit-element__flame--3" />
+
+      {morph === "fire" && (
+        <>
+          <span className="companion-spirit-element__flame companion-spirit-element__flame--1" />
+          <span className="companion-spirit-element__flame companion-spirit-element__flame--2" />
+          <span className="companion-spirit-element__flame companion-spirit-element__flame--3" />
+        </>
+      )}
+
+      {morph === "solar" && (
+        <>
+          {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
+            <span
+              key={deg}
+              className="companion-spirit-element__ray"
+              style={{ "--ray-angle": `${deg}deg` } as CSSProperties}
+            />
+          ))}
+          <span className="companion-spirit-element__corona" />
+        </>
+      )}
+
+      {morph === "storm" && (
+        <>
+          <span className="companion-spirit-element__cloud" />
+          <span className="companion-spirit-element__bolt companion-spirit-element__bolt--1" />
+          <span className="companion-spirit-element__bolt companion-spirit-element__bolt--2" />
+          <span className="companion-spirit-element__bolt companion-spirit-element__bolt--3" />
+        </>
+      )}
+
+      {morph === "lunar" && (
+        <>
+          <span className="companion-spirit-element__moon-ring" />
+          <span className="companion-spirit-element__moon-crescent" />
+          <span className="companion-spirit-element__stardust companion-spirit-element__stardust--1" />
+          <span className="companion-spirit-element__stardust companion-spirit-element__stardust--2" />
+          <span className="companion-spirit-element__stardust companion-spirit-element__stardust--3" />
+        </>
+      )}
+
+      {morph === "arcane" && (
+        <>
+          <span className="companion-spirit-element__rune-ring" />
+          <span className="companion-spirit-element__spark companion-spirit-element__spark--1" />
+          <span className="companion-spirit-element__spark companion-spirit-element__spark--2" />
+          <span className="companion-spirit-element__spark companion-spirit-element__spark--3" />
+          <span className="companion-spirit-element__spark companion-spirit-element__spark--4" />
+        </>
+      )}
+
       <span className="companion-spirit-element__trail" />
     </div>
   );
@@ -112,7 +160,7 @@ export function CompanionAnimatedStage({ config }: { config: FigureConfig }) {
               <div className="companion-orbit-spirit-anchor">
                 <div className="companion-orbit-spirit">
                   <div
-                    className={`companion-orbit-spirit-inner companion-orbit-spirit-inner--${motion.morph}`}
+                    className={`companion-orbit-spirit-inner companion-orbit-spirit-inner--${motion.morph} companion-orbit-spirit-inner--${animal}`}
                   >
                     <SpiritElementBall morph={motion.morph} />
                     {animalSrc ? (

@@ -170,14 +170,15 @@ body {
     drop-shadow(0 0 18px var(--spirit-element-soft));
 }
 
-/* Spirit element ball — fox becomes fire while passing behind trainer */
+/* Spirit element ball — morphs per animal while passing behind trainer */
 .companion-spirit-element {
+  --element-size: min(32vw, 148px);
   position: absolute;
   left: 50%;
-  bottom: 8%;
+  bottom: 4%;
   z-index: 1;
-  width: 80px;
-  height: 80px;
+  width: var(--element-size);
+  height: var(--element-size);
   transform: translateX(-50%);
   pointer-events: none;
   animation: companion-element-form var(--orbit-duration, 14s) ease-in-out infinite;
@@ -185,36 +186,37 @@ body {
 
 .companion-spirit-element__core {
   position: absolute;
-  inset: 22%;
+  inset: 18%;
   border-radius: 50%;
   background: radial-gradient(circle at 40% 35%, #fff7c2 0%, #ffb020 35%, #ff5a00 72%, #8b1a00 100%);
   box-shadow:
-    0 0 24px 8px rgba(255, 120, 0, 0.85),
-    0 0 48px 16px rgba(255, 60, 0, 0.45);
+    0 0 36px 12px rgba(255, 120, 0, 0.9),
+    0 0 72px 24px rgba(255, 60, 0, 0.5);
   animation: companion-fire-core-flicker 0.45s ease-in-out infinite alternate;
 }
 
 .companion-spirit-element__halo {
   position: absolute;
-  inset: 0;
+  inset: -6%;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 180, 60, 0.55) 0%, transparent 68%);
-  filter: blur(2px);
+  background: radial-gradient(circle, rgba(255, 180, 60, 0.6) 0%, transparent 68%);
+  filter: blur(3px);
   animation: companion-fire-halo-pulse 0.8s ease-in-out infinite alternate;
 }
 
+/* ── Fire (fox, ember cat) ── */
 .companion-spirit-element__flame {
   position: absolute;
   left: 50%;
-  bottom: 38%;
-  width: 28px;
-  height: 44px;
-  margin-left: -14px;
+  bottom: 34%;
+  width: calc(var(--element-size) * 0.36);
+  height: calc(var(--element-size) * 0.56);
+  margin-left: calc(var(--element-size) * -0.18);
   border-radius: 50% 50% 20% 20%;
   background: linear-gradient(to top, #ff5a00 0%, #ffb020 55%, transparent 100%);
   filter: blur(1px);
   transform-origin: center bottom;
-  opacity: 0.85;
+  opacity: 0.9;
 }
 
 .companion-spirit-element__flame--1 {
@@ -222,64 +224,279 @@ body {
 }
 
 .companion-spirit-element__flame--2 {
-  width: 22px;
-  height: 36px;
-  margin-left: -24px;
+  width: calc(var(--element-size) * 0.28);
+  height: calc(var(--element-size) * 0.46);
+  margin-left: calc(var(--element-size) * -0.32);
   transform: rotate(-18deg);
   animation: companion-fire-flame-b 0.7s ease-in-out infinite alternate-reverse;
 }
 
 .companion-spirit-element__flame--3 {
-  width: 22px;
-  height: 36px;
-  margin-left: 2px;
+  width: calc(var(--element-size) * 0.28);
+  height: calc(var(--element-size) * 0.46);
+  margin-left: calc(var(--element-size) * 0.04);
   transform: rotate(18deg);
   animation: companion-fire-flame-c 0.62s ease-in-out infinite alternate;
+}
+
+.companion-orbit-spirit-inner--cat .companion-spirit-element__flame {
+  filter: blur(0.5px) saturate(1.2);
+}
+
+.companion-orbit-spirit-inner--cat .companion-spirit-element__core {
+  background: radial-gradient(circle at 40% 35%, #fff4d6 0%, #ff8c42 38%, #e63900 72%, #7f1d1d 100%);
+}
+
+/* ── Solar (sun phoenix) ── */
+.companion-spirit-element__ray {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(var(--element-size) * 0.1);
+  height: calc(var(--element-size) * 0.42);
+  margin-left: calc(var(--element-size) * -0.05);
+  margin-top: calc(var(--element-size) * -0.21);
+  border-radius: 999px;
+  background: linear-gradient(to top, rgba(251, 191, 36, 0.95) 0%, rgba(255, 251, 235, 0.85) 55%, transparent 100%);
+  transform-origin: center calc(var(--element-size) * 0.42);
+  transform: rotate(var(--ray-angle, 0deg));
+  filter: blur(0.5px);
+  animation: companion-solar-ray-pulse 1.2s ease-in-out infinite alternate;
+}
+
+.companion-spirit-element__corona {
+  position: absolute;
+  inset: 2%;
+  border-radius: 50%;
+  border: 2px solid rgba(251, 191, 36, 0.55);
+  box-shadow:
+    0 0 24px rgba(251, 191, 36, 0.65),
+    inset 0 0 18px rgba(255, 237, 160, 0.35);
+  animation: companion-solar-corona-spin 4s linear infinite;
+}
+
+.companion-spirit-element--solar .companion-spirit-element__core {
+  background: radial-gradient(circle at 40% 35%, #fffbeb 0%, #fde047 35%, #f97316 70%, #c2410c 100%);
+  box-shadow:
+    0 0 40px 14px rgba(251, 191, 36, 0.85),
+    0 0 80px 28px rgba(249, 115, 22, 0.45);
+}
+
+.companion-spirit-element--solar .companion-spirit-element__halo {
+  background: radial-gradient(circle, rgba(253, 224, 71, 0.65) 0%, transparent 70%);
+}
+
+/* ── Storm (storm wolf) ── */
+.companion-spirit-element__cloud {
+  position: absolute;
+  inset: 8% 4% 28%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 60%, rgba(30, 58, 138, 0.85) 0%, rgba(15, 23, 42, 0.2) 72%);
+  filter: blur(2px);
+  animation: companion-storm-cloud-roll 1.4s ease-in-out infinite alternate;
+}
+
+.companion-spirit-element__bolt {
+  position: absolute;
+  left: 50%;
+  width: calc(var(--element-size) * 0.08);
+  height: calc(var(--element-size) * 0.38);
+  margin-left: calc(var(--element-size) * -0.04);
+  background: linear-gradient(to bottom, #f0f9ff 0%, #38bdf8 45%, #1d4ed8 100%);
+  clip-path: polygon(50% 0%, 68% 42%, 52% 42%, 72% 100%, 32% 48%, 48% 48%);
+  filter: drop-shadow(0 0 10px #7dd3fc) drop-shadow(0 0 20px #38bdf8);
+  transform-origin: center top;
+  opacity: 0;
+}
+
+.companion-spirit-element__bolt--1 {
+  top: 18%;
+  animation: companion-storm-bolt-flash 0.9s ease-in-out infinite;
+}
+
+.companion-spirit-element__bolt--2 {
+  top: 24%;
+  margin-left: calc(var(--element-size) * -0.22);
+  transform: scale(0.85) rotate(-12deg);
+  animation: companion-storm-bolt-flash 1.1s ease-in-out infinite 0.25s;
+}
+
+.companion-spirit-element__bolt--3 {
+  top: 22%;
+  margin-left: calc(var(--element-size) * 0.14);
+  transform: scale(0.78) rotate(10deg);
+  animation: companion-storm-bolt-flash 0.85s ease-in-out infinite 0.5s;
+}
+
+.companion-spirit-element--storm .companion-spirit-element__core {
+  background: radial-gradient(circle at 40% 35%, #f0f9ff 0%, #38bdf8 42%, #1e40af 100%);
+  box-shadow:
+    0 0 36px 12px rgba(56, 189, 248, 0.75),
+    0 0 64px 22px rgba(29, 78, 216, 0.45);
+}
+
+.companion-spirit-element--storm .companion-spirit-element__halo {
+  background: radial-gradient(circle, rgba(125, 211, 252, 0.55) 0%, transparent 68%);
+}
+
+/* ── Lunar (moon owl, spirit stag) ── */
+.companion-spirit-element__moon-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(226, 232, 240, 0.45);
+  box-shadow: 0 0 20px rgba(203, 213, 225, 0.45);
+  animation: companion-lunar-ring-spin 6s linear infinite;
+}
+
+.companion-spirit-element__moon-crescent {
+  position: absolute;
+  top: 14%;
+  right: 16%;
+  width: calc(var(--element-size) * 0.28);
+  height: calc(var(--element-size) * 0.28);
+  border-radius: 50%;
+  background: #f8fafc;
+  box-shadow:
+    calc(var(--element-size) * -0.1) calc(var(--element-size) * 0.02) 0 calc(var(--element-size) * 0.08) #020617,
+    0 0 16px rgba(248, 250, 252, 0.75);
+  animation: companion-lunar-crescent-float 2.4s ease-in-out infinite alternate;
+}
+
+.companion-spirit-element__stardust {
+  position: absolute;
+  width: calc(var(--element-size) * 0.06);
+  height: calc(var(--element-size) * 0.06);
+  border-radius: 50%;
+  background: #f8fafc;
+  box-shadow: 0 0 10px 3px rgba(226, 232, 240, 0.85);
+}
+
+.companion-spirit-element__stardust--1 {
+  top: 22%;
+  left: 18%;
+  animation: companion-lunar-sparkle 1.6s ease-in-out infinite;
+}
+
+.companion-spirit-element__stardust--2 {
+  bottom: 28%;
+  left: 24%;
+  animation: companion-lunar-sparkle 2s ease-in-out infinite 0.4s;
+}
+
+.companion-spirit-element__stardust--3 {
+  bottom: 34%;
+  right: 20%;
+  animation: companion-lunar-sparkle 1.8s ease-in-out infinite 0.8s;
+}
+
+.companion-spirit-element--lunar .companion-spirit-element__core {
+  background: radial-gradient(circle at 38% 34%, #ffffff 0%, #cbd5e1 38%, #64748b 100%);
+  box-shadow:
+    0 0 36px 12px rgba(203, 213, 225, 0.75),
+    0 0 60px 20px rgba(148, 163, 184, 0.35);
+}
+
+.companion-orbit-spirit-inner--stag .companion-spirit-element__moon-crescent {
+  top: 10%;
+  right: 12%;
+  width: calc(var(--element-size) * 0.22);
+  height: calc(var(--element-size) * 0.22);
+}
+
+/* ── Arcane (star dragon, rune raven) ── */
+.companion-spirit-element__rune-ring {
+  position: absolute;
+  inset: 4%;
+  border-radius: 50%;
+  border: 2px dashed rgba(216, 180, 254, 0.65);
+  box-shadow:
+    0 0 24px rgba(168, 85, 247, 0.55),
+    inset 0 0 16px rgba(168, 85, 247, 0.25);
+  animation: companion-arcane-ring-spin 3.5s linear infinite reverse;
+}
+
+.companion-spirit-element__spark {
+  position: absolute;
+  width: calc(var(--element-size) * 0.08);
+  height: calc(var(--element-size) * 0.08);
+  border-radius: 50%;
+  background: radial-gradient(circle, #faf5ff 0%, var(--spirit-element) 55%, transparent 100%);
+  box-shadow: 0 0 14px 4px var(--spirit-element-soft);
+}
+
+.companion-spirit-element__spark--1 {
+  top: 50%;
+  left: 50%;
+  margin-left: 0;
+  animation: companion-arcane-spark-orbit 2.2s linear infinite;
+}
+
+.companion-spirit-element__spark--2 {
+  bottom: 16%;
+  left: 14%;
+  animation: companion-arcane-spark-pulse 1.4s ease-in-out infinite;
+}
+
+.companion-spirit-element__spark--3 {
+  bottom: 20%;
+  right: 12%;
+  animation: companion-arcane-spark-pulse 1.6s ease-in-out infinite 0.35s;
+}
+
+.companion-spirit-element__spark--4 {
+  top: 36%;
+  right: 8%;
+  animation: companion-arcane-spark-pulse 1.2s ease-in-out infinite 0.7s;
+}
+
+.companion-spirit-element--arcane .companion-spirit-element__core {
+  background: radial-gradient(circle at 40% 35%, #faf5ff 0%, var(--spirit-element) 42%, #581c87 100%);
+  box-shadow:
+    0 0 36px 14px var(--spirit-element-soft),
+    0 0 72px 24px rgba(88, 28, 135, 0.45);
+}
+
+.companion-spirit-element--arcane .companion-spirit-element__halo {
+  background: radial-gradient(circle, color-mix(in srgb, var(--spirit-element) 55%, transparent) 0%, transparent 68%);
+}
+
+.companion-orbit-spirit-inner--raven .companion-spirit-element__rune-ring {
+  border-style: dotted;
+  animation-duration: 2.8s;
+}
+
+.companion-orbit-spirit-inner--dragon .companion-spirit-element {
+  --element-size: min(34vw, 158px);
 }
 
 .companion-spirit-element__trail {
   position: absolute;
   left: 50%;
-  bottom: 18%;
-  width: 52px;
-  height: 52px;
-  margin-left: -26px;
+  bottom: 12%;
+  width: calc(var(--element-size) * 0.68);
+  height: calc(var(--element-size) * 0.68);
+  margin-left: calc(var(--element-size) * -0.34);
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 140, 0, 0.5) 0%, transparent 72%);
-  filter: blur(6px);
+  background: radial-gradient(circle, rgba(255, 140, 0, 0.55) 0%, transparent 72%);
+  filter: blur(8px);
   animation: companion-fire-trail-spin var(--orbit-duration, 14s) linear infinite;
 }
 
-.companion-spirit-element--arcane .companion-spirit-element__core {
-  background: radial-gradient(circle at 40% 35%, #f5e6ff 0%, var(--spirit-element) 45%, #4c1d95 100%);
-  box-shadow: 0 0 28px 10px var(--spirit-element-soft);
+.companion-spirit-element--storm .companion-spirit-element__trail {
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.5) 0%, transparent 72%);
 }
 
-.companion-spirit-element--arcane .companion-spirit-element__flame {
-  background: linear-gradient(to top, var(--spirit-element) 0%, #e9d5ff 60%, transparent 100%);
+.companion-spirit-element--lunar .companion-spirit-element__trail {
+  background: radial-gradient(circle, rgba(203, 213, 225, 0.45) 0%, transparent 72%);
 }
 
-.companion-spirit-element--storm .companion-spirit-element__core {
-  background: radial-gradient(circle at 40% 35%, #e0f2fe 0%, #38bdf8 40%, #1d4ed8 100%);
-  box-shadow: 0 0 28px 10px rgba(56, 189, 248, 0.55);
+.companion-spirit-element--arcane .companion-spirit-element__trail {
+  background: radial-gradient(circle, var(--spirit-element-soft) 0%, transparent 72%);
 }
 
-.companion-spirit-element--storm .companion-spirit-element__flame {
-  background: linear-gradient(to top, #1d4ed8 0%, #7dd3fc 55%, transparent 100%);
-}
-
-.companion-spirit-element--lunar .companion-spirit-element__core {
-  background: radial-gradient(circle at 40% 35%, #fafafa 0%, #cbd5e1 40%, #64748b 100%);
-  box-shadow: 0 0 28px 10px rgba(203, 213, 225, 0.55);
-}
-
-.companion-spirit-element--lunar .companion-spirit-element__flame {
-  background: linear-gradient(to top, #64748b 0%, #e2e8f0 55%, transparent 100%);
-}
-
-.companion-spirit-element--solar .companion-spirit-element__core {
-  background: radial-gradient(circle at 40% 35%, #fffbeb 0%, #fbbf24 40%, #ea580c 100%);
-  box-shadow: 0 0 28px 10px rgba(251, 191, 36, 0.55);
+.companion-spirit-element--solar .companion-spirit-element__trail {
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.55) 0%, transparent 72%);
 }
 
 .companion-element-wisp-host {
@@ -564,17 +781,17 @@ body {
   88%,
   100% {
     opacity: 0;
-    transform: translateX(-50%) scale(0.25);
+    transform: translateX(-50%) scale(0.2);
   }
   6%,
   94% {
-    opacity: 0.65;
-    transform: translateX(-50%) scale(0.75);
+    opacity: 0.75;
+    transform: translateX(-50%) scale(0.85);
   }
   68%,
   78% {
     opacity: 1;
-    transform: translateX(-50%) scale(1.15);
+    transform: translateX(-50%) scale(1.55);
   }
 }
 
@@ -639,6 +856,111 @@ body {
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes companion-solar-ray-pulse {
+  from {
+    opacity: 0.65;
+    transform: rotate(var(--ray-angle, 0deg)) scaleY(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(var(--ray-angle, 0deg)) scaleY(1.08);
+  }
+}
+
+@keyframes companion-solar-corona-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes companion-storm-cloud-roll {
+  from {
+    transform: translateX(-4%) scale(0.96);
+  }
+  to {
+    transform: translateX(4%) scale(1.04);
+  }
+}
+
+@keyframes companion-storm-bolt-flash {
+  0%,
+  55%,
+  100% {
+    opacity: 0;
+    filter: drop-shadow(0 0 6px #7dd3fc);
+  }
+  58%,
+  68% {
+    opacity: 1;
+    filter: drop-shadow(0 0 14px #e0f2fe) drop-shadow(0 0 28px #38bdf8);
+  }
+}
+
+@keyframes companion-lunar-ring-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes companion-lunar-crescent-float {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-6%);
+  }
+}
+
+@keyframes companion-lunar-sparkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes companion-arcane-ring-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes companion-arcane-spark-orbit {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg)
+      translateX(calc(var(--element-size, 148px) * 0.34)) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg)
+      translateX(calc(var(--element-size, 148px) * 0.34)) rotate(-360deg);
+  }
+}
+
+@keyframes companion-arcane-spark-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.75);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.25);
   }
 }
 
