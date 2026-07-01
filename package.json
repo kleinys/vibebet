@@ -6,7 +6,8 @@
     "dev": "cross-env NODE_OPTIONS=--use-system-ca next dev",
     "build": "cross-env NODE_OPTIONS=--use-system-ca next build",
     "start": "cross-env NODE_OPTIONS=--use-system-ca next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "compress:characters": "node scripts/compress-character-art.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",
@@ -39,6 +40,7 @@
     "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "sharp": "^0.35.3",
     "supabase": "^2.101.0",
     "tailwindcss": "^4",
     "tsx": "^4.22.3",
