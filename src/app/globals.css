@@ -286,9 +286,9 @@ body {
 }
 
 .companion-figure-raster--orbit {
-  max-height: min(52vw, 280px);
-  min-height: 140px;
-  height: 100%;
+  max-height: min(58vw, 320px);
+  min-height: 160px;
+  height: auto;
   width: auto;
 }
 
@@ -396,19 +396,19 @@ body {
 
 @keyframes companion-orbit-spin {
   from {
-    transform: rotate(0deg);
+    transform: rotate(90deg);
   }
   to {
-    transform: rotate(360deg);
+    transform: rotate(450deg);
   }
 }
 
 @keyframes companion-orbit-counter {
   from {
-    transform: rotate(0deg);
+    transform: rotate(-90deg);
   }
   to {
-    transform: rotate(-360deg);
+    transform: rotate(-450deg);
   }
 }
 
