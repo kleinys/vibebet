@@ -74,7 +74,7 @@ export default async function MarketDetailPage({
   const limitOrdersEnabled = await isEnabled("limit_orders_enabled");
   const quickExitEnabled = await isEnabled("quick_exit_enabled");
 
-  const [creator, position, trades, vibeBalance, comments, priceHistory, dispute, newsHeadlines, activityFeed] =
+  const [creator, position, trades, vibeBalance, comments, priceHistory, dispute, newsHeadlines, activityFeed, profileRow] =
     await Promise.all([
       getCreatorName(market.creator_id),
       user ? getUserPosition(market.id, user.id) : Promise.resolve(null),
@@ -85,6 +85,14 @@ export default async function MarketDetailPage({
       market.status === "in_court" ? getDisputeForMarket(market.id) : Promise.resolve(null),
       fetchRelatedNews(market.question, 3),
       liveFeedEnabled ? getActivityFeed(8) : Promise.resolve([]),
+      user
+        ? supabase
+            .from("profiles")
+            .select("display_name, username")
+            .eq("id", user.id)
+            .maybeSingle()
+            .then((r) => r.data)
+        : Promise.resolve(null),
     ]);
 
   const pool = { reserveYes: market.reserve_yes, reserveNo: market.reserve_no };
@@ -536,6 +544,15 @@ export default async function MarketDetailPage({
                   yesLabel={market.outcome_yes_label}
                   noLabel={market.outcome_no_label}
                   quickExitEnabled={quickExitEnabled}
+                  shareProfile={
+                    profileRow
+                      ? {
+                          displayName: profileRow.display_name ?? "Player",
+                          username: profileRow.username,
+                          marketQuestion: market.question,
+                        }
+                      : undefined
+                  }
                 />
               </div>
             )}

@@ -11,6 +11,8 @@ import { isEnabled } from "@/lib/feature-flags";
 import { getStreakInfo } from "@/lib/streaks";
 import { getMyPlayerCode } from "@/lib/player-code";
 import { ProfileShareSection } from "@/components/profile-share-section";
+import { CompanionEvolutionShare } from "@/components/companion-evolution-share";
+import { figureLabels, resolveFigureConfig } from "@/lib/companion-figure";
 
 export const revalidate = 0;
 
@@ -40,6 +42,9 @@ export default async function ProfilePage() {
     getMyPlayerCode().catch(() => null),
   ]);
 
+  const figureConfig = resolveFigureConfig(companionInput);
+  const companionLabels = figureLabels(figureConfig);
+
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
       <h1 className="text-2xl font-semibold">Account</h1>
@@ -55,6 +60,13 @@ export default async function ProfilePage() {
         <div className="mt-5">
           <VibeCompanionCard input={companionInput} />
         </div>
+        <CompanionEvolutionShare
+          displayName={profile?.display_name ?? playerCode?.display_name ?? "Player"}
+          username={profile?.username ?? playerCode?.username}
+          companion={figureConfig.companion}
+          humanTitle={companionLabels.humanTitle}
+          animalTitle={companionLabels.animalTitle}
+        />
         <p className="mt-4 text-xs text-zinc-500">
           Equipped: {equipped.skin?.name ?? "Default Oracle"}
           {equipped.badge ? ` · ${equipped.badge.name}` : ""}.

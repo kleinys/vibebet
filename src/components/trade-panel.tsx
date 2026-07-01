@@ -14,6 +14,9 @@ import {
   quoteSharesOut,
 } from "@/lib/cpmm";
 import { CANCEL_BET_PAYOUT_RATIO, quoteCancelBet } from "@/lib/cancel-bet";
+import { WinSharePanel } from "@/components/win-share-panel";
+
+const SHARE_WIN_MIN_VIBE = 150;
 
 type Props = {
   marketId: string;
@@ -28,6 +31,11 @@ type Props = {
   noLabel?: string;
   quickExitEnabled?: boolean;
   defaultMode?: "buy" | "sell" | "cancel";
+  shareProfile?: {
+    displayName: string;
+    username?: string | null;
+    marketQuestion?: string;
+  };
 };
 
 export function TradePanel({
@@ -43,6 +51,7 @@ export function TradePanel({
   noLabel = "No",
   quickExitEnabled = false,
   defaultMode = "buy",
+  shareProfile,
 }: Props) {
   const [mode, setMode] = useState<"buy" | "sell" | "cancel">(defaultMode);
   const [side, setSide] = useState<"yes" | "no">("yes");
@@ -312,14 +321,29 @@ export function TradePanel({
         <p className="text-sm text-rose-400">{state.error}</p>
       )}
       {state && "success" in state && (
-        <p className="text-sm text-emerald-400">
-          {state.success.kind === "buy" &&
-            `Bought ${formatVibe(state.success.shares)} ${state.success.side} shares.`}
-          {state.success.kind === "sell" &&
-            `Sold for ${formatVibe(state.success.proceeds)} VIBE.`}
-          {state.success.kind === "quick_exit" &&
-            `Cancelled: ${formatVibe(state.success.proceeds)} VIBE returned (${Math.round(CANCEL_BET_PAYOUT_RATIO * 100)}%).`}
-        </p>
+        <>
+          <p className="text-sm text-emerald-400">
+            {state.success.kind === "buy" &&
+              `Bought ${formatVibe(state.success.shares)} ${state.success.side} shares.`}
+            {state.success.kind === "sell" &&
+              `Sold for ${formatVibe(state.success.proceeds)} VIBE.`}
+            {state.success.kind === "quick_exit" &&
+              `Cancelled: ${formatVibe(state.success.proceeds)} VIBE returned (${Math.round(CANCEL_BET_PAYOUT_RATIO * 100)}%).`}
+          </p>
+          {shareProfile &&
+            (state.success.kind === "sell" || state.success.kind === "quick_exit") &&
+            state.success.proceeds >= SHARE_WIN_MIN_VIBE && (
+              <WinSharePanel
+                displayName={shareProfile.displayName}
+                username={shareProfile.username}
+                headline={
+                  shareProfile.marketQuestion
+                    ? `Cashed out ${formatVibe(state.success.proceeds)} VIBE on “${shareProfile.marketQuestion.slice(0, 60)}${shareProfile.marketQuestion.length > 60 ? "…" : ""}”`
+                    : `Cashed out ${formatVibe(state.success.proceeds)} VIBE on Vibebet`
+                }
+              />
+            )}
+        </>
       )}
     </div>
   );
