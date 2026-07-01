@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useId } from "react";
+import { useCallback, useId, useEffect, useState } from "react";
 
 export function FriendChallengeFields({
   stakeInputName = "stake",
@@ -8,6 +8,13 @@ export function FriendChallengeFields({
   stakeInputName?: string;
 }) {
   const friendlyId = useId();
+  const [inviteDefault, setInviteDefault] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("challenge");
+    if (code) setInviteDefault(code.trim().toUpperCase());
+  }, []);
 
   const onFriendlyChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,6 +46,7 @@ export function FriendChallengeFields({
         <input
           name="inviteCode"
           type="text"
+          defaultValue={inviteDefault}
           placeholder="ABC12345 or @theirname — leave blank for anyone"
           className="mt-1 w-full rounded-md border border-white/10 bg-zinc-900 px-3 py-2 text-sm"
         />

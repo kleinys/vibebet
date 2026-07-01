@@ -7,6 +7,21 @@ export const SKIN_STYLES: Record<
     glow: "shadow-fuchsia-500/20",
     avatar: "◆",
   },
+  "oracle-sage": {
+    ring: "ring-fuchsia-500/40",
+    glow: "shadow-fuchsia-500/20",
+    avatar: "◈",
+  },
+  "oracle-lunar": {
+    ring: "ring-indigo-400/50",
+    glow: "shadow-indigo-400/25",
+    avatar: "☽",
+  },
+  "oracle-solar": {
+    ring: "ring-amber-400/50",
+    glow: "shadow-amber-400/25",
+    avatar: "☀",
+  },
   "neon-seer": {
     ring: "ring-cyan-400/60",
     glow: "shadow-cyan-400/30",

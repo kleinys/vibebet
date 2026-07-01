@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { formatVibe } from "@/lib/utils";
 import { TradePanel } from "@/components/trade-panel";
 import type { DuelDetail } from "@/lib/duels";
+import { CopyLinkButton } from "@/components/copy-link-button";
+import { watchDuelUrl } from "@/lib/site-url";
 import { acceptDuel, cancelDuel } from "@/app/duels/actions";
 
 export function DuelWatchView({
@@ -59,6 +61,13 @@ export function DuelWatchView({
           Stake: {formatVibe(duel.stake)} VIBE each · Challenger on{" "}
           {duel.challenger_side.toUpperCase()}
         </p>
+        <div className="mt-3">
+          <CopyLinkButton
+            url={watchDuelUrl(duel.id)}
+            label="Copy watch link"
+            successMessage="Watch link copied — share with friends!"
+          />
+        </div>
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_340px]">

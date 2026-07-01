@@ -1751,6 +1751,10 @@ export interface Database {
         Args: Record<string, never>;
         Returns: Record<string, unknown>;
       };
+      contribute_to_guild_pot: {
+        Args: { p_amount: number };
+        Returns: Record<string, unknown>;
+      };
       guild_leaderboard: {
         Args: { p_limit?: number };
         Returns: {

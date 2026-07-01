@@ -7,6 +7,7 @@ export interface GuildQuestStatus {
   weekStart?: string;
   targetVolume: number;
   currentVolume: number;
+  potContributed: number;
   completed: boolean;
   claimed: boolean;
   rewardVibe: number;
@@ -28,6 +29,7 @@ export async function getGuildQuestStatus(): Promise<GuildQuestStatus | null> {
       enabled: false,
       targetVolume: 0,
       currentVolume: 0,
+      potContributed: 0,
       completed: false,
       claimed: false,
       rewardVibe: 0,
@@ -39,6 +41,7 @@ export async function getGuildQuestStatus(): Promise<GuildQuestStatus | null> {
     weekStart: raw.week_start as string | undefined,
     targetVolume: Number(raw.target_volume ?? 50000),
     currentVolume: Number(raw.current_volume ?? 0),
+    potContributed: Number(raw.pot_contributed ?? 0),
     completed: Boolean(raw.completed),
     claimed: Boolean(raw.claimed),
     rewardVibe: Number(raw.reward_vibe ?? 250),

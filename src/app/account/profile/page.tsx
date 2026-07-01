@@ -9,6 +9,8 @@ import { VibeCompanionCard } from "@/components/vibe-companion";
 import { getMyGuild } from "@/lib/guilds";
 import { isEnabled } from "@/lib/feature-flags";
 import { getStreakInfo } from "@/lib/streaks";
+import { getMyPlayerCode } from "@/lib/player-code";
+import { ProfileShareSection } from "@/components/profile-share-section";
 
 export const revalidate = 0;
 
@@ -26,7 +28,7 @@ export default async function ProfilePage() {
     .maybeSingle();
 
   const guildsOn = await isEnabled("guilds_enabled");
-  const [equipped, streak, companionInput, myGuild] = await Promise.all([
+  const [equipped, streak, companionInput, myGuild, playerCode] = await Promise.all([
     getEquippedCosmetics(user.id).catch(() => ({ skin: null, badge: null })),
     getStreakInfo(user.id),
     getCompanionInput(user.id).catch(() => ({
@@ -35,6 +37,7 @@ export default async function ProfilePage() {
       inventoryCount: 0,
     })),
     guildsOn ? getMyGuild().catch(() => null) : Promise.resolve(null),
+    getMyPlayerCode().catch(() => null),
   ]);
 
   return (
@@ -92,6 +95,14 @@ export default async function ProfilePage() {
           Public profile
         </h2>
         <ProfileForm initial={profile?.display_name ?? ""} />
+        {playerCode && (
+          <ProfileShareSection
+            displayName={playerCode.display_name ?? profile?.display_name ?? "Player"}
+            username={playerCode.username ?? profile?.username}
+            playerCode={playerCode.referral_code}
+            streak={streak.currentStreak}
+          />
+        )}
       </section>
 
       <section className="mt-6 rounded-xl border border-white/5 bg-zinc-900/40 p-5">

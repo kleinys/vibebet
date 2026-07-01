@@ -1,8 +1,17 @@
 import type { Rarity } from "@/lib/supabase/types";
 import type { CompanionInput, CompanionState } from "@/lib/vibe-companion";
 import { computeCompanion } from "@/lib/vibe-companion";
+import { SKIN_HUMAN_LABELS } from "@/lib/character-art";
 
-export type AnimalKind = "fox" | "wolf" | "owl" | "cat" | "dragon";
+export type AnimalKind =
+  | "fox"
+  | "wolf"
+  | "owl"
+  | "cat"
+  | "dragon"
+  | "stag"
+  | "phoenix"
+  | "raven";
 export type HumanArchetype = "oracle" | "seer" | "knight" | "void" | "cosmic";
 
 export interface FigurePalette {
@@ -20,6 +29,7 @@ export interface FigureConfig {
   companion: CompanionState;
   animal: AnimalKind;
   human: HumanArchetype;
+  skinSlug: string;
   showHuman: boolean;
   animalScale: number;
   humanScale: number;
@@ -30,10 +40,34 @@ export interface FigureConfig {
 
 const SKIN_TO_ARCHETYPE: Record<string, HumanArchetype> = {
   "default-oracle": "oracle",
+  "oracle-sage": "oracle",
+  "oracle-lunar": "oracle",
+  "oracle-solar": "oracle",
   "neon-seer": "seer",
   "void-prophet": "void",
   "cosmic-oracle": "cosmic",
   "ember-knight": "knight",
+};
+
+const SKIN_PALETTE_OVERRIDES: Partial<Record<string, Partial<FigurePalette>>> = {
+  "oracle-lunar": {
+    hair: "#312e81",
+    outfit: "#6366f1",
+    outfitDark: "#4338ca",
+    accent: "#c4b5fd",
+    animal: "#a78bfa",
+    animalDark: "#6d28d9",
+    aura: "#818cf8",
+  },
+  "oracle-solar": {
+    hair: "#451a03",
+    outfit: "#d97706",
+    outfitDark: "#92400e",
+    accent: "#fcd34d",
+    animal: "#fbbf24",
+    animalDark: "#b45309",
+    aura: "#f59e0b",
+  },
 };
 
 const SKIN_PALETTES: Record<HumanArchetype, FigurePalette> = {
@@ -91,10 +125,24 @@ const SKIN_PALETTES: Record<HumanArchetype, FigurePalette> = {
 
 const ANIMAL_BY_SKIN: Partial<Record<string, AnimalKind>> = {
   "default-oracle": "fox",
+  "oracle-sage": "raven",
+  "oracle-lunar": "stag",
+  "oracle-solar": "phoenix",
   "neon-seer": "owl",
   "void-prophet": "wolf",
   "cosmic-oracle": "dragon",
   "ember-knight": "cat",
+};
+
+const ANIMAL_RANK: Record<AnimalKind, number> = {
+  fox: 1,
+  cat: 2,
+  owl: 3,
+  wolf: 4,
+  dragon: 5,
+  stag: 6,
+  phoenix: 7,
+  raven: 8,
 };
 
 function animalFromStreak(streak: number): AnimalKind {
@@ -116,32 +164,24 @@ function animalFromInventory(count: number, rarity?: Rarity): AnimalKind {
 
 export function resolveFigureConfig(input: CompanionInput): FigureConfig {
   const companion = computeCompanion(input);
-  const archetype =
-    SKIN_TO_ARCHETYPE[input.equippedSkinSlug ?? "default-oracle"] ?? "oracle";
+  const skinSlug = input.equippedSkinSlug ?? "default-oracle";
+  const archetype = SKIN_TO_ARCHETYPE[skinSlug] ?? "oracle";
   const palette = { ...SKIN_PALETTES[archetype] };
+  const overrides = SKIN_PALETTE_OVERRIDES[skinSlug];
+  if (overrides) Object.assign(palette, overrides);
 
-  const skinAnimal = input.equippedSkinSlug
-    ? ANIMAL_BY_SKIN[input.equippedSkinSlug]
-    : undefined;
+  const skinAnimal = ANIMAL_BY_SKIN[skinSlug];
   const streakAnimal = animalFromStreak(input.currentStreak);
   const itemAnimal = animalFromInventory(
     input.inventoryCount,
     input.skinRarity ?? input.badgeRarity,
   );
 
-  // Prefer skin-linked animal, then higher progression signal
   const animal =
     skinAnimal ??
-    ([streakAnimal, itemAnimal] as AnimalKind[]).sort((a, b) => {
-      const rank: Record<AnimalKind, number> = {
-        fox: 1,
-        cat: 2,
-        owl: 3,
-        wolf: 4,
-        dragon: 5,
-      };
-      return rank[b] - rank[a];
-    })[0]!;
+    ([streakAnimal, itemAnimal] as AnimalKind[]).sort(
+      (a, b) => ANIMAL_RANK[b] - ANIMAL_RANK[a],
+    )[0]!;
 
   const showHuman = companion.stage >= 2;
   const animalScale =
@@ -157,6 +197,7 @@ export function resolveFigureConfig(input: CompanionInput): FigureConfig {
     companion,
     animal,
     human: archetype,
+    skinSlug,
     showHuman,
     animalScale,
     humanScale,
@@ -183,9 +224,13 @@ export function figureLabels(config: FigureConfig): {
     owl: "Moon Owl",
     wolf: "Storm Wolf",
     dragon: "Star Dragon",
+    stag: "Spirit Stag",
+    phoenix: "Sun Phoenix",
+    raven: "Rune Raven",
   };
   return {
-    humanTitle: humanNames[config.human],
+    humanTitle:
+      SKIN_HUMAN_LABELS[config.skinSlug] ?? humanNames[config.human],
     animalTitle: animalNames[config.animal],
   };
 }

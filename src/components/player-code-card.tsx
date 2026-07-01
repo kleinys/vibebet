@@ -7,6 +7,7 @@ import {
   REFERRAL_TOTAL_VIBE_PER_FRIEND,
   REFERRAL_REWARDS,
 } from "@/lib/referral-copy";
+import { ProfileShareSection } from "@/components/profile-share-section";
 
 export async function PlayerCodeCard() {
   const supabase = await createClient();
@@ -60,6 +61,17 @@ export async function PlayerCodeCard() {
           </p>
         </div>
       )}
+      <Link
+        href={`/challenge/${row.referral_code}`}
+        className="mt-3 inline-block text-xs font-medium text-sky-400 hover:underline"
+      >
+        Open challenge page → duel links &amp; share
+      </Link>
+      <ProfileShareSection
+        displayName={String(row.display_name ?? "Player")}
+        username={row.username ? String(row.username) : null}
+        playerCode={String(row.referral_code)}
+      />
       <Link
         href="/invite"
         className="mt-4 inline-block text-xs font-medium text-fuchsia-400 hover:underline"

@@ -6,6 +6,7 @@ import {
   REFERRAL_TOTAL_VIBE_PER_FRIEND,
   referralRewardsShort,
 } from "@/lib/referral-copy";
+import { challengeUrl } from "@/lib/site-url";
 
 export function PlayerCodeChip({
   code,
@@ -33,7 +34,7 @@ export function PlayerCodeChip({
   if (compact) {
     return (
       <Link
-        href="/invite"
+        href={`/challenge/${code}`}
         title={
           referralsOn
             ? `Your invite code — earn up to ${REFERRAL_TOTAL_VIBE_PER_FRIEND} VIBE per friend`
@@ -72,10 +73,7 @@ export function PlayerCodeChip({
         {copied ? "Copied" : "Copy"}
       </button>
       {referralsOn && (
-        <Link
-          href="/invite"
-          className="text-[10px] text-fuchsia-300 hover:underline"
-        >
+        <Link href="/invite" className="text-[10px] text-fuchsia-300 hover:underline">
           Invite →
         </Link>
       )}
@@ -92,9 +90,10 @@ export function InviteRewardsStrip({
   referralsOn: boolean;
   inviteLink: string | null;
 }) {
-  const [copied, setCopied] = useState<"code" | "link" | null>(null);
+  const [copied, setCopied] = useState<"code" | "link" | "challenge" | null>(null);
+  const challengeLink = challengeUrl(code);
 
-  async function copy(text: string, kind: "code" | "link") {
+  async function copy(text: string, kind: "code" | "link" | "challenge") {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(kind);
@@ -119,6 +118,13 @@ export function InviteRewardsStrip({
           >
             {copied === "code" ? "Copied!" : "Copy code"}
           </button>
+          <button
+            type="button"
+            onClick={() => copy(challengeLink, "challenge")}
+            className="rounded-md bg-sky-600/25 px-2 py-0.5 text-[10px] font-medium text-sky-200 ring-1 ring-sky-500/30 hover:bg-sky-500/35"
+          >
+            {copied === "challenge" ? "Copied!" : "Copy challenge link"}
+          </button>
           {inviteLink && referralsOn && (
             <button
               type="button"
@@ -133,22 +139,30 @@ export function InviteRewardsStrip({
         <p className="min-w-0 flex-1 text-xs leading-relaxed text-zinc-400 sm:text-right">
           {referralsOn ? (
             <>
-              <span className="text-zinc-300">Invite friends</span> — share your
-              code at signup (like a personal download link).{" "}
+              <span className="text-zinc-300">Invite friends</span> — signup link or{" "}
+              <Link href={`/challenge/${code}`} className="text-sky-300 hover:underline">
+                challenge link
+              </Link>
+              .{" "}
               <span className="text-amber-200/90">{referralRewardsShort()}</span>
               {" · "}
-              <span className="text-zinc-500">Up to {REFERRAL_TOTAL_VIBE_PER_FRIEND} ◉ VIBE per friend.</span>{" "}
+              <span className="text-zinc-500">
+                Up to {REFERRAL_TOTAL_VIBE_PER_FRIEND} ◉ VIBE per friend.
+              </span>{" "}
               <Link href="/invite" className="text-fuchsia-400 hover:underline">
                 Details →
               </Link>
             </>
           ) : (
             <>
-              Use this code to challenge friends in{" "}
+              <Link href={`/challenge/${code}`} className="text-sky-300 hover:underline">
+                Challenge friends
+              </Link>{" "}
+              or use your code in{" "}
               <Link href="/games/duels" className="text-violet-300 hover:underline">
                 duels
               </Link>
-              . Enable referrals in Admin for invite rewards.
+              .
             </>
           )}
         </p>
