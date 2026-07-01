@@ -9,9 +9,18 @@ import {
 } from "@/lib/streaks";
 import { getCompanionInput } from "@/lib/companion-stats";
 import { VibeCompanionLink } from "@/components/vibe-companion";
+import { PlayerCodeChip } from "@/components/player-code-chip";
 import { isEnabled } from "@/lib/feature-flags";
 
-export async function Header({ mobileNavOn }: { mobileNavOn: boolean }) {
+export async function Header({
+  mobileNavOn,
+  playerCode = null,
+  referralsOn = false,
+}: {
+  mobileNavOn: boolean;
+  playerCode?: string | null;
+  referralsOn?: boolean;
+}) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -152,6 +161,13 @@ export async function Header({ mobileNavOn }: { mobileNavOn: boolean }) {
                 <BalanceBadge currency="gem" amount={balances.gem} href="/account#wallet" />
               </div>
               <NotificationBell />
+              {playerCode && (
+                <PlayerCodeChip
+                  code={playerCode}
+                  referralsOn={referralsOn}
+                  compact
+                />
+              )}
               {companionInput ? (
                 <VibeCompanionLink
                   input={companionInput}

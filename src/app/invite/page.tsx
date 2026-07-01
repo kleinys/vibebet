@@ -3,6 +3,10 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { getMyReferralStats } from "@/lib/referrals";
+import {
+  REFERRAL_REWARDS,
+  REFERRAL_TOTAL_VIBE_PER_FRIEND,
+} from "@/lib/referral-copy";
 import { clientEnv } from "@/lib/env";
 import { formatVibe } from "@/lib/utils";
 import { ReferralApplyForm } from "@/components/referral-apply-form";
@@ -41,12 +45,25 @@ export default async function InvitePage() {
       </Link>
 
       <h1 className="mt-3 text-2xl font-semibold">Invite friends</h1>
-      <p className="mt-1 text-sm text-zinc-400">
-        Share your link. You earn{" "}
-        <span className="text-amber-200">100 VIBE</span> when they sign up and{" "}
-        <span className="text-amber-200">250 VIBE</span> when they place their
-        first bet.
+      <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+        Share your personal code or link — like a download invite. Friends enter it
+        at signup; you earn play-money{" "}
+        <span className="text-amber-200">VIBE</span> (not USD cash):
       </p>
+      <ul className="mt-3 space-y-2 text-sm text-zinc-300">
+        <li className="flex items-baseline gap-2">
+          <span className="text-amber-300">◉ {REFERRAL_REWARDS.signupVibe} VIBE</span>
+          <span className="text-zinc-500">when they create an account</span>
+        </li>
+        <li className="flex items-baseline gap-2">
+          <span className="text-amber-300">◉ {REFERRAL_REWARDS.firstBetVibe} VIBE</span>
+          <span className="text-zinc-500">when they place their first bet</span>
+        </li>
+        <li className="text-xs text-zinc-500">
+          Up to {REFERRAL_TOTAL_VIBE_PER_FRIEND} VIBE per friend who stays active.
+          Gems are shop currency (USD purchase) — referral rewards are VIBE only today.
+        </li>
+      </ul>
 
       {inviteLink && (
         <div className="mt-6 rounded-xl border border-emerald-500/25 bg-emerald-500/5 p-5">
