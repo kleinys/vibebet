@@ -1,7 +1,7 @@
 /**
- * Removes near-white or near-dark uniform backgrounds from character WebP art.
- * Dark art uses edge flood-fill so rectangular backdrops fully disappear.
- * Run after compress:characters: npm run matte:characters
+ * Removes uniform / checkerboard backgrounds from character WebP art.
+ * Uses edge flood-fill for light, dark, and gray checkerboard exports.
+ * Run: npm run matte:characters  (also runs on Vercel build)
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -11,40 +11,57 @@ import sharp from "sharp";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
 const dirs = ["public/characters/animals", "public/characters/humans"];
-const WHITE_THRESHOLD = 235;
-const DARK_LUMINANCE = 95;
-const DARK_MATCH = 36;
-const DARK_FEATHER = 18;
+
+const MATCH = 40;
+const FEATHER = 16;
+const GRAY_FLAT_MAX = 28; // max channel spread for neutral gray bg tiles
 
 const WEBP = { quality: 82, effort: 4, alphaQuality: 92 };
 
-function sampleCorners(data, width, height) {
-  const points = [
-    [0, 0],
-    [width - 1, 0],
-    [0, height - 1],
-    [width - 1, height - 1],
-  ];
-  let r = 0;
-  let g = 0;
-  let b = 0;
-  for (const [x, y] of points) {
-    const i = (y * width + x) * 4;
-    r += data[i];
-    g += data[i + 1];
-    b += data[i + 2];
+function luminance(r, g, b) {
+  return (r + g + b) / 3;
+}
+
+function isNeutralGray(r, g, b) {
+  return (
+    luminance(r, g, b) >= 175 &&
+    Math.max(r, g, b) - Math.min(r, g, b) <= GRAY_FLAT_MAX
+  );
+}
+
+function matchesBackground(r, g, b, bgColors) {
+  for (const bg of bgColors) {
+    if (Math.max(Math.abs(r - bg[0]), Math.abs(g - bg[1]), Math.abs(b - bg[2])) <= MATCH) {
+      return true;
+    }
   }
-  return [r / 4, g / 4, b / 4];
+  return isNeutralGray(r, g, b);
 }
 
-function matchesBg(r, g, b, bg, tolerance) {
-  const dr = Math.abs(r - bg[0]);
-  const dg = Math.abs(g - bg[1]);
-  const db = Math.abs(b - bg[2]);
-  return Math.max(dr, dg, db) <= tolerance;
+function sampleEdgeColors(data, width, height) {
+  const colors = new Map();
+  const add = (x, y) => {
+    const i = (y * width + x) * 4;
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const key = `${Math.round(r / 8)},${Math.round(g / 8)},${Math.round(b / 8)}`;
+    colors.set(key, [r, g, b]);
+  };
+
+  for (let x = 0; x < width; x++) {
+    add(x, 0);
+    add(x, height - 1);
+  }
+  for (let y = 0; y < height; y++) {
+    add(0, y);
+    add(width - 1, y);
+  }
+
+  return [...colors.values()];
 }
 
-function floodFillDarkBackground(data, width, height, bg) {
+function floodFillBackground(data, width, height, bgColors) {
   const visited = new Uint8Array(width * height);
   const queue = [];
 
@@ -64,46 +81,74 @@ function floodFillDarkBackground(data, width, height, bg) {
     if (visited[pi]) continue;
 
     const i = pi * 4;
-    if (!matchesBg(data[i], data[i + 1], data[i + 2], bg, DARK_MATCH)) continue;
+    if (!matchesBackground(data[i], data[i + 1], data[i + 2], bgColors)) continue;
 
     visited[pi] = 1;
     data[i + 3] = 0;
     queue.push(x + 1, y, x - 1, y, x, y + 1, x, y - 1);
   }
 
+  // Feather edges touching the flood
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const pi = y * width + x;
       const i = pi * 4;
       if (visited[pi]) continue;
 
-      const dist = Math.max(
-        Math.abs(data[i] - bg[0]),
-        Math.abs(data[i + 1] - bg[1]),
-        Math.abs(data[i + 2] - bg[2]),
-      );
-      if (dist <= DARK_MATCH) {
+      let minDist = 99;
+      for (const bg of bgColors) {
+        minDist = Math.min(
+          minDist,
+          Math.max(
+            Math.abs(data[i] - bg[0]),
+            Math.abs(data[i + 1] - bg[1]),
+            Math.abs(data[i + 2] - bg[2]),
+          ),
+        );
+      }
+
+      if (matchesBackground(data[i], data[i + 1], data[i + 2], bgColors)) {
         data[i + 3] = 0;
-      } else if (dist <= DARK_MATCH + DARK_FEATHER) {
+      } else if (minDist <= MATCH + FEATHER) {
         data[i + 3] = Math.min(
           data[i + 3],
-          Math.round(((dist - DARK_MATCH) / DARK_FEATHER) * 255),
+          Math.round(((minDist - MATCH) / FEATHER) * 255),
         );
       }
     }
   }
 }
 
-function matteLightBackground(data) {
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    if (r >= WHITE_THRESHOLD && g >= WHITE_THRESHOLD && b >= WHITE_THRESHOLD) {
-      data[i + 3] = 0;
-    } else if (r >= 230 && g >= 230 && b >= 230) {
-      const edge = Math.min(r, g, b);
-      data[i + 3] = Math.round(((242 - edge) / 12) * 255);
+/** Remove tiny opaque islands left after matte (the white speckle dots). */
+function despeckle(data, width, height) {
+  const alpha = new Uint8Array(width * height);
+  for (let p = 0; p < width * height; p++) {
+    alpha[p] = data[p * 4 + 3];
+  }
+
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const pi = y * width + x;
+      if (alpha[pi] < 200) continue;
+
+      let transparentNeighbors = 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          if (dx === 0 && dy === 0) continue;
+          if (alpha[(y + dy) * width + (x + dx)] < 32) transparentNeighbors++;
+        }
+      }
+
+      // Isolated bright speck surrounded by transparency
+      if (transparentNeighbors >= 6) {
+        const i = pi * 4;
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        if (luminance(r, g, b) > 200 || isNeutralGray(r, g, b)) {
+          data[i + 3] = 0;
+        }
+      }
     }
   }
 }
@@ -116,17 +161,15 @@ for (const dir of dirs) {
     if (!file.endsWith(".webp")) continue;
 
     const filePath = path.join(fullDir, file);
-    const img = sharp(filePath);
-    const { data, info } = await img.ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-    const bg = sampleCorners(data, info.width, info.height);
-    const luminance = (bg[0] + bg[1] + bg[2]) / 3;
-    const mode = luminance < DARK_LUMINANCE ? "dark" : "light";
+    const outPath = `${filePath}.tmp`;
+    const { data, info } = await sharp(filePath)
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
 
-    if (mode === "dark") {
-      floodFillDarkBackground(data, info.width, info.height, bg);
-    } else {
-      matteLightBackground(data);
-    }
+    const bgColors = sampleEdgeColors(data, info.width, info.height);
+    floodFillBackground(data, info.width, info.height, bgColors);
+    despeckle(data, info.width, info.height);
 
     const buf = await sharp(data, {
       raw: { width: info.width, height: info.height, channels: 4 },
@@ -135,8 +178,10 @@ for (const dir of dirs) {
       .toBuffer();
 
     try {
-      fs.writeFileSync(filePath, buf);
-      console.log(`matted ${dir}/${file} (${mode} bg)`);
+      fs.writeFileSync(outPath, buf);
+      fs.renameSync(outPath, filePath);
+      const meta = await sharp(filePath).metadata();
+      console.log(`matted ${dir}/${file} (alpha: ${meta.hasAlpha})`);
     } catch {
       console.warn(`skip ${dir}/${file} (file locked — stop dev server or matte runs on Vercel build)`);
     }

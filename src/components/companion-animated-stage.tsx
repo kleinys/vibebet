@@ -104,24 +104,6 @@ export function CompanionAnimatedStage({ config }: { config: FigureConfig }) {
 
       {showHuman ? (
         <div className="companion-stage__focal">
-          {/* Element wisps on orbit */}
-          <div className="companion-orbit-track" aria-hidden>
-            <div className="companion-orbit-ring" />
-            <div className="companion-orbit-carrier">
-              {[0, 120, 240].map((deg, i) => (
-                <div
-                  key={deg}
-                  className="companion-element-wisp-host"
-                  style={{ "--wisp-angle": `${deg}deg` } as CSSProperties}
-                >
-                  <span
-                    className={`companion-element-wisp companion-element-wisp--${["a", "b", "c"][i]}`}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Trainer centered (painted first, lower layer) */}
           <div className="companion-figure-slot companion-figure-slot--human-center">
             <div className={`companion-human-wrap ${HUMAN_MOTION_CLASS}`}>

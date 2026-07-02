@@ -164,7 +164,8 @@ body {
 .companion-orbit-animal-img {
   position: relative;
   z-index: 2;
-  background: transparent;
+  background: transparent !important;
+  mix-blend-mode: normal;
   animation: companion-animal-form var(--orbit-duration, 14s) ease-in-out infinite;
   filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.45))
     drop-shadow(0 0 18px var(--spirit-element-soft));
