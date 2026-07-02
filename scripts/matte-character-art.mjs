@@ -227,6 +227,83 @@ function floodFillBackground(data, width, height, bgColors) {
   }
 }
 
+function isBackdropPixel(r, g, b, { preserveWhiteBody = false } = {}) {
+  const lum = luminance(r, g, b);
+  const spread = colorSpread(r, g, b);
+  if (spread > 12) return false;
+  if (preserveWhiteBody && lum >= 238 && lum <= 252) return false;
+  return lum >= 188 && lum <= 254;
+}
+
+function isSubjectSeed(r, g, b) {
+  const lum = luminance(r, g, b);
+  const spread = colorSpread(r, g, b);
+  return spread > 22 || lum < 115;
+}
+
+function clearBackdropOutsideSubject(data, width, height, options = {}) {
+  const subject = new Uint8Array(width * height);
+  const queue = [];
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const pi = y * width + x;
+      const i = pi * 4;
+      if (data[i + 3] < 32) continue;
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      if (!isSubjectSeed(r, g, b)) continue;
+      subject[pi] = 1;
+      queue.push(x, y);
+    }
+  }
+
+  while (queue.length) {
+    const y = queue.pop();
+    const x = queue.pop();
+    for (const [dx, dy] of [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+      [1, 1],
+      [-1, 1],
+      [1, -1],
+      [-1, -1],
+    ]) {
+      const nx = x + dx;
+      const ny = y + dy;
+      if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+      const pi = ny * width + nx;
+      if (subject[pi]) continue;
+      const i = pi * 4;
+      if (data[i + 3] < 32) continue;
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      if (isBackdropPixel(r, g, b, options)) continue;
+      subject[pi] = 1;
+      queue.push(nx, ny);
+    }
+  }
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const pi = y * width + x;
+      const i = pi * 4;
+      if (data[i + 3] < 32) continue;
+      if (subject[pi]) continue;
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      if (isBackdropPixel(r, g, b, options)) {
+        data[i + 3] = 0;
+      }
+    }
+  }
+}
+
 function isNeutralBackdrop(r, g, b, { maxLum = 254, minLum = 188, maxSpread = 12 } = {}) {
   const lum = luminance(r, g, b);
   const spread = colorSpread(r, g, b);
@@ -333,25 +410,17 @@ for (const dir of dirs) {
       .toBuffer({ resolveWithObject: true });
 
     const bgColors = sampleEdgeColors(data, info.width, info.height);
-    floodFillBackground(data, info.width, info.height, bgColors);
+    const preserveWhiteBody = file === "spirit-stag.webp";
+    const avgLum =
+      bgColors.reduce((sum, bg) => sum + luminance(bg[0], bg[1], bg[2]), 0) / bgColors.length;
+
+    clearBackdropOutsideSubject(data, info.width, info.height, { preserveWhiteBody });
+
+    if (avgLum < 96) {
+      floodFillBackground(data, info.width, info.height, bgColors);
+    }
 
     let opaque = 0;
-    for (let i = 3; i < data.length; i += 4) {
-      if (data[i] >= 32) opaque++;
-    }
-    const opaqueRatio = opaque / (data.length / 4);
-    if (file === "spirit-stag.webp") {
-      backdropFlood(data, info.width, info.height, { minLum: 188, maxLum: 230, maxSpread: 12 });
-      if (opaqueRatio > 0.85) {
-        shallowHaloClear(data, info.width, info.height);
-      }
-    } else {
-      for (let pass = 0; pass < 2; pass++) {
-        backdropFlood(data, info.width, info.height, { minLum: 188, maxLum: 254, maxSpread: 12 });
-      }
-    }
-
-    opaque = 0;
     for (let i = 3; i < data.length; i += 4) {
       if (data[i] >= 32) opaque++;
     }
