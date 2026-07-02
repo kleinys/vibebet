@@ -227,7 +227,14 @@ function floodFillBackground(data, width, height, bgColors) {
   }
 }
 
-function whiteHaloFlood(data, width, height) {
+function isNeutralBackdrop(r, g, b, { maxLum = 254, minLum = 188, maxSpread = 12 } = {}) {
+  const lum = luminance(r, g, b);
+  const spread = colorSpread(r, g, b);
+  if (spread > maxSpread) return false;
+  return lum >= minLum && lum <= maxLum;
+}
+
+function backdropFlood(data, width, height, options) {
   const visited = new Uint8Array(width * height);
   const queue = [];
 
@@ -241,9 +248,7 @@ function whiteHaloFlood(data, width, height) {
       queue.push(x, y);
       return;
     }
-    const lum = luminance(data[i], data[i + 1], data[i + 2]);
-    const spread = colorSpread(data[i], data[i + 1], data[i + 2]);
-    if (lum < 235 || spread > 12) return;
+    if (!isNeutralBackdrop(data[i], data[i + 1], data[i + 2], options)) return;
     visited[pi] = 1;
     data[i + 3] = 0;
     queue.push(x, y);
@@ -336,24 +341,25 @@ for (const dir of dirs) {
     }
     const opaqueRatio = opaque / (data.length / 4);
     if (file === "spirit-stag.webp") {
+      backdropFlood(data, info.width, info.height, { minLum: 188, maxLum: 230, maxSpread: 12 });
       if (opaqueRatio > 0.85) {
         shallowHaloClear(data, info.width, info.height);
-        opaque = 0;
-        for (let i = 3; i < data.length; i += 4) {
-          if (data[i] >= 32) opaque++;
-        }
       }
     } else {
-      whiteHaloFlood(data, info.width, info.height);
-      opaque = 0;
-      for (let i = 3; i < data.length; i += 4) {
-        if (data[i] >= 32) opaque++;
+      for (let pass = 0; pass < 2; pass++) {
+        backdropFlood(data, info.width, info.height, { minLum: 188, maxLum: 254, maxSpread: 12 });
       }
+    }
+
+    opaque = 0;
+    for (let i = 3; i < data.length; i += 4) {
+      if (data[i] >= 32) opaque++;
     }
 
     const buf = await sharp(data, {
       raw: { width: info.width, height: info.height, channels: 4 },
     })
+      .trim({ threshold: 8, background: { r: 0, g: 0, b: 0, alpha: 0 } })
       .webp(WEBP)
       .toBuffer();
 
