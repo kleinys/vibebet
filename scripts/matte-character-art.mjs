@@ -1,7 +1,7 @@
 /**
- * Conservative edge flood-fill — removes backdrop connected to image borders only.
- * Does NOT strip white highlights inside the character (no global gray key).
- * Run: npm run matte:characters
+ * Removes export backdrops (white, gray checkerboard, dark navy) via edge flood-fill.
+ * Preserves subject colors — only removes backdrop connected to image borders.
+ * Run locally: npm run matte:characters  then commit public/characters/*.webp
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -13,13 +13,19 @@ const root = path.join(__dirname, "..");
 const dirs = ["public/characters/animals", "public/characters/humans"];
 
 const DARK_MATCH = 38;
-const LIGHT_MATCH = 12;
+const LIGHT_MATCH = 14;
+const CHECKER_GRAY_MAX_LUM = 225;
+const CHECKER_GRAY_MIN_LUM = 188;
 const FEATHER = 10;
 
 const WEBP = { quality: 82, effort: 4, alphaQuality: 92 };
 
 function luminance(r, g, b) {
   return (r + g + b) / 3;
+}
+
+function colorSpread(r, g, b) {
+  return Math.max(r, g, b) - Math.min(r, g, b);
 }
 
 function matchesBg(r, g, b, bgColors, tolerance) {
@@ -38,7 +44,7 @@ function sampleEdgeColors(data, width, height) {
     const r = data[i];
     const g = data[i + 1];
     const b = data[i + 2];
-    const key = `${Math.round(r / 10)},${Math.round(g / 10)},${Math.round(b / 10)}`;
+    const key = `${Math.round(r / 8)},${Math.round(g / 8)},${Math.round(b / 8)}`;
     colors.set(key, [r, g, b]);
   };
 
@@ -51,13 +57,52 @@ function sampleEdgeColors(data, width, height) {
     add(width - 1, y);
   }
 
-  return [...colors.values()];
+  const sampled = [...colors.values()];
+  const avgLum =
+    sampled.reduce((sum, c) => sum + luminance(c[0], c[1], c[2]), 0) / sampled.length;
+
+  if (avgLum >= 96) {
+    for (const c of [
+      [255, 255, 255],
+      [204, 204, 204],
+      [218, 218, 218],
+      [236, 236, 236],
+    ]) {
+      sampled.push(c);
+    }
+  }
+
+  return sampled;
 }
 
-function matchesBgPixel(r, g, b, bgColors, tolerance, lightBackdrop) {
-  // On light exports, only key near-pure backdrop whites — keep subject highlights.
-  if (lightBackdrop && luminance(r, g, b) < 248) return false;
-  return matchesBg(r, g, b, bgColors, tolerance);
+function isPass1Backdrop(r, g, b, bgColors, lightBackdrop, tolerance) {
+  const lum = luminance(r, g, b);
+  const spread = colorSpread(r, g, b);
+
+  if (!lightBackdrop) {
+    return matchesBg(r, g, b, bgColors, tolerance);
+  }
+
+  if (lum >= 253 && spread < 12) return true;
+
+  if (
+    lum >= CHECKER_GRAY_MIN_LUM &&
+    lum <= CHECKER_GRAY_MAX_LUM &&
+    spread < 12 &&
+    matchesBg(r, g, b, bgColors, tolerance + 6)
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function isPass2CheckerGray(r, g, b, bgColors, tolerance) {
+  const lum = luminance(r, g, b);
+  const spread = colorSpread(r, g, b);
+  if (lum < CHECKER_GRAY_MIN_LUM || lum > CHECKER_GRAY_MAX_LUM) return false;
+  if (spread > 24) return false;
+  return matchesBg(r, g, b, bgColors, tolerance + 10) || spread < 10;
 }
 
 function floodFillBackground(data, width, height, bgColors) {
@@ -69,68 +114,74 @@ function floodFillBackground(data, width, height, bgColors) {
   const visited = new Uint8Array(width * height);
   const queue = [];
 
-  const tryPush = (x, y, requireAdjacentClear) => {
+  const clear = (x, y) => {
+    const pi = y * width + x;
+    visited[pi] = 1;
+    data[pi * 4 + 3] = 0;
+    queue.push(x + 1, y, x - 1, y, x, y + 1, x, y - 1);
+  };
+
+  const tryPass1 = (x, y) => {
     if (x < 0 || y < 0 || x >= width || y >= height) return;
     const pi = y * width + x;
     if (visited[pi]) return;
     const i = pi * 4;
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-
-    if (requireAdjacentClear) {
-      let touchesClear = false;
-      for (let dy = -1; dy <= 1; dy++) {
-        for (let dx = -1; dx <= 1; dx++) {
-          if (dx === 0 && dy === 0) continue;
-          const nx = x + dx;
-          const ny = y + dy;
-          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
-          if (data[(ny * width + nx) * 4 + 3] === 0) touchesClear = true;
-        }
-      }
-      if (!touchesClear) return;
-      const spread = Math.max(r, g, b) - Math.min(r, g, b);
-      if (luminance(r, g, b) < 190 || spread > 22) return;
-      if (!matchesBg(r, g, b, bgColors, tolerance + 6)) return;
-    } else if (!matchesBgPixel(r, g, b, bgColors, tolerance, lightBackdrop)) {
+    if (!isPass1Backdrop(data[i], data[i + 1], data[i + 2], bgColors, lightBackdrop, tolerance)) {
       return;
     }
+    clear(x, y);
+  };
 
-    visited[pi] = 1;
-    data[i + 3] = 0;
-    queue.push(x + 1, y, x - 1, y, x, y + 1, x, y - 1);
+  const tryPass2 = (x, y) => {
+    if (x < 0 || y < 0 || x >= width || y >= height) return;
+    const pi = y * width + x;
+    if (visited[pi]) return;
+
+    let touchesClear = false;
+    for (let dy = -1; dy <= 1; dy++) {
+      for (let dx = -1; dx <= 1; dx++) {
+        if (dx === 0 && dy === 0) continue;
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+        if (data[(ny * width + nx) * 4 + 3] === 0) touchesClear = true;
+      }
+    }
+    if (!touchesClear) return;
+
+    const i = pi * 4;
+    if (!isPass2CheckerGray(data[i], data[i + 1], data[i + 2], bgColors, tolerance)) return;
+    clear(x, y);
   };
 
   for (let x = 0; x < width; x++) {
-    tryPush(x, 0, false);
-    tryPush(x, height - 1, false);
+    tryPass1(x, 0);
+    tryPass1(x, height - 1);
   }
   for (let y = 1; y < height - 1; y++) {
-    tryPush(0, y, false);
-    tryPush(width - 1, y, false);
+    tryPass1(0, y);
+    tryPass1(width - 1, y);
   }
 
   while (queue.length) {
     const y = queue.pop();
     const x = queue.pop();
-    tryPush(x, y, false);
+    tryPass1(x, y);
   }
 
   if (lightBackdrop) {
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
-        tryPush(x, y, true);
+        tryPass2(x, y);
       }
     }
     while (queue.length) {
       const y = queue.pop();
       const x = queue.pop();
-      tryPush(x, y, true);
+      tryPass2(x, y);
     }
   }
 
-  // Feather only pixels adjacent to removed backdrop (keeps subject whites intact)
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
       const pi = y * width + x;
@@ -149,17 +200,21 @@ function floodFillBackground(data, width, height, bgColors) {
       if (!touchesBg) continue;
 
       const i = pi * 4;
-      if (!matchesBgPixel(data[i], data[i + 1], data[i + 2], bgColors, tolerance + FEATHER, lightBackdrop)) continue;
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const lum = luminance(r, g, b);
+      const spread = colorSpread(r, g, b);
+      const backdrop = lightBackdrop
+        ? (lum >= 248 && spread < 18) || isPass2CheckerGray(r, g, b, bgColors, tolerance)
+        : matchesBg(r, g, b, bgColors, tolerance + FEATHER);
+      if (!backdrop) continue;
 
       let minDist = FEATHER + 1;
       for (const bg of bgColors) {
         minDist = Math.min(
           minDist,
-          Math.max(
-            Math.abs(data[i] - bg[0]),
-            Math.abs(data[i + 1] - bg[1]),
-            Math.abs(data[i + 2] - bg[2]),
-          ),
+          Math.max(Math.abs(r - bg[0]), Math.abs(g - bg[1]), Math.abs(b - bg[2])),
         );
       }
       if (minDist <= tolerance + FEATHER) {
@@ -172,6 +227,93 @@ function floodFillBackground(data, width, height, bgColors) {
   }
 }
 
+function whiteHaloFlood(data, width, height) {
+  const visited = new Uint8Array(width * height);
+  const queue = [];
+
+  const tryClear = (x, y) => {
+    if (x < 0 || y < 0 || x >= width || y >= height) return;
+    const pi = y * width + x;
+    if (visited[pi]) return;
+    const i = pi * 4;
+    if (data[i + 3] === 0) {
+      visited[pi] = 1;
+      queue.push(x, y);
+      return;
+    }
+    const lum = luminance(data[i], data[i + 1], data[i + 2]);
+    const spread = colorSpread(data[i], data[i + 1], data[i + 2]);
+    if (lum < 235 || spread > 12) return;
+    visited[pi] = 1;
+    data[i + 3] = 0;
+    queue.push(x, y);
+  };
+
+  for (let x = 0; x < width; x++) {
+    tryClear(x, 0);
+    tryClear(x, height - 1);
+  }
+  for (let y = 0; y < height; y++) {
+    tryClear(0, y);
+    tryClear(width - 1, y);
+  }
+
+  while (queue.length) {
+    const y = queue.pop();
+    const x = queue.pop();
+    tryClear(x + 1, y);
+    tryClear(x - 1, y);
+    tryClear(x, y + 1);
+    tryClear(x, y - 1);
+  }
+}
+function shallowHaloClear(data, width, height, maxDepth = 220) {
+  const depth = new Int16Array(width * height).fill(-1);
+  const queue = [];
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const pi = y * width + x;
+      if (data[pi * 4 + 3] > 0) continue;
+      depth[pi] = 0;
+      queue.push(x, y);
+    }
+  }
+
+  while (queue.length) {
+    const y = queue.pop();
+    const x = queue.pop();
+    const baseDepth = depth[y * width + x];
+
+    for (const [dx, dy] of [
+      [1, 0],
+      [-1, 0],
+      [0, 1],
+      [0, -1],
+    ]) {
+      const nx = x + dx;
+      const ny = y + dy;
+      if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+      const pi = ny * width + nx;
+      if (depth[pi] !== -1) continue;
+
+      const i = pi * 4;
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const lum = luminance(r, g, b);
+      const spread = colorSpread(r, g, b);
+      const nextDepth = baseDepth + 1;
+      if (nextDepth > maxDepth) continue;
+      if (lum < 240 || spread > 14) continue;
+
+      depth[pi] = nextDepth;
+      data[i + 3] = 0;
+      queue.push(nx, ny);
+    }
+  }
+}
+
 for (const dir of dirs) {
   const fullDir = path.join(root, dir);
   if (!fs.existsSync(fullDir)) continue;
@@ -180,7 +322,6 @@ for (const dir of dirs) {
     if (!file.endsWith(".webp") || file.includes(".matte-out")) continue;
 
     const filePath = path.join(fullDir, file);
-    const outPath = `${filePath}.matte-out.webp`;
     const { data, info } = await sharp(filePath)
       .ensureAlpha()
       .raw()
@@ -189,23 +330,40 @@ for (const dir of dirs) {
     const bgColors = sampleEdgeColors(data, info.width, info.height);
     floodFillBackground(data, info.width, info.height, bgColors);
 
+    let opaque = 0;
+    for (let i = 3; i < data.length; i += 4) {
+      if (data[i] >= 32) opaque++;
+    }
+    const opaqueRatio = opaque / (data.length / 4);
+    if (file === "spirit-stag.webp") {
+      if (opaqueRatio > 0.85) {
+        shallowHaloClear(data, info.width, info.height);
+        opaque = 0;
+        for (let i = 3; i < data.length; i += 4) {
+          if (data[i] >= 32) opaque++;
+        }
+      }
+    } else {
+      whiteHaloFlood(data, info.width, info.height);
+      opaque = 0;
+      for (let i = 3; i < data.length; i += 4) {
+        if (data[i] >= 32) opaque++;
+      }
+    }
+
     const buf = await sharp(data, {
       raw: { width: info.width, height: info.height, channels: 4 },
     })
       .webp(WEBP)
       .toBuffer();
 
-    try {
-      fs.writeFileSync(outPath, buf);
-      fs.renameSync(outPath, filePath);
-      console.log(`matted ${dir}/${file}`);
-    } catch {
-      const cachePath = path.join(root, "scripts", "character-art-matted", dir, file);
-      fs.mkdirSync(path.dirname(cachePath), { recursive: true });
-      fs.writeFileSync(cachePath, buf);
-      console.warn(`cached ${dir}/${file} (source file locked)`);
-    }
+    const cachePath = path.join(root, "scripts", "character-art-matted", dir, file);
+    fs.mkdirSync(path.dirname(cachePath), { recursive: true });
+    fs.writeFileSync(cachePath, buf);
+
+    const ratio = ((opaque / (data.length / 4)) * 100).toFixed(1);
+    console.log(`matted ${dir}/${file} (${ratio}% opaque)`);
   }
 }
 
-console.log("Done — edge flood-fill only (subject colors preserved).");
+console.log("Done — wrote scripts/character-art-matted/ (copy into public/characters and commit).");
