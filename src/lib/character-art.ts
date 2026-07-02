@@ -108,18 +108,23 @@ export function characterImagePath(
   return getCharacterAsset(kind, slug)?.imagePath ?? null;
 }
 
-export function animalImagePath(kind: AnimalKind): string | null {
-  return ANIMAL_IMAGES[kind] ?? null;
+const CHARACTER_ART_VERSION = "3";
+
+function withArtVersion(path: string | null): string | null {
+  return path ? `${path}?v=${CHARACTER_ART_VERSION}` : null;
 }
 
+export function animalImagePath(kind: AnimalKind): string | null {
+  return withArtVersion(ANIMAL_IMAGES[kind] ?? null);
+}
 export function humanImagePath(
   archetype: HumanArchetype,
   skinSlug?: string | null,
 ): string | null {
   if (skinSlug && SKIN_HUMAN_IMAGES[skinSlug]) {
-    return SKIN_HUMAN_IMAGES[skinSlug];
+    return withArtVersion(SKIN_HUMAN_IMAGES[skinSlug]);
   }
-  return characterImagePath("human", archetype);
+  return withArtVersion(characterImagePath("human", archetype));
 }
 
 export const SKIN_HUMAN_LABELS: Record<string, string> = {

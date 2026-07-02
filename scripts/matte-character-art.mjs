@@ -18,7 +18,7 @@ const CHECKER_GRAY_MAX_LUM = 225;
 const CHECKER_GRAY_MIN_LUM = 188;
 const FEATHER = 10;
 
-const WEBP = { quality: 82, effort: 4, alphaQuality: 92 };
+const WEBP = { quality: 90, effort: 4, alphaQuality: 100, nearLossless: true };
 
 function luminance(r, g, b) {
   return (r + g + b) / 3;
@@ -232,7 +232,7 @@ function isBackdropPixel(r, g, b, { preserveWhiteBody = false } = {}) {
   const spread = colorSpread(r, g, b);
   if (spread > 12) return false;
   if (preserveWhiteBody && lum >= 238 && lum <= 252) return false;
-  return lum >= 188 && lum <= 254;
+  return lum >= 185 && lum <= 255;
 }
 
 function isSubjectSeed(r, g, b) {
@@ -301,6 +301,136 @@ function clearBackdropOutsideSubject(data, width, height, options = {}) {
         data[i + 3] = 0;
       }
     }
+  }
+}
+
+function removeSmallBackdropIslands(data, width, height, minSize = 320) {
+  const visited = new Uint8Array(width * height);
+
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const pi = y * width + x;
+      if (visited[pi]) continue;
+      const i = pi * 4;
+      if (data[i + 3] < 32) continue;
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      if (!isBackdropPixel(r, g, b)) continue;
+
+      const component = [];
+      const queue = [x, y];
+      visited[pi] = 1;
+
+      while (queue.length) {
+        const cy = queue.pop();
+        const cx = queue.pop();
+        component.push(cx, cy);
+
+        for (const [dx, dy] of [
+          [1, 0],
+          [-1, 0],
+          [0, 1],
+          [0, -1],
+          [1, 1],
+          [-1, 1],
+          [1, -1],
+          [-1, -1],
+        ]) {
+          const nx = cx + dx;
+          const ny = cy + dy;
+          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+          const npi = ny * width + nx;
+          if (visited[npi]) continue;
+          const ni = npi * 4;
+          if (data[ni + 3] < 32) continue;
+          const nr = data[ni];
+          const ng = data[ni + 1];
+          const nb = data[ni + 2];
+          if (!isBackdropPixel(nr, ng, nb)) continue;
+          visited[npi] = 1;
+          queue.push(nx, ny);
+        }
+      }
+
+      if (component.length / 2 >= minSize) continue;
+      for (let j = 0; j < component.length; j += 2) {
+        data[(component[j + 1] * width + component[j]) * 4 + 3] = 0;
+      }
+    }
+  }
+}
+
+function removeOrphanBackdropPixels(data, width, height) {
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const pi = y * width + x;
+      const i = pi * 4;
+      if (data[i + 3] < 32) continue;
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      if (!isBackdropPixel(r, g, b)) continue;
+
+      let transparentNeighbors = 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          if (dx === 0 && dy === 0) continue;
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+          if (data[(ny * width + nx) * 4 + 3] < 32) transparentNeighbors++;
+        }
+      }
+      if (transparentNeighbors >= 4) {
+        data[i + 3] = 0;
+      }
+    }
+  }
+}
+
+function cleanupAlphaFringe(data, width, height) {
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const pi = y * width + x;
+      const i = pi * 4;
+      const alpha = data[i + 3];
+      if (alpha === 0 || alpha === 255) continue;
+
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const lum = luminance(r, g, b);
+      const spread = colorSpread(r, g, b);
+
+      let transparentNeighbors = 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          if (dx === 0 && dy === 0) continue;
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+          if (data[(ny * width + nx) * 4 + 3] < 32) transparentNeighbors++;
+        }
+      }
+
+      if (transparentNeighbors >= 4 && (lum > 175 || spread < 18)) {
+        data[i + 3] = 0;
+        continue;
+      }
+
+      if (alpha < 96) {
+        data[i + 3] = 0;
+      } else if (alpha > 200) {
+        data[i + 3] = 255;
+      }
+    }
+  }
+}
+
+function binarizeAlpha(data) {
+  for (let i = 3; i < data.length; i += 4) {
+    data[i] = data[i] < 128 ? 0 : 255;
   }
 }
 
@@ -415,6 +545,11 @@ for (const dir of dirs) {
       bgColors.reduce((sum, bg) => sum + luminance(bg[0], bg[1], bg[2]), 0) / bgColors.length;
 
     clearBackdropOutsideSubject(data, info.width, info.height, { preserveWhiteBody });
+    removeSmallBackdropIslands(data, info.width, info.height);
+    removeOrphanBackdropPixels(data, info.width, info.height);
+    clearBackdropOutsideSubject(data, info.width, info.height, { preserveWhiteBody });
+    cleanupAlphaFringe(data, info.width, info.height);
+    binarizeAlpha(data);
 
     if (avgLum < 96) {
       floodFillBackground(data, info.width, info.height, bgColors);

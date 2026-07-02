@@ -677,6 +677,7 @@ body {
   object-position: bottom center;
   pointer-events: none;
   user-select: none;
+  background: transparent !important;
 }
 
 .companion-figure-raster--human-center {
