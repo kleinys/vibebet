@@ -153,6 +153,28 @@ function despeckle(data, width, height) {
   }
 }
 
+/** Kill semi-transparent gray fringe that shows as white pixel noise on dark UI. */
+function defringe(data, width, height) {
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      const a = data[i + 3];
+      if (a === 0 || a === 255) continue;
+
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const lum = luminance(r, g, b);
+
+      if (lum > 165 && isNeutralGray(r, g, b)) {
+        data[i + 3] = 0;
+      } else if (lum > 200 && a < 220) {
+        data[i + 3] = Math.round(a * 0.25);
+      }
+    }
+  }
+}
+
 for (const dir of dirs) {
   const fullDir = path.join(root, dir);
   if (!fs.existsSync(fullDir)) continue;
@@ -170,6 +192,7 @@ for (const dir of dirs) {
     const bgColors = sampleEdgeColors(data, info.width, info.height);
     floodFillBackground(data, info.width, info.height, bgColors);
     despeckle(data, info.width, info.height);
+    defringe(data, info.width, info.height);
 
     const buf = await sharp(data, {
       raw: { width: info.width, height: info.height, channels: 4 },
@@ -183,7 +206,12 @@ for (const dir of dirs) {
       const meta = await sharp(filePath).metadata();
       console.log(`matted ${dir}/${file} (alpha: ${meta.hasAlpha})`);
     } catch {
-      console.warn(`skip ${dir}/${file} (file locked — stop dev server or matte runs on Vercel build)`);
+      const cachePath = path.join(root, "scripts", "character-art-matted", dir, file);
+      fs.mkdirSync(path.dirname(cachePath), { recursive: true });
+      fs.writeFileSync(cachePath, buf);
+      console.warn(
+        `skip ${dir}/${file} (file locked — wrote ${path.relative(root, cachePath)}; copy on deploy or stop dev server)`,
+      );
     }
   }
 }
