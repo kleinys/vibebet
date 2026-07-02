@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_OPTIONS=--use-system-ca next dev",
-    "build": "node scripts/matte-character-art.mjs && cross-env NODE_OPTIONS=--use-system-ca next build",
+    "build": "cross-env NODE_OPTIONS=--use-system-ca next build",
     "start": "cross-env NODE_OPTIONS=--use-system-ca next start",
     "lint": "eslint",
     "compress:characters": "node scripts/compress-character-art.mjs",

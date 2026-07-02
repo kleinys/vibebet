@@ -7,6 +7,7 @@ import {
   type FigureConfig,
 } from "@/lib/companion-figure";
 import { CompanionFigure, CompanionFigureScene } from "@/components/companion-figure";
+import type { LockerEquipItem } from "@/components/companion-locker-equip";
 
 export function VibeCompanion({
   input,
@@ -60,9 +61,11 @@ export function VibeCompanionLink({
 export function VibeCompanionCard({
   input,
   companion: precomputed,
+  lockerItems,
 }: {
   input: CompanionInput;
   companion?: CompanionState;
+  lockerItems?: { skins: LockerEquipItem[]; badges: LockerEquipItem[] };
 }) {
   const config = resolveFigureConfig(input);
   if (precomputed) {
@@ -73,7 +76,7 @@ export function VibeCompanionCard({
 
   return (
     <div className="flex flex-col gap-6">
-      <CompanionFigureScene config={config} labels={labels} />
+      <CompanionFigureScene config={config} labels={labels} lockerItems={lockerItems} />
       <div className="min-w-0">
         <p className="text-lg font-semibold text-zinc-100">
           {companion.name}{" "}

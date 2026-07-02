@@ -6,6 +6,8 @@ import { ProfileForm } from "@/components/profile-form";
 import { getEquippedCosmetics } from "@/lib/cosmetics";
 import { getCompanionInput } from "@/lib/companion-stats";
 import { VibeCompanionCard } from "@/components/vibe-companion";
+import type { LockerEquipItem } from "@/components/companion-locker-equip";
+import type { ItemKind, Rarity } from "@/lib/supabase/types";
 import { getMyGuild } from "@/lib/guilds";
 import { isEnabled } from "@/lib/feature-flags";
 import { getStreakInfo } from "@/lib/streaks";
@@ -30,7 +32,7 @@ export default async function ProfilePage() {
     .maybeSingle();
 
   const guildsOn = await isEnabled("guilds_enabled");
-  const [equipped, streak, companionInput, myGuild, playerCode] = await Promise.all([
+  const [equipped, streak, companionInput, myGuild, playerCode, inventoryRes] = await Promise.all([
     getEquippedCosmetics(user.id).catch(() => ({ skin: null, badge: null })),
     getStreakInfo(user.id),
     getCompanionInput(user.id).catch(() => ({
@@ -40,7 +42,28 @@ export default async function ProfilePage() {
     })),
     guildsOn ? getMyGuild().catch(() => null) : Promise.resolve(null),
     getMyPlayerCode().catch(() => null),
+    supabase
+      .from("user_inventory")
+      .select("id, is_equipped, shop_items (slug, name, kind, rarity)")
+      .eq("user_id", user.id)
+      .then((r) => r.data ?? []),
   ]);
+
+  const lockerItems = { skins: [] as LockerEquipItem[], badges: [] as LockerEquipItem[] };
+  for (const row of inventoryRes) {
+    const item = Array.isArray(row.shop_items) ? row.shop_items[0] : row.shop_items;
+    if (!item || (item.kind !== "skin" && item.kind !== "badge")) continue;
+    const entry: LockerEquipItem = {
+      inventoryId: row.id,
+      slug: item.slug,
+      name: item.name,
+      kind: item.kind as ItemKind,
+      rarity: item.rarity as Rarity,
+      isEquipped: row.is_equipped,
+    };
+    if (item.kind === "skin") lockerItems.skins.push(entry);
+    else lockerItems.badges.push(entry);
+  }
 
   const figureConfig = resolveFigureConfig(companionInput);
   const companionLabels = figureLabels(figureConfig);
@@ -58,7 +81,7 @@ export default async function ProfilePage() {
           Human form + spirit animal — both evolve with streaks and shop items.
         </p>
         <div className="mt-5">
-          <VibeCompanionCard input={companionInput} />
+          <VibeCompanionCard input={companionInput} lockerItems={lockerItems} />
         </div>
         <CompanionEvolutionShare
           displayName={profile?.display_name ?? playerCode?.display_name ?? "Player"}
