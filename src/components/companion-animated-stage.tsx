@@ -11,6 +11,20 @@ import { FantasySvgDefs } from "@/components/fantasy-icons";
 const FIGURE_SHADOW =
   "drop-shadow(0 24px 48px rgba(0,0,0,0.7)) drop-shadow(0 0 32px var(--figure-aura))";
 
+function BadgeOverlay({ badge }: { badge: FigureConfig["badge"] }) {
+  if (!badge) return null;
+  if (badge === "crown") {
+    return (
+      <span className="companion-badge companion-badge--crown" aria-hidden title="Founder">
+        👑
+      </span>
+    );
+  }
+  return (
+    <span className="companion-badge companion-badge--verified" aria-hidden title="Verified">
+      ✓
+    </span>
+  );
 function EyeGlow() {
   return (
     <>
@@ -85,6 +99,7 @@ export function CompanionAnimatedStage({ config }: { config: FigureConfig }) {
   const { animal, human, skinSlug, showHuman, palette, animalScale, humanScale, badge } = config;
   const motion = companionMotion(animal);
   const animalSrc = animalImagePath(animal);
+  const useRasterAnimal = Boolean(animalSrc && animal !== "stag");
   const humanSrc = showHuman ? humanImagePath(human, skinSlug) : null;
 
   const orbitStyle = {
@@ -108,6 +123,7 @@ export function CompanionAnimatedStage({ config }: { config: FigureConfig }) {
           <div className="companion-figure-slot companion-figure-slot--human-center">
             <div className={`companion-human-wrap ${HUMAN_MOTION_CLASS}`}>
               {humanSrc && <EyeGlow />}
+              <BadgeOverlay badge={badge} />
               {humanSrc ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -145,10 +161,10 @@ export function CompanionAnimatedStage({ config }: { config: FigureConfig }) {
                     className={`companion-orbit-spirit-inner companion-orbit-spirit-inner--${motion.morph} companion-orbit-spirit-inner--${animal}`}
                   >
                     <SpiritElementBall morph={motion.morph} />
-                    {animalSrc ? (
+                    {useRasterAnimal ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={animalSrc}
+                        src={animalSrc!}
                         alt=""
                         draggable={false}
                         className="companion-figure-raster companion-figure-raster--orbit companion-orbit-animal-img"
@@ -180,10 +196,10 @@ export function CompanionAnimatedStage({ config }: { config: FigureConfig }) {
       ) : (
         <div className="companion-figure-slot companion-figure-slot--animal-solo">
           <div className={`companion-figure-motion ${motion.animal}`}>
-            {animalSrc ? (
+            {useRasterAnimal ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={animalSrc}
+                src={animalSrc!}
                 alt=""
                 draggable={false}
                 className="companion-figure-raster companion-figure-raster--solo"

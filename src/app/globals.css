@@ -592,6 +592,37 @@ body {
   top: 21%;
 }
 
+.companion-badge {
+  position: absolute;
+  z-index: 14;
+  right: 28%;
+  top: 8%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 18px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.companion-badge--crown {
+  background: rgba(245, 158, 11, 0.25);
+  border: 2px solid rgba(251, 191, 36, 0.7);
+  box-shadow: 0 0 16px rgba(251, 191, 36, 0.45);
+}
+
+.companion-badge--verified {
+  background: rgba(14, 165, 233, 0.2);
+  border: 2px solid rgba(56, 189, 248, 0.65);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+  font-size: 16px;
+  font-weight: 700;
+  color: #e0f2fe;
+}
+
 .companion-stage--solo .companion-figure-slot--animal-solo {
   left: 8%;
   right: 8%;
