@@ -163,12 +163,16 @@ body {
 
 .companion-orbit-animal-img {
   position: relative;
-  z-index: 2;
+  z-index: 4;
   background: transparent !important;
   mix-blend-mode: normal;
   animation: companion-animal-form var(--orbit-duration, 14s) ease-in-out infinite;
   filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.45))
     drop-shadow(0 0 18px var(--spirit-element-soft));
+}
+
+.companion-orbit-spirit-inner .companion-spirit-element {
+  z-index: 1;
 }
 
 /* Storm wolf — shift built-in blue lightning to purple */
@@ -1070,15 +1074,16 @@ body {
   }
   6%,
   94% {
-    opacity: 0.55;
-    transform: scale(0.82);
-    filter: blur(2px) brightness(1.35) drop-shadow(0 0 24px var(--spirit-element));
+    opacity: 0.88;
+    transform: scale(0.94);
+    filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.45))
+      drop-shadow(0 0 22px var(--spirit-element));
   }
   68%,
   78% {
     opacity: 0;
-    transform: scale(0.12);
-    filter: blur(6px) brightness(1.8);
+    transform: scale(0.35);
+    filter: blur(3px) brightness(1.2);
   }
 }
 

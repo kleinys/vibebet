@@ -246,6 +246,14 @@ const PALE_ART_FILES = new Set([
   "nebula-ronin.webp",
 ]);
 
+/** Fiery animals — edge-only matte so flame interiors are not punched out */
+const FIRE_ART_FILES = new Set([
+  "fox-spirit.webp",
+  "ember-cat.webp",
+  "ember-tiger.webp",
+  "sun-phoenix.webp",
+]);
+
 function isSubjectSeed(r, g, b, { paleArt = false } = {}) {
   const lum = luminance(r, g, b);
   const spread = colorSpread(r, g, b);
@@ -556,23 +564,28 @@ for (const dir of dirs) {
       bgColors.reduce((sum, bg) => sum + luminance(bg[0], bg[1], bg[2]), 0) / bgColors.length;
 
     const paleArt = PALE_ART_FILES.has(file);
+    const fireArt = FIRE_ART_FILES.has(file);
     const matteOptions = paleArt ? { preserveWhiteBody: true, paleArt: true } : {};
 
-    clearBackdropOutsideSubject(data, info.width, info.height, matteOptions);
-    removeSmallBackdropIslands(data, info.width, info.height);
-    if (!paleArt) {
-      removeOrphanBackdropPixels(data, info.width, info.height);
-    }
-    clearBackdropOutsideSubject(data, info.width, info.height, matteOptions);
-    if (file === "spirit-stag.webp") {
-      backdropFlood(data, info.width, info.height, { minLum: 180, maxSpread: 14 });
-      removeSmallBackdropIslands(data, info.width, info.height, 64);
-    }
-    cleanupAlphaFringe(data, info.width, info.height);
-    binarizeAlpha(data);
-
-    if (avgLum < 96) {
+    if (fireArt) {
       floodFillBackground(data, info.width, info.height, bgColors);
+    } else {
+      clearBackdropOutsideSubject(data, info.width, info.height, matteOptions);
+      removeSmallBackdropIslands(data, info.width, info.height);
+      if (!paleArt) {
+        removeOrphanBackdropPixels(data, info.width, info.height);
+      }
+      clearBackdropOutsideSubject(data, info.width, info.height, matteOptions);
+      if (file === "spirit-stag.webp") {
+        backdropFlood(data, info.width, info.height, { minLum: 180, maxSpread: 14 });
+        removeSmallBackdropIslands(data, info.width, info.height, 64);
+      }
+      cleanupAlphaFringe(data, info.width, info.height);
+      binarizeAlpha(data);
+
+      if (avgLum < 96) {
+        floodFillBackground(data, info.width, info.height, bgColors);
+      }
     }
 
     let opaque = 0;
