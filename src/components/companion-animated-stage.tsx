@@ -144,7 +144,7 @@ export function CompanionAnimatedStage({ config }: { config: FigureConfig }) {
                 src={animalSrc}
                 alt=""
                 draggable={false}
-                className="companion-figure-raster companion-figure-raster--solo"
+                className={`companion-figure-raster companion-figure-raster--solo companion-orbit-animal-img companion-orbit-animal-img--${animal}`}
                 style={{ filter: FIGURE_SHADOW }}
               />
             ) : (

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatVibe } from "@/lib/utils";
 import { CurrencyIconVibe } from "@/components/fantasy-icons";
+import { orbitModifierSummary } from "@/lib/orbit-affinity";
 
 /** Must match `spin_locker_wheel` segment order in migration 202602306. */
 export const WHEEL_SEGMENTS = [
@@ -48,11 +49,14 @@ type WheelResult = {
 export function CompanionLockerRewards({
   vibeBalance,
   spinsUsedToday,
+  equippedSkinSlug,
 }: {
   vibeBalance: number;
   spinsUsedToday: number;
+  equippedSkinSlug?: string | null;
 }) {
   const router = useRouter();
+  const modifier = orbitModifierSummary(equippedSkinSlug ?? null);
   const [balance, setBalance] = useState(vibeBalance);
   const [spinsUsed, setSpinsUsed] = useState(spinsUsedToday);
   const [crateStake, setCrateStake] = useState<(typeof CRATE_STAKES)[number]>(250);
@@ -177,7 +181,26 @@ export function CompanionLockerRewards({
   }
 
   return (
-    <section id="locker-rewards" className="mt-4 scroll-mt-24 rounded-sm border border-white/10 bg-zinc-950/80 p-4 ring-1 ring-white/5">
+    <section
+      id="locker-rewards"
+      className={`mt-4 scroll-mt-24 rounded-sm border border-white/10 bg-gradient-to-b p-4 ring-1 ring-white/5 ${
+        modifier ? modifier.affinity.caseTheme : "from-zinc-950/80 to-zinc-950"
+      }`}
+    >
+      {modifier && (
+        <div className="mb-4 flex flex-wrap items-center justify-center gap-2">
+          <span className="inline-flex items-center gap-2 rounded-sm border border-violet-400/30 bg-violet-950/50 px-3 py-1.5 text-[11px] font-semibold text-violet-100">
+            <span aria-hidden>{modifier.affinity.icon}</span>
+            Active modifier: {modifier.morphLabel} — {modifier.affinity.shortLabel}
+          </span>
+          <span className="text-[10px] text-zinc-500">{modifier.affinity.crateEffect}</span>
+          {modifier.synergy && (
+            <span className="inline-flex items-center gap-1 rounded-sm border border-emerald-500/25 bg-emerald-950/30 px-2 py-1 text-[10px] text-emerald-200">
+              {modifier.synergy.label}: {modifier.synergy.effect}
+            </span>
+          )}
+        </div>
+      )}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">
@@ -206,7 +229,7 @@ export function CompanionLockerRewards({
 
       <div className="mt-4 grid gap-4 xl:grid-cols-2">
         {/* CS2-style case */}
-        <div className="rounded-sm border border-amber-500/25 bg-gradient-to-b from-amber-950/25 via-zinc-950 to-zinc-950 p-4">
+        <div className={`rounded-sm border border-amber-500/25 bg-gradient-to-b p-4 ${modifier ? modifier.affinity.caseTheme : "from-amber-950/25 via-zinc-950 to-zinc-950"}`}>
           <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-300/90">
             VIBE case
           </p>
@@ -300,7 +323,7 @@ export function CompanionLockerRewards({
         </div>
 
         {/* Color wheel */}
-        <div className="rounded-sm border border-violet-500/25 bg-gradient-to-b from-violet-950/30 to-zinc-950 p-4">
+        <div className={`rounded-sm border border-violet-500/25 bg-gradient-to-b p-4 ${modifier ? modifier.affinity.wheelTheme : "from-violet-950/30 to-zinc-950"}`}>
           <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-300/90">
             VIBE wheel
           </p>

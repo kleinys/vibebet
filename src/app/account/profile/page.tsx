@@ -157,6 +157,7 @@ export default async function ProfilePage() {
           <CompanionLockerRewards
             vibeBalance={balances.vibe}
             spinsUsedToday={wheelDaily}
+            equippedSkinSlug={equipped.skin?.slug ?? figureConfig.skinSlug}
           />
           <CompanionRosterPanel activeSkinSlug={equipped.skin?.slug ?? figureConfig.skinSlug} />
         </div>

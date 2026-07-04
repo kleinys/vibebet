@@ -81,6 +81,83 @@ export function PlayerCodeChip({
   );
 }
 
+export function PlayerCodeHero({
+  code,
+  referralsOn,
+  inviteLink,
+}: {
+  code: string;
+  referralsOn: boolean;
+  inviteLink: string | null;
+}) {
+  const [copied, setCopied] = useState<"code" | "link" | "challenge" | null>(null);
+  const challengeLink = challengeUrl(code);
+
+  async function copy(text: string, kind: "code" | "link" | "challenge") {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(kind);
+      window.setTimeout(() => setCopied(null), 2000);
+    } catch {
+      // ignore
+    }
+  }
+
+  return (
+    <div className="border-b border-violet-500/15 bg-gradient-to-r from-violet-950/50 via-[#020617] to-fuchsia-950/35">
+      <div className="mx-auto max-w-6xl px-4 py-5 sm:px-5 sm:py-6">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-violet-400/80">
+              Player code
+            </p>
+            <p className="mt-2 font-mono text-3xl font-bold tracking-wider text-violet-50 sm:text-4xl">
+              {code}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              onClick={() => copy(code, "code")}
+              className="rounded-sm bg-violet-600/40 px-4 py-2 text-xs font-semibold text-violet-100 ring-1 ring-violet-500/40 hover:bg-violet-500/50 sm:text-sm"
+            >
+              {copied === "code" ? "Copied!" : "Copy code"}
+            </button>
+            <button
+              type="button"
+              onClick={() => copy(challengeLink, "challenge")}
+              className="rounded-sm bg-sky-600/30 px-4 py-2 text-xs font-semibold text-sky-100 ring-1 ring-sky-500/35 hover:bg-sky-500/40 sm:text-sm"
+            >
+              {copied === "challenge" ? "Copied!" : "Copy challenge link"}
+            </button>
+            {inviteLink && referralsOn && (
+              <button
+                type="button"
+                onClick={() => copy(inviteLink, "link")}
+                className="rounded-sm bg-fuchsia-600/30 px-4 py-2 text-xs font-semibold text-fuchsia-100 ring-1 ring-fuchsia-500/35 hover:bg-fuchsia-500/40 sm:text-sm"
+              >
+                {copied === "link" ? "Link copied!" : "Copy invite link"}
+              </button>
+            )}
+          </div>
+          {referralsOn && (
+            <p className="max-w-2xl text-xs leading-relaxed text-zinc-500 sm:text-sm">
+              Invite friends — signup or{" "}
+              <Link href={`/challenge/${code}`} className="text-sky-300 hover:underline">
+                challenge link
+              </Link>
+              . <span className="text-amber-200/90">{referralRewardsShort()}</span>{" "}
+              <Link href="/invite" className="text-fuchsia-400 hover:underline">
+                Details →
+              </Link>
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function InviteRewardsStrip({
   code,
   referralsOn,

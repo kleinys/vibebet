@@ -1,5 +1,6 @@
 import { COMPANION_ROSTER } from "@/lib/companion-roster";
 import { phenomenonImagePath } from "@/lib/phenomenon-art";
+import { orbitAffinityForMorph } from "@/lib/orbit-affinity";
 
 export function CompanionRosterPanel({
   activeSkinSlug,
@@ -19,6 +20,7 @@ export function CompanionRosterPanel({
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         {COMPANION_ROSTER.map((entry) => {
           const active = entry.skinSlug === activeSkinSlug;
+          const affinity = orbitAffinityForMorph(entry.morph);
           return (
             <div
               key={entry.skinSlug}
@@ -47,6 +49,10 @@ export function CompanionRosterPanel({
                   <span className="text-orange-300">{entry.animalName}</span>
                   {" → "}
                   <span className="text-violet-300">{entry.elementLabel}</span>
+                  {" · "}
+                  <span className="text-amber-200/90">
+                    {affinity.icon} {affinity.shortLabel}
+                  </span>
                 </p>
                 <p className="mt-1 text-[10px] text-zinc-500">{entry.elementDescription}</p>
               </div>

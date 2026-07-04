@@ -7,8 +7,11 @@ import {
   type FigureConfig,
 } from "@/lib/companion-figure";
 import { CompanionFigure, CompanionFigureScene } from "@/components/companion-figure";
+import { ThemedProfileAvatar } from "@/components/themed-profile-avatar";
+import { skinStyleForSlug } from "@/lib/cosmetic-styles";
 import type { LockerEquipItem } from "@/components/companion-locker-equip";
 import { rosterBySkin } from "@/lib/companion-roster";
+import { orbitModifierSummary } from "@/lib/orbit-affinity";
 
 export function VibeCompanion({
   input,
@@ -49,12 +52,17 @@ export function VibeCompanionLink({
   href: string;
   title?: string;
 }) {
+  const config = resolveFigureConfig(input);
+  const labels = figureLabels(config);
+  const skinStyle = skinStyleForSlug(config.skinSlug);
+
   return (
     <Link
       href={href}
-      className="inline-flex shrink-0 rounded-sm ring-2 ring-violet-500/40 shadow-lg shadow-violet-900/30 transition hover:ring-fuchsia-400/60 hover:shadow-fuchsia-900/40"
+      title={title ?? `${labels.humanTitle} & ${labels.animalTitle}`}
+      className={`inline-flex shrink-0 rounded-full transition hover:scale-105 ${skinStyle.ring} ring-2 ${skinStyle.glow} shadow-lg`}
     >
-      <VibeCompanion input={input} title={title} />
+      <ThemedProfileAvatar config={config} size="md" />
     </Link>
   );
 }
@@ -75,6 +83,7 @@ export function VibeCompanionCard({
   const labels = figureLabels(config);
   const { companion } = config;
   const roster = rosterBySkin(config.skinSlug);
+  const modifier = orbitModifierSummary(config.skinSlug);
 
   return (
     <div className="flex flex-col gap-6">
@@ -86,7 +95,20 @@ export function VibeCompanionCard({
             · Stage {companion.stage}/5
           </span>
         </p>
-        {roster && (
+        {roster && modifier && (
+          <p className="mt-1 text-xs text-violet-300/90">
+            Orbit morph: {modifier.morphLabel} —{" "}
+            <span className="text-amber-200/90">
+              {modifier.affinity.icon} {modifier.affinity.label}
+            </span>
+          </p>
+        )}
+        {modifier?.synergy && (
+          <p className="mt-1 text-[11px] text-emerald-300/90">
+            Perfect pair: {modifier.synergy.label} — {modifier.synergy.effect}
+          </p>
+        )}
+        {roster && !modifier && (
           <p className="mt-1 text-xs text-violet-300/90">
             Orbit morph: {roster.elementLabel} — {roster.trait}
           </p>

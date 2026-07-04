@@ -18,6 +18,8 @@ const TONE: Record<PlayerPath, string> = {
     "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-900/50 ring-1 ring-violet-400/40 hover:from-violet-500 hover:to-indigo-500",
   watch:
     "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-900/50 ring-1 ring-emerald-400/40 hover:from-emerald-500 hover:to-teal-500",
+  trainer:
+    "bg-gradient-to-r from-amber-600 to-fuchsia-600 text-white shadow-lg shadow-fuchsia-900/50 ring-1 ring-amber-400/40 hover:from-amber-500 hover:to-fuchsia-500",
   explore:
     "bg-zinc-700 text-white shadow-lg shadow-zinc-900/40 hover:bg-zinc-600",
 };
@@ -38,6 +40,7 @@ export function PlayerModeSwitcher({
 
   function onModeClick(path: PlayerPath, href: string) {
     router.push(href);
+    if (path === "trainer") return;
     startTransition(async () => {
       await setPlayerPath(path, { redirect: false });
     });
@@ -49,10 +52,7 @@ export function PlayerModeSwitcher({
       role="navigation"
       aria-label="Play mode"
     >
-      <div className="mx-auto flex max-w-6xl items-center gap-1.5 overflow-x-auto px-3 py-2 sm:justify-center sm:gap-2 sm:px-4">
-        <span className="mr-1 hidden shrink-0 text-[10px] font-semibold uppercase tracking-wider text-violet-400/60 sm:inline">
-          Mode
-        </span>
+      <div className="mx-auto grid max-w-6xl grid-cols-2 gap-2 px-3 py-3 sm:grid-cols-4 sm:gap-3 sm:px-5 sm:py-4">
         {PLAYER_PATHS.map((mode) => {
           const isActive = active === mode.id;
           const Icon = MODE_ICONS[mode.id as keyof typeof MODE_ICONS];
@@ -65,12 +65,12 @@ export function PlayerModeSwitcher({
                 if (!pending) onModeClick(mode.id, mode.hubHref);
               }}
               title={mode.description}
-              className={`inline-flex shrink-0 items-center gap-2 rounded-sm px-3.5 py-2 text-xs font-semibold transition sm:px-4 sm:text-sm ${
+              className={`inline-flex items-center justify-center gap-2.5 rounded-sm px-3 py-3.5 text-xs font-semibold transition sm:px-4 sm:py-4 sm:text-sm ${
                 isActive ? TONE[mode.id] : IDLE
               } ${pending ? "opacity-70" : ""}`}
             >
-              <Icon className="h-5 w-5 shrink-0" />
-              {mode.label}
+              <Icon className="h-6 w-6 shrink-0 sm:h-7 sm:w-7" />
+              <span className="truncate">{mode.label}</span>
             </Link>
           );
         })}

@@ -71,17 +71,9 @@ export async function GettingStartedBar({
         )}
 
         {user && (
-          <>
-            <Link
-              href="/account/profile"
-              className="text-violet-300/90 hover:text-violet-200 hover:underline"
-            >
-              Trainer &amp; locker →
-            </Link>
-            <Link href="/account/quests" className="text-zinc-400 hover:text-zinc-200">
-              Quests →
-            </Link>
-          </>
+          <Link href="/account/quests" className="text-zinc-400 hover:text-zinc-200">
+            Quests →
+          </Link>
         )}
 
         {showWizard && (

@@ -42,6 +42,31 @@ export const SKIN_STYLES: Record<
     glow: "shadow-orange-500/30",
     avatar: "⚔",
   },
+  "frost-walker": {
+    ring: "ring-sky-400/60",
+    glow: "shadow-sky-400/30",
+    avatar: "❄",
+  },
+  "storm-titan": {
+    ring: "ring-yellow-500/60",
+    glow: "shadow-yellow-500/30",
+    avatar: "⚡",
+  },
+  "nebula-ronin": {
+    ring: "ring-fuchsia-500/60",
+    glow: "shadow-fuchsia-500/30",
+    avatar: "✧",
+  },
+  "blood-moon": {
+    ring: "ring-red-500/60",
+    glow: "shadow-red-500/30",
+    avatar: "☾",
+  },
+  "aurora-sage": {
+    ring: "ring-emerald-400/60",
+    glow: "shadow-emerald-400/30",
+    avatar: "✦",
+  },
 };
 
 export const BADGE_STYLES: Record<

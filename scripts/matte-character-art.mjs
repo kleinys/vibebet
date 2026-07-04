@@ -239,9 +239,17 @@ function isBackdropPixel(r, g, b, { preserveWhiteBody = false } = {}) {
   return lum >= 185 && lum <= 255;
 }
 
-function isSubjectSeed(r, g, b) {
+const PALE_ART_FILES = new Set([
+  "frost-walker.webp",
+  "oracle-lunar.webp",
+  "aurora-sage.webp",
+  "nebula-ronin.webp",
+]);
+
+function isSubjectSeed(r, g, b, { paleArt = false } = {}) {
   const lum = luminance(r, g, b);
   const spread = colorSpread(r, g, b);
+  if (paleArt) return spread > 14 || lum < 140;
   return spread > 22 || lum < 115;
 }
 
@@ -257,7 +265,7 @@ function clearBackdropOutsideSubject(data, width, height, options = {}) {
       const r = data[i];
       const g = data[i + 1];
       const b = data[i + 2];
-      if (!isSubjectSeed(r, g, b)) continue;
+      if (!isSubjectSeed(r, g, b, options)) continue;
       subject[pi] = 1;
       queue.push(x, y);
     }
@@ -547,10 +555,15 @@ for (const dir of dirs) {
     const avgLum =
       bgColors.reduce((sum, bg) => sum + luminance(bg[0], bg[1], bg[2]), 0) / bgColors.length;
 
-    clearBackdropOutsideSubject(data, info.width, info.height);
+    const paleArt = PALE_ART_FILES.has(file);
+    const matteOptions = paleArt ? { preserveWhiteBody: true, paleArt: true } : {};
+
+    clearBackdropOutsideSubject(data, info.width, info.height, matteOptions);
     removeSmallBackdropIslands(data, info.width, info.height);
-    removeOrphanBackdropPixels(data, info.width, info.height);
-    clearBackdropOutsideSubject(data, info.width, info.height);
+    if (!paleArt) {
+      removeOrphanBackdropPixels(data, info.width, info.height);
+    }
+    clearBackdropOutsideSubject(data, info.width, info.height, matteOptions);
     if (file === "spirit-stag.webp") {
       backdropFlood(data, info.width, info.height, { minLum: 180, maxSpread: 14 });
       removeSmallBackdropIslands(data, info.width, info.height, 64);

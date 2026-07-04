@@ -172,10 +172,11 @@ body {
 }
 
 /* Storm wolf — shift built-in blue lightning to purple */
-.companion-orbit-animal-img--wolf {
-  filter: hue-rotate(58deg) saturate(1.18) brightness(1.02)
+.companion-orbit-animal-img--wolf,
+.companion-figure-raster--solo.companion-orbit-animal-img--wolf {
+  filter: hue-rotate(72deg) saturate(1.28) brightness(1.04)
     drop-shadow(0 10px 22px rgba(0, 0, 0, 0.45))
-    drop-shadow(0 0 22px rgba(168, 85, 247, 0.55));
+    drop-shadow(0 0 26px rgba(168, 85, 247, 0.65));
 }
 
 /* Spirit element ball — morphs per animal while passing behind trainer */

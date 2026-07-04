@@ -108,6 +108,26 @@ export function ModeIconWatch({ className = "h-5 w-5" }: { className?: string })
   );
 }
 
+export function ModeIconTrainer({ className = "h-5 w-5" }: { className?: string }) {
+  const id = "trainer";
+  return (
+    <svg viewBox="0 0 32 32" className={className} aria-hidden>
+      <FantasySvgDefs id={id} />
+      <g filter={`url(#${id}-glow)`}>
+        <path
+          d="M16 4 L22 10 L20 26 L12 26 L10 10 Z"
+          fill={`url(#${id}-fuchsia)`}
+          stroke="#f0abfc"
+          strokeWidth="0.8"
+        />
+        <circle cx="16" cy="11" r="3.5" fill="#020617" stroke="#e879f9" strokeWidth="0.8" />
+        <path d="M13 18 L19 18 L18 24 L14 24 Z" fill="#020617" opacity="0.35" />
+        <ellipse cx="13" cy="9" rx="2" ry="1.2" fill={`url(#${id}-rim)`} opacity="0.5" />
+      </g>
+    </svg>
+  );
+}
+
 export function CurrencyIconVibe({ className = "h-4 w-4" }: { className?: string }) {
   const id = "vibe";
   return (
@@ -146,4 +166,5 @@ export const MODE_ICONS = {
   predict: ModeIconPredict,
   compete: ModeIconCompete,
   watch: ModeIconWatch,
+  trainer: ModeIconTrainer,
 } as const;

@@ -1,4 +1,4 @@
-export type PlayerPath = "predict" | "compete" | "watch" | "explore";
+export type PlayerPath = "predict" | "compete" | "watch" | "trainer" | "explore";
 
 export interface PlayerPathOption {
   id: PlayerPath;
@@ -70,6 +70,24 @@ export const PLAYER_PATHS: PlayerPathOption[] = [
     firstActionLabel: "Enter Live Arena",
     firstActionHref: "/games",
   },
+  {
+    id: "trainer",
+    label: "Trainer & locker",
+    short: "Locker",
+    emoji: "🎭",
+    description: "Equip skins, spirit animals, VIBE case & daily wheel.",
+    hubHref: "/account/profile#trainer",
+    createHref: "/account/profile#locker-rewards",
+    onboardingBlurb: "Your trainer loadout changes orbit phenomena and locker gambling modifiers.",
+    welcomeLine: "Equip a skin — your orbit aura shifts the VIBE case and wheel.",
+    howItWorks: [
+      "Each trainer pairs a unique spirit animal and orbit phenomenon.",
+      "Your equipped skin applies an affinity modifier to the VIBE case and wheel.",
+      "Collect skins to unlock different gambling playstyles.",
+    ],
+    firstActionLabel: "Open trainer & locker",
+    firstActionHref: "/account/profile#trainer",
+  },
 ];
 
 export const EXPLORE_PATH: PlayerPathOption = {
@@ -110,5 +128,6 @@ export function pathFromPathname(pathname: string): PlayerPath | null {
     return "compete";
   }
   if (pathname.startsWith("/games") || pathname.startsWith("/live")) return "watch";
+  if (pathname.startsWith("/account/profile")) return "trainer";
   return null;
 }

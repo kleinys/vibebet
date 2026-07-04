@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Header } from "@/components/header";
 import { GettingStartedBar } from "@/components/getting-started-bar";
 import { PlayerModeSwitcher } from "@/components/player-mode-switcher";
-import { InviteRewardsStrip } from "@/components/player-code-chip";
+import { InviteRewardsStrip, PlayerCodeHero } from "@/components/player-code-chip";
 import { isEnabled } from "@/lib/feature-flags";
 import { getPlayerPath } from "@/lib/player-path-server";
 import { getMyPlayerCode } from "@/lib/player-code";
@@ -48,14 +48,14 @@ export async function SiteChrome() {
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       <Header mobileNavOn={mobileNavOn} />
+      {showModeBar && <PlayerModeSwitcher storedPath={storedPath} />}
       {playerCode && (
-        <InviteRewardsStrip
+        <PlayerCodeHero
           code={playerCode}
           referralsOn={referralsOn}
           inviteLink={inviteLink}
         />
       )}
-      {showModeBar && <PlayerModeSwitcher storedPath={storedPath} />}
       <GettingStartedBar mobileNavOn={mobileNavOn} />
     </div>
   );
