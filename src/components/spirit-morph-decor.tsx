@@ -1,7 +1,8 @@
 import type { CSSProperties } from "react";
 import type { SpiritMorphElement } from "@/lib/companion-motion";
+import { phenomenonImagePath } from "@/lib/phenomenon-art";
 
-/** Decorative layers for each unique orbit phenomenon. */
+/** Decorative layers for each unique orbit phenomenon (CSS fallback). */
 export function SpiritMorphDecor({ morph }: { morph: SpiritMorphElement }) {
   switch (morph) {
     case "fire":
@@ -136,12 +137,16 @@ export function SpiritMorphDecor({ morph }: { morph: SpiritMorphElement }) {
 }
 
 export function SpiritElementBall({ morph }: { morph: SpiritMorphElement }) {
+  const src = phenomenonImagePath(morph);
+
   return (
-    <div className={`companion-spirit-element companion-spirit-element--${morph}`} aria-hidden>
-      <span className="companion-spirit-element__core" />
-      <span className="companion-spirit-element__halo" />
-      <SpiritMorphDecor morph={morph} />
-      <span className="companion-spirit-element__trail" />
+    <div
+      className={`companion-spirit-element companion-spirit-element--${morph} companion-spirit-element--art`}
+      aria-hidden
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt="" draggable={false} className="companion-spirit-element__art" />
+      <span className="companion-spirit-element__art-glow" />
     </div>
   );
 }

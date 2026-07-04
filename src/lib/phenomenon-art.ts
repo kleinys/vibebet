@@ -20,7 +20,7 @@ export const PHENOMENON_IMAGES: Record<SpiritMorphElement, string> = {
   arcane: "/characters/phenomena/cosmic.webp",
 };
 
-const PHENOMENON_ART_VERSION = "2";
+const PHENOMENON_ART_VERSION = "3";
 
 export function phenomenonImagePath(morph: SpiritMorphElement): string {
   return `${PHENOMENON_IMAGES[morph]}?v=${PHENOMENON_ART_VERSION}`;
