@@ -248,11 +248,13 @@ const PALE_ART_FILES = new Set([
 
 /** Fiery animals — edge-only matte so flame interiors are not punched out */
 const FIRE_ART_FILES = new Set([
-  "fox-spirit.webp",
   "ember-cat.webp",
   "ember-tiger.webp",
   "sun-phoenix.webp",
 ]);
+
+/** Never re-matte — use repair-fox-spirit.mjs instead */
+const SKIP_MATTE_FILES = new Set(["fox-spirit.webp"]);
 
 function isSubjectSeed(r, g, b, { paleArt = false } = {}) {
   const lum = luminance(r, g, b);
@@ -565,7 +567,13 @@ for (const dir of dirs) {
 
     const paleArt = PALE_ART_FILES.has(file);
     const fireArt = FIRE_ART_FILES.has(file);
+    const skipMatte = SKIP_MATTE_FILES.has(file);
     const matteOptions = paleArt ? { preserveWhiteBody: true, paleArt: true } : {};
+
+    if (skipMatte) {
+      console.log(`skip ${dir}/${file} (manual art)`);
+      continue;
+    }
 
     if (fireArt) {
       floodFillBackground(data, info.width, info.height, bgColors);

@@ -175,6 +175,14 @@ body {
   z-index: 1;
 }
 
+/* Fox — boost visibility of flame body on dark stage */
+.companion-orbit-animal-img--fox,
+.companion-figure-raster--solo.companion-orbit-animal-img--fox {
+  filter: brightness(1.08) saturate(1.18) contrast(1.06)
+    drop-shadow(0 10px 22px rgba(0, 0, 0, 0.45))
+    drop-shadow(0 0 24px rgba(255, 120, 40, 0.55));
+}
+
 /* Storm wolf — shift built-in blue lightning to purple */
 .companion-orbit-animal-img--wolf,
 .companion-figure-raster--solo.companion-orbit-animal-img--wolf {
