@@ -42,72 +42,10 @@ body {
   --stage-spirit: #f97316;
   position: relative;
   width: 100%;
-  min-height: 480px;
+  min-height: 420px;
   aspect-ratio: 3 / 4;
   isolation: isolate;
-  overflow: visible;
-}
-
-.companion-stage__spirit-fixed {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  z-index: 8;
-  display: flex;
-  width: 78%;
-  height: 42%;
-  transform: translateX(-50%);
-  align-items: flex-end;
-  justify-content: center;
-  pointer-events: none;
-}
-
-.companion-stage__spirit-animal-img {
-  position: relative;
-  z-index: 2;
-  max-height: 100%;
-  width: auto;
-  min-height: 100px;
-  object-fit: contain;
-  object-position: bottom center;
-  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.45))
-    drop-shadow(0 0 18px var(--spirit-element-soft));
-  animation: companion-spirit-float 4s ease-in-out infinite;
-}
-
-.companion-stage__spirit-animal-svg {
-  height: 100%;
-  width: auto;
-  max-height: 180px;
-}
-
-.companion-stage__phenomenon-mini {
-  position: absolute;
-  right: 0;
-  top: 4%;
-  z-index: 3;
-  width: min(20vw, 72px);
-  height: min(20vw, 72px);
-  opacity: 0.92;
-  pointer-events: none;
-}
-
-.companion-stage__phenomenon-mini-img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 0 16px rgba(168, 85, 247, 0.45));
-  animation: companion-phenomenon-mini-pulse 2.8s ease-in-out infinite alternate;
-}
-
-@keyframes companion-spirit-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-
-@keyframes companion-phenomenon-mini-pulse {
-  from { transform: scale(0.92); opacity: 0.82; }
-  to { transform: scale(1.06); opacity: 1; }
+  overflow: hidden;
 }
 
 .companion-stage__backdrop {
@@ -888,7 +826,7 @@ body {
   left: 50%;
   bottom: 0;
   width: 72%;
-  height: 58%;
+  height: 98%;
   transform: translateX(-50%);
   z-index: 5;
 }
