@@ -51,7 +51,7 @@ export function VibeCompanionLink({
   return (
     <Link
       href={href}
-      className="inline-flex shrink-0 rounded-full ring-2 ring-violet-500/40 shadow-lg shadow-violet-900/30 transition hover:ring-fuchsia-400/60 hover:shadow-fuchsia-900/40"
+      className="inline-flex shrink-0 rounded-sm ring-2 ring-violet-500/40 shadow-lg shadow-violet-900/30 transition hover:ring-fuchsia-400/60 hover:shadow-fuchsia-900/40"
     >
       <VibeCompanion input={input} title={title} />
     </Link>
@@ -110,9 +110,9 @@ export function VibeCompanionCard({
               <span>Evolve to {companion.nextName}</span>
               <span>{Math.round(companion.progress * 100)}%</span>
             </div>
-            <div className="mt-1 h-2.5 overflow-hidden rounded-full bg-zinc-800">
+            <div className="mt-1 h-2.5 overflow-hidden rounded-sm bg-zinc-800">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-fuchsia-500 via-violet-500 to-orange-400"
+                className="h-full rounded-sm bg-gradient-to-r from-fuchsia-500 via-violet-500 to-orange-400"
                 style={{ width: `${companion.progress * 100}%` }}
               />
             </div>

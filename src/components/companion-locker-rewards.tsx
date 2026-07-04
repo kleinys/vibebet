@@ -75,7 +75,7 @@ export function CompanionLockerRewards() {
   }
 
   return (
-    <section className="mt-4 rounded-lg border border-white/10 bg-zinc-950/80 p-4 ring-1 ring-white/5">
+    <section className="mt-4 rounded-sm border border-white/10 bg-zinc-950/80 p-4 ring-1 ring-white/5">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">

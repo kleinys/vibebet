@@ -35,7 +35,7 @@ export function BalanceBadge({ currency, amount, className, href }: BalanceBadge
   const inner = (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium ring-1 shadow-md",
+        "inline-flex items-center gap-1.5 rounded-sm px-3 py-1 text-sm font-medium ring-1 shadow-md",
         s.bg,
         s.text,
         s.ring,
@@ -55,7 +55,7 @@ export function BalanceBadge({ currency, amount, className, href }: BalanceBadge
     return (
       <Link
         href={href}
-        className="inline-flex rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400"
+        className="inline-flex rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-400"
       >
         {inner}
       </Link>

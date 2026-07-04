@@ -108,7 +108,7 @@ export function characterImagePath(
   return getCharacterAsset(kind, slug)?.imagePath ?? null;
 }
 
-const CHARACTER_ART_VERSION = "5";
+const CHARACTER_ART_VERSION = "6";
 
 function withArtVersion(path: string | null): string | null {
   return path ? `${path}?v=${CHARACTER_ART_VERSION}` : null;

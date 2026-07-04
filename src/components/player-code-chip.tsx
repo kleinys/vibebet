@@ -40,7 +40,7 @@ export function PlayerCodeChip({
             ? `Your invite code — earn up to ${REFERRAL_TOTAL_VIBE_PER_FRIEND} VIBE per friend`
             : "Your player code for duel challenges"
         }
-        className="hidden items-center gap-1.5 rounded-md bg-violet-950/80 px-2 py-1 ring-1 ring-violet-500/35 transition hover:ring-violet-400/50 md:inline-flex"
+        className="hidden items-center gap-1.5 rounded-sm bg-violet-950/80 px-2 py-1 ring-1 ring-violet-500/35 transition hover:ring-violet-400/50 md:inline-flex"
       >
         <span className="text-[10px] font-semibold uppercase tracking-wider text-violet-300/80">
           Code
@@ -49,16 +49,16 @@ export function PlayerCodeChip({
         <button
           type="button"
           onClick={copyCode}
-          className="rounded px-1 text-[10px] text-violet-300 hover:bg-violet-500/20 hover:text-white"
+          className="rounded-sm px-1 text-[10px] text-violet-300 hover:bg-violet-500/20 hover:text-white"
         >
-          {copied ? "✓" : "⎘"}
+          {copied ? "OK" : "Copy"}
         </button>
       </Link>
     );
   }
 
   return (
-    <div className="inline-flex items-center gap-2 rounded-lg bg-violet-950/60 px-2.5 py-1.5 ring-1 ring-violet-500/30">
+    <div className="inline-flex items-center gap-2 rounded-sm bg-violet-950/60 px-2.5 py-1.5 ring-1 ring-violet-500/30">
       <div>
         <span className="text-[10px] font-semibold uppercase tracking-wider text-violet-300/70">
           Your code
@@ -68,7 +68,7 @@ export function PlayerCodeChip({
       <button
         type="button"
         onClick={copyCode}
-        className="rounded-md bg-violet-600/40 px-2 py-0.5 text-[10px] font-medium text-violet-100 hover:bg-violet-500/50"
+        className="rounded-sm bg-violet-600/40 px-2 py-0.5 text-[10px] font-medium text-violet-100 hover:bg-violet-500/50"
       >
         {copied ? "Copied" : "Copy"}
       </button>
@@ -114,14 +114,14 @@ export function InviteRewardsStrip({
           <button
             type="button"
             onClick={() => copy(code, "code")}
-            className="rounded-md bg-violet-600/30 px-2 py-0.5 text-[10px] font-medium text-violet-200 ring-1 ring-violet-500/30 hover:bg-violet-500/40"
+            className="rounded-sm bg-violet-600/30 px-2 py-0.5 text-[10px] font-medium text-violet-200 ring-1 ring-violet-500/30 hover:bg-violet-500/40"
           >
             {copied === "code" ? "Copied!" : "Copy code"}
           </button>
           <button
             type="button"
             onClick={() => copy(challengeLink, "challenge")}
-            className="rounded-md bg-sky-600/25 px-2 py-0.5 text-[10px] font-medium text-sky-200 ring-1 ring-sky-500/30 hover:bg-sky-500/35"
+            className="rounded-sm bg-sky-600/25 px-2 py-0.5 text-[10px] font-medium text-sky-200 ring-1 ring-sky-500/30 hover:bg-sky-500/35"
           >
             {copied === "challenge" ? "Copied!" : "Copy challenge link"}
           </button>
@@ -129,7 +129,7 @@ export function InviteRewardsStrip({
             <button
               type="button"
               onClick={() => copy(inviteLink, "link")}
-              className="rounded-md bg-fuchsia-600/25 px-2 py-0.5 text-[10px] font-medium text-fuchsia-200 ring-1 ring-fuchsia-500/30 hover:bg-fuchsia-500/35"
+              className="rounded-sm bg-fuchsia-600/25 px-2 py-0.5 text-[10px] font-medium text-fuchsia-200 ring-1 ring-fuchsia-500/30 hover:bg-fuchsia-500/35"
             >
               {copied === "link" ? "Link copied!" : "Copy invite link"}
             </button>
@@ -147,7 +147,7 @@ export function InviteRewardsStrip({
               <span className="text-amber-200/90">{referralRewardsShort()}</span>
               {" · "}
               <span className="text-zinc-500">
-                Up to {REFERRAL_TOTAL_VIBE_PER_FRIEND} ◉ VIBE per friend.
+                Up to {REFERRAL_TOTAL_VIBE_PER_FRIEND} VIBE per friend.
               </span>{" "}
               <Link href="/invite" className="text-fuchsia-400 hover:underline">
                 Details →

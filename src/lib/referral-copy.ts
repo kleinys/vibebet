@@ -10,7 +10,7 @@ export const REFERRAL_TOTAL_VIBE_PER_FRIEND =
 
 /** One-line for header / chips */
 export function referralRewardsShort(): string {
-  return `+${REFERRAL_REWARDS.signupVibe} ◉ signup · +${REFERRAL_REWARDS.firstBetVibe} ◉ first bet`;
+  return `+${REFERRAL_REWARDS.signupVibe} VIBE signup · +${REFERRAL_REWARDS.firstBetVibe} VIBE first bet`;
 }
 
 /** Strip / card copy */

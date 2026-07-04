@@ -16,13 +16,13 @@ function BadgeOverlay({ badge }: { badge: FigureConfig["badge"] }) {
   if (badge === "crown") {
     return (
       <span className="companion-badge companion-badge--crown" aria-hidden title="Founder">
-        👑
+        F
       </span>
     );
   }
   return (
     <span className="companion-badge companion-badge--verified" aria-hidden title="Verified">
-      ✓
+      V
     </span>
   );
 }

@@ -44,7 +44,7 @@ export async function GettingStartedBar({
             {showPlaybook && (
               <Link
                 href="/guide"
-                className="rounded-full bg-fuchsia-500 px-3.5 py-1 font-medium text-white shadow-sm shadow-fuchsia-500/30 hover:bg-fuchsia-400"
+                className="rounded-sm bg-fuchsia-500 px-3.5 py-1 font-medium text-white shadow-sm shadow-fuchsia-500/30 hover:bg-fuchsia-400"
               >
                 Read the Playbook
               </Link>
@@ -63,7 +63,7 @@ export async function GettingStartedBar({
             <span className="text-zinc-400">New here?</span>
             <Link
               href="/guide"
-              className="rounded-full bg-fuchsia-500 px-3.5 py-1 font-medium text-white shadow-sm shadow-fuchsia-500/30 hover:bg-fuchsia-400"
+              className="rounded-sm bg-fuchsia-500 px-3.5 py-1 font-medium text-white shadow-sm shadow-fuchsia-500/30 hover:bg-fuchsia-400"
             >
               Read the Playbook
             </Link>
@@ -73,7 +73,7 @@ export async function GettingStartedBar({
         {showWizard && (
           <Link
             href="/onboarding"
-            className="rounded-full border border-violet-400/40 bg-violet-500/10 px-3.5 py-1 font-medium text-violet-200 hover:bg-violet-500/20"
+            className="rounded-sm border border-violet-400/40 bg-violet-500/10 px-3.5 py-1 font-medium text-violet-200 hover:bg-violet-500/20"
           >
             Finish setup — step {Math.min((onboarding?.step ?? 0) + 1, 5)}/5
           </Link>

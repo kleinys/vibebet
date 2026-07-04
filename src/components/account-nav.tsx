@@ -24,8 +24,8 @@ export function AccountNav({ active }: { active: (typeof TABS)[number]["href"] }
             href={tab.href}
             className={
               isActive
-                ? "shrink-0 rounded-t-md border-b-2 border-fuchsia-400 px-3 py-2 font-medium text-fuchsia-300"
-                : "shrink-0 rounded-t-md border-b-2 border-transparent px-3 py-2 text-zinc-400 hover:text-zinc-100"
+                ? "shrink-0 rounded-t-sm border-b-2 border-fuchsia-400 px-3 py-2 font-medium text-fuchsia-300"
+                : "shrink-0 rounded-t-sm border-b-2 border-transparent px-3 py-2 text-zinc-400 hover:text-zinc-100"
             }
           >
             {tab.label}

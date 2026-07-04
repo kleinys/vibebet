@@ -107,7 +107,7 @@ export default async function ProfilePage() {
       <h1 className="text-2xl font-semibold">Account</h1>
       <AccountNav active="/account/profile" />
 
-      <section className="mt-6 overflow-hidden rounded-lg border border-fuchsia-500/30 bg-gradient-to-br from-zinc-900/80 to-zinc-950 p-6 shadow-lg shadow-fuchsia-950/30">
+      <section className="mt-6 overflow-hidden rounded-sm border border-fuchsia-500/30 bg-gradient-to-br from-zinc-900/80 to-zinc-950 p-6 shadow-lg shadow-fuchsia-950/30">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-fuchsia-300/90">
           Your trainer &amp; companion
         </h2>
@@ -145,7 +145,7 @@ export default async function ProfilePage() {
       </section>
 
       {myGuild && (
-        <section className="mt-6 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5">
+        <section className="mt-6 rounded-sm border border-emerald-500/20 bg-emerald-500/5 p-5">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-emerald-400/80">
             Guild
           </h2>
@@ -161,7 +161,7 @@ export default async function ProfilePage() {
         </section>
       )}
 
-      <section className="mt-6 rounded-xl border border-white/5 bg-zinc-900/40 p-5">
+      <section className="mt-6 rounded-sm border border-white/5 bg-zinc-900/40 p-5">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
           Public profile
         </h2>
@@ -176,7 +176,7 @@ export default async function ProfilePage() {
         )}
       </section>
 
-      <section className="mt-6 rounded-xl border border-white/5 bg-zinc-900/40 p-5">
+      <section className="mt-6 rounded-sm border border-white/5 bg-zinc-900/40 p-5">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
           Account
         </h2>

@@ -540,14 +540,17 @@ for (const dir of dirs) {
       .toBuffer({ resolveWithObject: true });
 
     const bgColors = sampleEdgeColors(data, info.width, info.height);
-    const preserveWhiteBody = file === "spirit-stag.webp";
     const avgLum =
       bgColors.reduce((sum, bg) => sum + luminance(bg[0], bg[1], bg[2]), 0) / bgColors.length;
 
-    clearBackdropOutsideSubject(data, info.width, info.height, { preserveWhiteBody });
+    clearBackdropOutsideSubject(data, info.width, info.height);
     removeSmallBackdropIslands(data, info.width, info.height);
     removeOrphanBackdropPixels(data, info.width, info.height);
-    clearBackdropOutsideSubject(data, info.width, info.height, { preserveWhiteBody });
+    clearBackdropOutsideSubject(data, info.width, info.height);
+    if (file === "spirit-stag.webp") {
+      backdropFlood(data, info.width, info.height, { minLum: 180, maxSpread: 14 });
+      removeSmallBackdropIslands(data, info.width, info.height, 64);
+    }
     cleanupAlphaFringe(data, info.width, info.height);
     binarizeAlpha(data);
 
