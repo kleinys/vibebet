@@ -100,8 +100,7 @@ function SpiritElementBall({ morph }: { morph: SpiritMorphElement }) {
 export function CompanionAnimatedStage({ config }: { config: FigureConfig }) {
   const { animal, human, skinSlug, showHuman, palette, animalScale, humanScale, badge } = config;
   const motion = companionMotion(animal);
-  // Spirit stag raster is a white deer on checkerboard exports — SVG is clean on the locker stage.
-  const animalSrc = animal === "stag" ? null : animalImagePath(animal);
+  const animalSrc = animalImagePath(animal);
   const humanSrc = showHuman ? humanImagePath(human, skinSlug) : null;
 
   const orbitStyle = {

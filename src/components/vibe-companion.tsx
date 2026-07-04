@@ -119,7 +119,7 @@ export function VibeCompanionCard({
           </div>
         )}
         {!companion.nextName && (
-          <p className="mt-3 text-xs text-amber-300">✦ Max evolution — legend tier unlocked</p>
+          <p className="mt-3 text-xs text-amber-300">Max evolution — legend tier unlocked</p>
         )}
       </div>
     </div>

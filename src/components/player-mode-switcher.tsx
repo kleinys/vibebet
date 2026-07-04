@@ -65,7 +65,7 @@ export function PlayerModeSwitcher({
                 if (!pending) onModeClick(mode.id, mode.hubHref);
               }}
               title={mode.description}
-              className={`inline-flex shrink-0 items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold transition sm:px-4 sm:text-sm ${
+              className={`inline-flex shrink-0 items-center gap-2 rounded-sm px-3.5 py-2 text-xs font-semibold transition sm:px-4 sm:text-sm ${
                 isActive ? TONE[mode.id] : IDLE
               } ${pending ? "opacity-70" : ""}`}
             >

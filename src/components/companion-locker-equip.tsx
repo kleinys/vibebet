@@ -36,10 +36,10 @@ function LockerEquipPill({
       <Link
         href="/shop"
         title={`Get ${item.name} in the shop`}
-        className="rounded-full border border-dashed border-white/15 bg-zinc-950/50 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500 transition hover:border-fuchsia-400/30 hover:text-zinc-300"
+        className="rounded-sm border border-dashed border-white/15 bg-zinc-950/50 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500 transition hover:border-fuchsia-400/30 hover:text-zinc-300"
       >
         {item.name}
-        {item.priceGems != null && item.priceGems > 0 ? ` · ${item.priceGems}💎` : ""}
+        {item.priceGems != null && item.priceGems > 0 ? ` · ${item.priceGems} gems` : ""}
       </Link>
     );
   }
@@ -61,7 +61,7 @@ function LockerEquipPill({
         type="submit"
         disabled={pending}
         title={active ? `Unequip ${item.name}` : `Equip ${item.name}`}
-        className={`rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-wider transition disabled:opacity-50 ${base}`}
+        className={`rounded-sm border px-3 py-1 text-[10px] font-semibold uppercase tracking-wider transition disabled:opacity-50 ${base}`}
       >
         {pending ? "…" : item.name}
         {active ? " · on" : ""}

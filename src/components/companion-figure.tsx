@@ -122,7 +122,7 @@ export function CompanionFigureScene({
   lockerItems?: { skins: LockerEquipItem[]; badges: LockerEquipItem[] };
 }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#020617] ring-1 ring-white/5">
+    <div className="relative overflow-hidden rounded-lg border border-white/10 bg-[#020617] ring-1 ring-white/5">
       <CompanionAnimatedStage config={config} />
       {lockerItems ? (
         <CompanionLockerEquip skins={lockerItems.skins} badges={lockerItems.badges} />
@@ -130,11 +130,11 @@ export function CompanionFigureScene({
         labels && (
           <div className="relative z-10 flex flex-wrap justify-center gap-2 px-3 pb-3 pt-1 text-center sm:px-4 sm:pb-4">
             {config.showHuman && (
-              <span className="rounded-full border border-fuchsia-400/35 bg-fuchsia-500/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-fuchsia-100 shadow-sm shadow-fuchsia-900/40">
+              <span className="rounded-sm border border-fuchsia-400/35 bg-fuchsia-500/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-fuchsia-100 shadow-sm shadow-fuchsia-900/40">
                 {labels.humanTitle}
               </span>
             )}
-            <span className="rounded-full border border-teal-400/35 bg-teal-500/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-teal-100 shadow-sm shadow-teal-900/40">
+            <span className="rounded-sm border border-teal-400/35 bg-teal-500/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-teal-100 shadow-sm shadow-teal-900/40">
               {labels.animalTitle}
             </span>
           </div>

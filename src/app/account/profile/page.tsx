@@ -15,6 +15,7 @@ import { getMyPlayerCode } from "@/lib/player-code";
 import { ProfileShareSection } from "@/components/profile-share-section";
 import { CompanionEvolutionShare } from "@/components/companion-evolution-share";
 import { ClaimLockerPackButton } from "@/components/claim-locker-pack-button";
+import { CompanionLockerRewards } from "@/components/companion-locker-rewards";
 import { figureLabels, resolveFigureConfig } from "@/lib/companion-figure";
 
 export const revalidate = 0;
@@ -106,7 +107,7 @@ export default async function ProfilePage() {
       <h1 className="text-2xl font-semibold">Account</h1>
       <AccountNav active="/account/profile" />
 
-      <section className="mt-6 overflow-hidden rounded-2xl border border-fuchsia-500/30 bg-gradient-to-br from-zinc-900/80 to-zinc-950 p-6 shadow-lg shadow-fuchsia-950/30">
+      <section className="mt-6 overflow-hidden rounded-lg border border-fuchsia-500/30 bg-gradient-to-br from-zinc-900/80 to-zinc-950 p-6 shadow-lg shadow-fuchsia-950/30">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-fuchsia-300/90">
           Your trainer &amp; companion
         </h2>
@@ -116,6 +117,7 @@ export default async function ProfilePage() {
         <div className="mt-5">
           <VibeCompanionCard input={companionInput} lockerItems={lockerItems} />
           <ClaimLockerPackButton missingCount={missingLockerCount} />
+          <CompanionLockerRewards />
         </div>
         <CompanionEvolutionShare
           displayName={profile?.display_name ?? playerCode?.display_name ?? "Player"}
