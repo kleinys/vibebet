@@ -2,6 +2,9 @@ import type { Rarity } from "@/lib/supabase/types";
 import type { CompanionInput, CompanionState } from "@/lib/vibe-companion";
 import { computeCompanion } from "@/lib/vibe-companion";
 import { SKIN_HUMAN_LABELS } from "@/lib/character-art";
+import type { SpiritMorphElement } from "@/lib/companion-motion";
+import { companionMotion } from "@/lib/companion-motion";
+import { rosterBySkin } from "@/lib/companion-roster";
 
 export type AnimalKind =
   | "fox"
@@ -13,7 +16,10 @@ export type AnimalKind =
   | "phoenix"
   | "raven"
   | "serpent"
-  | "bear";
+  | "bear"
+  | "mantis"
+  | "bat"
+  | "crane";
 export type HumanArchetype = "oracle" | "seer" | "knight" | "void" | "cosmic";
 
 export interface FigurePalette {
@@ -38,6 +44,7 @@ export interface FigureConfig {
   palette: FigurePalette;
   badge: "crown" | "verified" | null;
   hasShield: boolean;
+  morph: SpiritMorphElement;
 }
 
 const SKIN_TO_ARCHETYPE: Record<string, HumanArchetype> = {
@@ -111,6 +118,15 @@ const SKIN_PALETTE_OVERRIDES: Partial<Record<string, Partial<FigurePalette>>> = 
     animalDark: "#991b1b",
     aura: "#ef4444",
   },
+  "neon-seer": {
+    hair: "#0e7490",
+    outfit: "#0891b2",
+    outfitDark: "#155e75",
+    accent: "#f472b6",
+    animal: "#22d3ee",
+    animalDark: "#db2777",
+    aura: "#06b6d4",
+  },
   "aurora-sage": {
     hair: "#064e3b",
     outfit: "#059669",
@@ -180,14 +196,14 @@ const ANIMAL_BY_SKIN: Partial<Record<string, AnimalKind>> = {
   "oracle-sage": "raven",
   "oracle-lunar": "stag",
   "oracle-solar": "phoenix",
-  "neon-seer": "owl",
+  "neon-seer": "mantis",
   "void-prophet": "wolf",
   "cosmic-oracle": "dragon",
   "ember-knight": "cat",
   "frost-walker": "serpent",
   "storm-titan": "bear",
-  "nebula-ronin": "dragon",
-  "blood-moon": "raven",
+  "nebula-ronin": "crane",
+  "blood-moon": "bat",
   "aurora-sage": "owl",
 };
 
@@ -202,6 +218,9 @@ const ANIMAL_RANK: Record<AnimalKind, number> = {
   raven: 8,
   serpent: 9,
   bear: 10,
+  mantis: 11,
+  bat: 12,
+  crane: 13,
 };
 
 function animalFromStreak(streak: number): AnimalKind {
@@ -252,6 +271,9 @@ export function resolveFigureConfig(input: CompanionInput): FigureConfig {
   if (input.equippedBadgeSlug === "founder-badge") badge = "crown";
   if (input.equippedBadgeSlug === "verified-seer") badge = "verified";
 
+  const roster = rosterBySkin(skinSlug);
+  const morph = roster?.morph ?? companionMotion(animal).morph;
+
   return {
     companion,
     animal,
@@ -263,6 +285,7 @@ export function resolveFigureConfig(input: CompanionInput): FigureConfig {
     palette,
     badge,
     hasShield: input.streakShields > 0,
+    morph,
   };
 }
 
@@ -288,6 +311,9 @@ export function figureLabels(config: FigureConfig): {
     raven: "Rune Raven",
     serpent: "Frost Serpent",
     bear: "Storm Bear",
+    mantis: "Neon Mantis",
+    bat: "Eclipse Bat",
+    crane: "Nebula Crane",
   };
   return {
     humanTitle:

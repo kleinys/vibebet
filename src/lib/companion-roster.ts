@@ -1,6 +1,9 @@
 import type { AnimalKind } from "@/lib/companion-figure";
 import type { SpiritMorphElement } from "@/lib/companion-motion";
-import { SPIRIT_MORPH_LABELS } from "@/lib/companion-motion";
+import {
+  SPIRIT_MORPH_DESCRIPTIONS,
+  SPIRIT_MORPH_LABELS,
+} from "@/lib/companion-motion";
 
 export interface CompanionRosterEntry {
   skinSlug: string;
@@ -11,9 +14,10 @@ export interface CompanionRosterEntry {
   theme: string;
   trait: string;
   elementLabel: string;
+  elementDescription: string;
 }
 
-/** Canonical trainer ↔ spirit animal pairs (shop skin equipped). */
+/** One unique spirit animal + orbit phenomenon per trainer skin. */
 export const COMPANION_ROSTER: CompanionRosterEntry[] = [
   {
     skinSlug: "default-oracle",
@@ -22,18 +26,20 @@ export const COMPANION_ROSTER: CompanionRosterEntry[] = [
     animalName: "Fox Spirit",
     morph: "fire",
     theme: "Mystic violet & ember",
-    trait: "Playful starter — fox trails a fireball when orbiting",
+    trait: "Playful starter — trails an ember heart",
     elementLabel: SPIRIT_MORPH_LABELS.fire,
+    elementDescription: SPIRIT_MORPH_DESCRIPTIONS.fire,
   },
   {
     skinSlug: "oracle-sage",
     trainerName: "Oracle Sage",
     animal: "raven",
     animalName: "Rune Raven",
-    morph: "arcane",
+    morph: "rune",
     theme: "Scholarly runes & ink",
-    trait: "Wise tactician — raven carries an arcane orb",
-    elementLabel: SPIRIT_MORPH_LABELS.arcane,
+    trait: "Wise tactician — ink rune orb",
+    elementLabel: SPIRIT_MORPH_LABELS.rune,
+    elementDescription: SPIRIT_MORPH_DESCRIPTIONS.rune,
   },
   {
     skinSlug: "oracle-lunar",
@@ -42,8 +48,9 @@ export const COMPANION_ROSTER: CompanionRosterEntry[] = [
     animalName: "Spirit Stag",
     morph: "lunar",
     theme: "Moonlit silver & indigo",
-    trait: "Calm night seer — stag becomes a moon spirit",
+    trait: "Calm night seer — moon spirit halo",
     elementLabel: SPIRIT_MORPH_LABELS.lunar,
+    elementDescription: SPIRIT_MORPH_DESCRIPTIONS.lunar,
   },
   {
     skinSlug: "oracle-solar",
@@ -52,136 +59,108 @@ export const COMPANION_ROSTER: CompanionRosterEntry[] = [
     animalName: "Sun Phoenix",
     morph: "solar",
     theme: "Sun-forged gold & flame",
-    trait: "Radiant champion — phoenix becomes a sun orb",
+    trait: "Radiant champion — sun corona",
     elementLabel: SPIRIT_MORPH_LABELS.solar,
+    elementDescription: SPIRIT_MORPH_DESCRIPTIONS.solar,
   },
   {
     skinSlug: "neon-seer",
     trainerName: "Neon Seer",
-    animal: "owl",
-    animalName: "Moon Owl",
-    morph: "lunar",
-    theme: "Cyber teal & neon visor",
-    trait: "Night watcher — owl channels lunar glow",
-    elementLabel: SPIRIT_MORPH_LABELS.lunar,
+    animal: "mantis",
+    animalName: "Neon Mantis",
+    morph: "neon",
+    theme: "Cyber teal & holo visor",
+    trait: "Data-hunter — neon pulse rings",
+    elementLabel: SPIRIT_MORPH_LABELS.neon,
+    elementDescription: SPIRIT_MORPH_DESCRIPTIONS.neon,
   },
   {
     skinSlug: "void-prophet",
     trainerName: "Void Prophet",
     animal: "wolf",
     animalName: "Storm Wolf",
-    morph: "storm",
+    morph: "voidrift",
     theme: "Void purple & shadow",
-    trait: "Edge predictor — wolf wraps a lightning sphere",
-    elementLabel: SPIRIT_MORPH_LABELS.storm,
+    trait: "Edge predictor — void rift spiral",
+    elementLabel: SPIRIT_MORPH_LABELS.voidrift,
+    elementDescription: SPIRIT_MORPH_DESCRIPTIONS.voidrift,
   },
   {
     skinSlug: "cosmic-oracle",
     trainerName: "Cosmic Oracle",
     animal: "dragon",
     animalName: "Star Dragon",
-    morph: "arcane",
+    morph: "cosmic",
     theme: "Deep space indigo & stars",
-    trait: "Legend-tier — dragon orbits an arcane core",
-    elementLabel: SPIRIT_MORPH_LABELS.arcane,
+    trait: "Legend-tier — star singularity",
+    elementLabel: SPIRIT_MORPH_LABELS.cosmic,
+    elementDescription: SPIRIT_MORPH_DESCRIPTIONS.cosmic,
   },
   {
     skinSlug: "ember-knight",
     trainerName: "Ember Knight",
     animal: "cat",
     animalName: "Ember Cat",
-    morph: "fire",
+    morph: "forge",
     theme: "Forge orange & plate armor",
-    trait: "Aggressive duelist — cat trails ember fire",
-    elementLabel: SPIRIT_MORPH_LABELS.fire,
+    trait: "Aggressive duelist — forge ember sparks",
+    elementLabel: SPIRIT_MORPH_LABELS.forge,
+    elementDescription: SPIRIT_MORPH_DESCRIPTIONS.forge,
   },
   {
     skinSlug: "frost-walker",
     trainerName: "Frost Walker",
     animal: "serpent",
     animalName: "Frost Serpent",
-    morph: "storm",
+    morph: "frost",
     theme: "Glacial cyan & ice robes",
-    trait: "Cold precision — serpent coils a frost lightning sphere",
-    elementLabel: SPIRIT_MORPH_LABELS.storm,
+    trait: "Cold precision — ice crystal shards",
+    elementLabel: SPIRIT_MORPH_LABELS.frost,
+    elementDescription: SPIRIT_MORPH_DESCRIPTIONS.frost,
   },
   {
     skinSlug: "storm-titan",
     trainerName: "Storm Titan",
     animal: "bear",
     animalName: "Storm Bear",
-    morph: "storm",
+    morph: "thunder",
     theme: "Thunder slate & gold trim",
-    trait: "Heavy hitter — bear carries storm energy",
-    elementLabel: SPIRIT_MORPH_LABELS.storm,
+    trait: "Heavy hitter — thunder core",
+    elementLabel: SPIRIT_MORPH_LABELS.thunder,
+    elementDescription: SPIRIT_MORPH_DESCRIPTIONS.thunder,
   },
   {
     skinSlug: "nebula-ronin",
     trainerName: "Nebula Ronin",
-    animal: "dragon",
-    animalName: "Star Dragon",
-    morph: "arcane",
+    animal: "crane",
+    animalName: "Nebula Crane",
+    morph: "nebula",
     theme: "Magenta nebula & star blades",
-    trait: "Cosmic duelist — dragon with nebula arcane orb",
-    elementLabel: SPIRIT_MORPH_LABELS.arcane,
+    trait: "Cosmic duelist — nebula veil",
+    elementLabel: SPIRIT_MORPH_LABELS.nebula,
+    elementDescription: SPIRIT_MORPH_DESCRIPTIONS.nebula,
   },
   {
     skinSlug: "blood-moon",
     trainerName: "Blood Moon",
-    animal: "raven",
-    animalName: "Rune Raven",
-    morph: "arcane",
+    animal: "bat",
+    animalName: "Eclipse Bat",
+    morph: "eclipse",
     theme: "Crimson cult & lunar eclipse",
-    trait: "Dark omen — raven with blood-red arcane pulse",
-    elementLabel: SPIRIT_MORPH_LABELS.arcane,
+    trait: "Dark omen — blood eclipse pulse",
+    elementLabel: SPIRIT_MORPH_LABELS.eclipse,
+    elementDescription: SPIRIT_MORPH_DESCRIPTIONS.eclipse,
   },
   {
     skinSlug: "aurora-sage",
     trainerName: "Aurora Sage",
     animal: "owl",
     animalName: "Moon Owl",
-    morph: "lunar",
+    morph: "aurora",
     theme: "Northern lights green & teal",
-    trait: "Aurora mystic — owl with polar moon spirit",
-    elementLabel: SPIRIT_MORPH_LABELS.lunar,
-  },
-];
-
-export const MORPH_PHENOMENA: {
-  morph: SpiritMorphElement;
-  label: string;
-  description: string;
-  animals: AnimalKind[];
-}[] = [
-  {
-    morph: "fire",
-    label: SPIRIT_MORPH_LABELS.fire,
-    description: "Ember trails and flame core while the spirit passes behind the trainer.",
-    animals: ["fox", "cat"],
-  },
-  {
-    morph: "lunar",
-    label: SPIRIT_MORPH_LABELS.lunar,
-    description: "Moon crescent, stardust, and soft silver halo on orbit.",
-    animals: ["owl", "stag"],
-  },
-  {
-    morph: "solar",
-    label: SPIRIT_MORPH_LABELS.solar,
-    description: "Corona rays and golden sun orb — brightest morph.",
-    animals: ["phoenix"],
-  },
-  {
-    morph: "storm",
-    label: SPIRIT_MORPH_LABELS.storm,
-    description: "Cloud shell with lightning bolts — electric sphere.",
-    animals: ["wolf", "serpent", "bear"],
-  },
-  {
-    morph: "arcane",
-    label: SPIRIT_MORPH_LABELS.arcane,
-    description: "Rune rings and violet arcane core — mystic energy.",
-    animals: ["dragon", "raven"],
+    trait: "Polar mystic — aurora ribbons",
+    elementLabel: SPIRIT_MORPH_LABELS.aurora,
+    elementDescription: SPIRIT_MORPH_DESCRIPTIONS.aurora,
   },
 ];
 

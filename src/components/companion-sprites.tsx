@@ -271,15 +271,49 @@ function BearSprite({ fill, dark, accent }: { fill: string; dark: string; accent
     <g filter="url(#sprite-glow)">
       <ellipse cx="22" cy="28" rx="7" ry="7" fill={dark} />
       <ellipse cx="50" cy="28" rx="7" ry="7" fill={dark} />
-      <ellipse cx="22" cy="28" rx="4" ry="4" fill={fill} opacity="0.5" />
-      <ellipse cx="50" cy="28" rx="4" ry="4" fill={fill} opacity="0.5" />
       <ellipse cx="36" cy="48" rx="18" ry="16" fill={fill} />
-      <ellipse cx="36" cy="52" rx="11" ry="9" fill="#fef3c7" opacity="0.35" />
       <ellipse cx="36" cy="38" rx="14" ry="12" fill={fill} />
-      <ellipse cx="36" cy="42" rx="7" ry="5" fill="#fef3c7" opacity="0.45" />
-      <ellipse cx="36" cy="40" rx="3" ry="2.5" fill={dark} />
       <GlowEyes y={36} leftX={31} rightX={41} glow={accent} />
       <path d="M22 66 L20 72 M30 66 L30 72 M42 66 L42 72 M50 66 L52 72" stroke={dark} strokeWidth="2.5" strokeLinecap="round" />
+    </g>
+  );
+}
+
+function MantisSprite({ fill, dark, accent }: { fill: string; dark: string; accent: string }) {
+  return (
+    <g filter="url(#sprite-glow)">
+      <path d="M18 40 L8 24 L14 38 Z" fill={accent} opacity="0.8" />
+      <path d="M54 40 L64 24 L58 38 Z" fill={accent} opacity="0.8" />
+      <ellipse cx="36" cy="52" rx="8" ry="14" fill={fill} />
+      <ellipse cx="36" cy="38" rx="6" ry="8" fill={fill} />
+      <path d="M32 30 L36 18 L40 30" stroke={accent} strokeWidth="1.5" fill="none" />
+      <GlowEyes y={36} leftX={33} rightX={39} glow={accent} />
+      <path d="M28 66 L26 76 M36 66 L36 78 M44 66 L46 76" stroke={dark} strokeWidth="2" strokeLinecap="round" />
+    </g>
+  );
+}
+
+function BatSprite({ fill, dark, accent }: { fill: string; dark: string; accent: string }) {
+  return (
+    <g filter="url(#sprite-glow)">
+      <path d="M8 44 Q20 28 36 36 Q52 28 64 44 Q48 38 36 42 Q24 38 8 44 Z" fill={dark} opacity="0.9" />
+      <ellipse cx="36" cy="40" rx="8" ry="9" fill={fill} />
+      <GlowEyes y={39} leftX={33} rightX={39} glow={accent} />
+      <path d="M36 48 L36 56" stroke={dark} strokeWidth="2" />
+    </g>
+  );
+}
+
+function CraneSprite({ fill, dark, accent }: { fill: string; dark: string; accent: string }) {
+  return (
+    <g filter="url(#sprite-glow)">
+      <path d="M36 68 L36 78 M32 78 L40 78" stroke={dark} strokeWidth="2" strokeLinecap="round" />
+      <ellipse cx="36" cy="50" rx="10" ry="14" fill={fill} />
+      <path d="M36 36 L36 24 L48 18" stroke={dark} strokeWidth="2" fill="none" strokeLinecap="round" />
+      <circle cx="48" cy="18" r="3" fill={accent} />
+      <ellipse cx="36" cy="32" rx="7" ry="8" fill={fill} />
+      <GlowEyes y={31} leftX={33} rightX={39} glow={accent} />
+      <path d="M12 48 Q24 32 36 40 Q48 32 60 48" stroke={accent} strokeWidth="1.2" fill="none" opacity="0.6" />
     </g>
   );
 }
@@ -362,6 +396,9 @@ export function AnimalSprite({
       {kind === "raven" && <RavenSprite {...props} />}
       {kind === "serpent" && <SerpentSprite {...props} />}
       {kind === "bear" && <BearSprite {...props} />}
+      {kind === "mantis" && <MantisSprite {...props} />}
+      {kind === "bat" && <BatSprite {...props} />}
+      {kind === "crane" && <CraneSprite {...props} />}
     </g>
   );
 }

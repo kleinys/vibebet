@@ -3,10 +3,11 @@
 import type { CSSProperties } from "react";
 import type { FigureConfig } from "@/lib/companion-figure";
 import { animalImagePath, humanImagePath } from "@/lib/character-art";
-import { companionMotion, HUMAN_MOTION_CLASS, type SpiritMorphElement } from "@/lib/companion-motion";
+import { companionMotion, HUMAN_MOTION_CLASS } from "@/lib/companion-motion";
 import { stageBackdropStyle } from "@/lib/companion-stage-style";
 import { AnimalSprite, HumanSprite, SpriteGlowDefs } from "@/components/companion-sprites";
 import { FantasySvgDefs } from "@/components/fantasy-icons";
+import { SpiritElementBall } from "@/components/spirit-morph-decor";
 
 const FIGURE_SHADOW =
   "drop-shadow(0 24px 48px rgba(0,0,0,0.7)) drop-shadow(0 0 32px var(--figure-aura))";
@@ -36,69 +37,9 @@ function EyeGlow() {
   );
 }
 
-function SpiritElementBall({ morph }: { morph: SpiritMorphElement }) {
-  return (
-    <div className={`companion-spirit-element companion-spirit-element--${morph}`} aria-hidden>
-      <span className="companion-spirit-element__core" />
-      <span className="companion-spirit-element__halo" />
-
-      {morph === "fire" && (
-        <>
-          <span className="companion-spirit-element__flame companion-spirit-element__flame--1" />
-          <span className="companion-spirit-element__flame companion-spirit-element__flame--2" />
-          <span className="companion-spirit-element__flame companion-spirit-element__flame--3" />
-        </>
-      )}
-
-      {morph === "solar" && (
-        <>
-          {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
-            <span
-              key={deg}
-              className="companion-spirit-element__ray"
-              style={{ "--ray-angle": `${deg}deg` } as CSSProperties}
-            />
-          ))}
-          <span className="companion-spirit-element__corona" />
-        </>
-      )}
-
-      {morph === "storm" && (
-        <>
-          <span className="companion-spirit-element__cloud" />
-          <span className="companion-spirit-element__bolt companion-spirit-element__bolt--1" />
-          <span className="companion-spirit-element__bolt companion-spirit-element__bolt--2" />
-          <span className="companion-spirit-element__bolt companion-spirit-element__bolt--3" />
-        </>
-      )}
-
-      {morph === "lunar" && (
-        <>
-          <span className="companion-spirit-element__moon-ring" />
-          <span className="companion-spirit-element__moon-crescent" />
-          <span className="companion-spirit-element__stardust companion-spirit-element__stardust--1" />
-          <span className="companion-spirit-element__stardust companion-spirit-element__stardust--2" />
-          <span className="companion-spirit-element__stardust companion-spirit-element__stardust--3" />
-        </>
-      )}
-
-      {morph === "arcane" && (
-        <>
-          <span className="companion-spirit-element__rune-ring" />
-          <span className="companion-spirit-element__spark companion-spirit-element__spark--1" />
-          <span className="companion-spirit-element__spark companion-spirit-element__spark--2" />
-          <span className="companion-spirit-element__spark companion-spirit-element__spark--3" />
-          <span className="companion-spirit-element__spark companion-spirit-element__spark--4" />
-        </>
-      )}
-
-      <span className="companion-spirit-element__trail" />
-    </div>
-  );
-}
-
 export function CompanionAnimatedStage({ config }: { config: FigureConfig }) {
-  const { animal, human, skinSlug, showHuman, palette, animalScale, humanScale, badge } = config;
+  const { animal, human, skinSlug, showHuman, palette, animalScale, humanScale, badge, morph } =
+    config;
   const motion = companionMotion(animal);
   const animalSrc = animalImagePath(animal);
   const humanSrc = showHuman ? humanImagePath(human, skinSlug) : null;
@@ -159,9 +100,9 @@ export function CompanionAnimatedStage({ config }: { config: FigureConfig }) {
               <div className="companion-orbit-spirit-anchor">
                 <div className="companion-orbit-spirit">
                   <div
-                    className={`companion-orbit-spirit-inner companion-orbit-spirit-inner--${motion.morph} companion-orbit-spirit-inner--${animal}`}
+                    className={`companion-orbit-spirit-inner companion-orbit-spirit-inner--${morph} companion-orbit-spirit-inner--${animal}`}
                   >
-                    <SpiritElementBall morph={motion.morph} />
+                    <SpiritElementBall morph={morph} />
                     {animalSrc ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img

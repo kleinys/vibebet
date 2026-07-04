@@ -45,6 +45,9 @@ export const ANIMAL_IMAGES: Record<AnimalKind, string | null> = {
   raven: "/characters/animals/rune-raven.webp",
   serpent: "/characters/animals/frost-serpent.webp",
   bear: "/characters/animals/storm-bear.webp",
+  mantis: "/characters/animals/neon-mantis.webp",
+  bat: "/characters/animals/eclipse-bat.webp",
+  crane: "/characters/animals/nebula-crane.webp",
 };
 
 export const CHARACTER_ASSETS: CharacterAssetRef[] = [
@@ -58,6 +61,9 @@ export const CHARACTER_ASSETS: CharacterAssetRef[] = [
   { kind: "animal", slug: "raven", imagePath: ANIMAL_IMAGES.raven, label: "Rune Raven" },
   { kind: "animal", slug: "serpent", imagePath: ANIMAL_IMAGES.serpent, label: "Frost Serpent" },
   { kind: "animal", slug: "bear", imagePath: ANIMAL_IMAGES.bear, label: "Storm Bear" },
+  { kind: "animal", slug: "mantis", imagePath: ANIMAL_IMAGES.mantis, label: "Neon Mantis" },
+  { kind: "animal", slug: "bat", imagePath: ANIMAL_IMAGES.bat, label: "Eclipse Bat" },
+  { kind: "animal", slug: "crane", imagePath: ANIMAL_IMAGES.crane, label: "Nebula Crane" },
   {
     kind: "human",
     slug: "oracle",
@@ -117,7 +123,7 @@ export function characterImagePath(
   return getCharacterAsset(kind, slug)?.imagePath ?? null;
 }
 
-const CHARACTER_ART_VERSION = "7";
+const CHARACTER_ART_VERSION = "8";
 
 function withArtVersion(path: string | null): string | null {
   return path ? `${path}?v=${CHARACTER_ART_VERSION}` : null;
