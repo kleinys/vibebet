@@ -14,6 +14,7 @@ import { getStreakInfo } from "@/lib/streaks";
 import { getMyPlayerCode } from "@/lib/player-code";
 import { ProfileShareSection } from "@/components/profile-share-section";
 import { CompanionEvolutionShare } from "@/components/companion-evolution-share";
+import { ClaimLockerPackButton } from "@/components/claim-locker-pack-button";
 import { figureLabels, resolveFigureConfig } from "@/lib/companion-figure";
 
 export const revalidate = 0;
@@ -32,7 +33,7 @@ export default async function ProfilePage() {
     .maybeSingle();
 
   const guildsOn = await isEnabled("guilds_enabled");
-  const [equipped, streak, companionInput, myGuild, playerCode, inventoryRes] = await Promise.all([
+  const [equipped, streak, companionInput, myGuild, playerCode, inventoryRes, catalogRes] = await Promise.all([
     getEquippedCosmetics(user.id).catch(() => ({ skin: null, badge: null })),
     getStreakInfo(user.id),
     getCompanionInput(user.id).catch(() => ({
@@ -47,12 +48,19 @@ export default async function ProfilePage() {
       .select("id, is_equipped, shop_items (slug, name, kind, rarity)")
       .eq("user_id", user.id)
       .then((r) => r.data ?? []),
+    supabase
+      .from("shop_items")
+      .select("slug, name, kind, rarity, price_gems, is_active")
+      .in("kind", ["skin", "badge"])
+      .then((r) => r.data ?? []),
   ]);
 
+  const ownedSlugs = new Set<string>();
   const lockerItems = { skins: [] as LockerEquipItem[], badges: [] as LockerEquipItem[] };
   for (const row of inventoryRes) {
     const item = Array.isArray(row.shop_items) ? row.shop_items[0] : row.shop_items;
     if (!item || (item.kind !== "skin" && item.kind !== "badge")) continue;
+    ownedSlugs.add(item.slug);
     const entry: LockerEquipItem = {
       inventoryId: row.id,
       slug: item.slug,
@@ -60,10 +68,35 @@ export default async function ProfilePage() {
       kind: item.kind as ItemKind,
       rarity: item.rarity as Rarity,
       isEquipped: row.is_equipped,
+      owned: true,
     };
     if (item.kind === "skin") lockerItems.skins.push(entry);
     else lockerItems.badges.push(entry);
   }
+
+  for (const item of catalogRes) {
+    if (!item.is_active && !ownedSlugs.has(item.slug)) continue;
+    if (ownedSlugs.has(item.slug)) continue;
+    const entry: LockerEquipItem = {
+      inventoryId: "",
+      slug: item.slug,
+      name: item.name,
+      kind: item.kind as ItemKind,
+      rarity: item.rarity as Rarity,
+      isEquipped: false,
+      owned: false,
+      priceGems: item.price_gems,
+    };
+    if (item.kind === "skin") lockerItems.skins.push(entry);
+    else lockerItems.badges.push(entry);
+  }
+
+  lockerItems.skins.sort((a, b) => a.name.localeCompare(b.name));
+  lockerItems.badges.sort((a, b) => a.name.localeCompare(b.name));
+
+  const missingLockerCount = catalogRes.filter(
+    (item) => item.is_active && !ownedSlugs.has(item.slug),
+  ).length;
 
   const figureConfig = resolveFigureConfig(companionInput);
   const companionLabels = figureLabels(figureConfig);
@@ -82,6 +115,7 @@ export default async function ProfilePage() {
         </p>
         <div className="mt-5">
           <VibeCompanionCard input={companionInput} lockerItems={lockerItems} />
+          <ClaimLockerPackButton missingCount={missingLockerCount} />
         </div>
         <CompanionEvolutionShare
           displayName={profile?.display_name ?? playerCode?.display_name ?? "Player"}

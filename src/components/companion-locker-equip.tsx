@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { setEquipped, type ShopState } from "@/app/shop/actions";
 import type { ItemKind, Rarity } from "@/lib/supabase/types";
@@ -11,6 +12,8 @@ export interface LockerEquipItem {
   kind: ItemKind;
   rarity: Rarity;
   isEquipped: boolean;
+  owned?: boolean;
+  priceGems?: number;
 }
 
 function LockerEquipPill({
@@ -26,6 +29,21 @@ function LockerEquipPill({
   );
 
   const active = item.isEquipped;
+  const owned = item.owned !== false;
+
+  if (!owned) {
+    return (
+      <Link
+        href="/shop"
+        title={`Get ${item.name} in the shop`}
+        className="rounded-full border border-dashed border-white/15 bg-zinc-950/50 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-zinc-500 transition hover:border-fuchsia-400/30 hover:text-zinc-300"
+      >
+        {item.name}
+        {item.priceGems != null && item.priceGems > 0 ? ` · ${item.priceGems}💎` : ""}
+      </Link>
+    );
+  }
+
   const base =
     tone === "skin"
       ? active

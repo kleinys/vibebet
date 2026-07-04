@@ -161,31 +161,11 @@ body {
   transform-origin: center bottom;
 }
 
-.companion-orbit-spirit-inner--stag {
-  isolation: isolate;
-  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.45))
-    drop-shadow(0 0 18px var(--spirit-element-soft));
-}
-
-.companion-orbit-spirit-inner--stag::before {
-  content: "";
-  position: absolute;
-  inset: -12% -5% 0;
-  z-index: 1;
-  pointer-events: none;
-  background: radial-gradient(
-    ellipse 80% 70% at 50% 40%,
-    color-mix(in srgb, var(--spirit-element) 55%, #020617) 0%,
-    color-mix(in srgb, var(--spirit-element) 25%, #020617) 55%,
-    transparent 78%
-  );
-}
-
 .companion-orbit-animal-img--stag {
   position: relative;
   z-index: 2;
-  mix-blend-mode: multiply;
-  filter: none;
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.45))
+    drop-shadow(0 0 24px var(--spirit-element-soft));
 }
 
 .companion-orbit-animal-img {
