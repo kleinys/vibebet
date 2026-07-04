@@ -7,12 +7,12 @@ const LINKS = [
     hint: "Equip outfits, see your spirit animal",
   },
   {
-    href: "/account/profile#locker-rewards",
+    href: "/account/profile/arena",
     label: "VIBE case",
     hint: "Stake VIBE · weighted payout",
   },
   {
-    href: "/account/profile#locker-rewards",
+    href: "/account/profile/arena#vibe-wheel",
     label: "Daily wheel",
     hint: "1 free spin · up to 2,500 VIBE",
   },

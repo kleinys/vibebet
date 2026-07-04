@@ -50,10 +50,12 @@ export function CompanionLockerRewards({
   vibeBalance,
   spinsUsedToday,
   equippedSkinSlug,
+  variant = "inline",
 }: {
   vibeBalance: number;
   spinsUsedToday: number;
   equippedSkinSlug?: string | null;
+  variant?: "inline" | "arena";
 }) {
   const router = useRouter();
   const modifier = orbitModifierSummary(equippedSkinSlug ?? null);
@@ -180,12 +182,14 @@ export function CompanionLockerRewards({
     }
   }
 
+  const isArena = variant === "arena";
+
   return (
     <section
-      id="locker-rewards"
-      className={`mt-4 scroll-mt-24 rounded-sm border border-white/10 bg-gradient-to-b p-4 ring-1 ring-white/5 ${
-        modifier ? modifier.affinity.caseTheme : "from-zinc-950/80 to-zinc-950"
-      }`}
+      id={isArena ? undefined : "locker-rewards"}
+      className={`scroll-mt-24 rounded-sm border border-white/10 bg-gradient-to-b p-4 ring-1 ring-white/5 ${
+        isArena ? "mt-0 p-0 ring-0" : "mt-4"
+      } ${modifier ? modifier.affinity.caseTheme : "from-zinc-950/80 to-zinc-950"}`}
     >
       {modifier && (
         <div className="mb-4 flex flex-wrap items-center justify-center gap-2">
@@ -201,19 +205,28 @@ export function CompanionLockerRewards({
           )}
         </div>
       )}
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className={`flex flex-wrap items-end justify-between gap-3 ${isArena ? "px-4 pt-4" : ""}`}>
         <div>
           <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">
-            Locker rewards
+            {isArena ? "Play floor" : "Locker rewards"}
           </h3>
-          <p className="mt-1 text-[11px] text-zinc-500">
-            Stake VIBE on crates and the wheel — real play-money payouts from your wallet.
-          </p>
-          <ol className="mt-2 list-decimal space-y-0.5 pl-4 text-[10px] text-zinc-500">
-            <li>Pick a case stake (100–1,000 VIBE) or spin the wheel (1 free/day, then 100 VIBE).</li>
-            <li>VIBE is deducted instantly; payout lands in the same wallet.</li>
-            <li>Check net profit on the result line — negative net means you lost the stake.</li>
-          </ol>
+          {!isArena && (
+            <>
+              <p className="mt-1 text-[11px] text-zinc-500">
+                Stake VIBE on crates and the wheel — real play-money payouts from your wallet.
+              </p>
+              <ol className="mt-2 list-decimal space-y-0.5 pl-4 text-[10px] text-zinc-500">
+                <li>Pick a case stake (100–1,000 VIBE) or spin the wheel (1 free/day, then 100 VIBE).</li>
+                <li>VIBE is deducted instantly; payout lands in the same wallet.</li>
+                <li>Check net profit on the result line — negative net means you lost the stake.</li>
+              </ol>
+            </>
+          )}
+          {isArena && (
+            <p className="mt-1 text-sm text-zinc-400">
+              Choose your stake, open a case, or spin the wheel below.
+            </p>
+          )}
         </div>
         <div className="inline-flex items-center gap-1.5 rounded-sm border border-amber-500/30 bg-amber-950/40 px-2.5 py-1 text-xs text-amber-200">
           <CurrencyIconVibe className="h-4 w-4" />
@@ -227,9 +240,12 @@ export function CompanionLockerRewards({
         </p>
       )}
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-2">
+      <div className={`mt-4 grid gap-4 xl:grid-cols-2 ${isArena ? "px-4 pb-6" : ""}`}>
         {/* CS2-style case */}
-        <div className={`rounded-sm border border-amber-500/25 bg-gradient-to-b p-4 ${modifier ? modifier.affinity.caseTheme : "from-amber-950/25 via-zinc-950 to-zinc-950"}`}>
+        <div
+          id="vibe-case"
+          className={`scroll-mt-24 rounded-sm border border-amber-500/25 bg-gradient-to-b p-4 ${modifier ? modifier.affinity.caseTheme : "from-amber-950/25 via-zinc-950 to-zinc-950"} ${isArena ? "p-6" : ""}`}
+        >
           <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-300/90">
             VIBE case
           </p>
@@ -323,7 +339,10 @@ export function CompanionLockerRewards({
         </div>
 
         {/* Color wheel */}
-        <div className={`rounded-sm border border-violet-500/25 bg-gradient-to-b p-4 ${modifier ? modifier.affinity.wheelTheme : "from-violet-950/30 to-zinc-950"}`}>
+        <div
+          id="vibe-wheel"
+          className={`scroll-mt-24 rounded-sm border border-violet-500/25 bg-gradient-to-b p-4 ${modifier ? modifier.affinity.wheelTheme : "from-violet-950/30 to-zinc-950"} ${isArena ? "p-6" : ""}`}
+        >
           <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-300/90">
             VIBE wheel
           </p>

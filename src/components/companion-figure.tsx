@@ -122,7 +122,7 @@ export function CompanionFigureScene({
   lockerItems?: { skins: LockerEquipItem[]; badges: LockerEquipItem[] };
 }) {
   return (
-    <div className="relative overflow-hidden rounded-sm border border-white/10 bg-[#020617] ring-1 ring-white/5">
+    <div className="relative overflow-visible rounded-sm border border-white/10 bg-[#020617] ring-1 ring-white/5">
       <CompanionAnimatedStage config={config} />
       {lockerItems ? (
         <CompanionLockerEquip skins={lockerItems.skins} badges={lockerItems.badges} />

@@ -15,7 +15,7 @@ import { getMyPlayerCode } from "@/lib/player-code";
 import { ProfileShareSection } from "@/components/profile-share-section";
 import { CompanionEvolutionShare } from "@/components/companion-evolution-share";
 import { ClaimLockerPackButton } from "@/components/claim-locker-pack-button";
-import { CompanionLockerRewards } from "@/components/companion-locker-rewards";
+import { LockerArenaEntry } from "@/components/locker-arena-entry";
 import { CompanionDiscoverBar } from "@/components/companion-discover-bar";
 import { CompanionRosterPanel } from "@/components/companion-roster-panel";
 import { figureLabels, resolveFigureConfig } from "@/lib/companion-figure";
@@ -145,8 +145,8 @@ export default async function ProfilePage() {
           Your trainer &amp; companion
         </h2>
         <p className="mt-1 text-xs text-zinc-500">
-          Tap a skin pill to equip — each skin pairs a trainer with a spirit animal. Scroll down
-          for VIBE case &amp; wheel.
+          Tap a skin pill to equip — each skin pairs a trainer with a spirit animal. Open the
+          VIBE arena below to stake on cases and the wheel.
         </p>
         <div className="mt-5">
           <VibeCompanionCard input={companionInput} lockerItems={lockerItems} />
@@ -154,10 +154,11 @@ export default async function ProfilePage() {
             missingCount={missingLockerCount}
             eligible={lockerPackEligible}
           />
-          <CompanionLockerRewards
+          <LockerArenaEntry
+            input={companionInput}
             vibeBalance={balances.vibe}
-            spinsUsedToday={wheelDaily}
             equippedSkinSlug={equipped.skin?.slug ?? figureConfig.skinSlug}
+            freeSpinAvailable={wheelDaily === 0}
           />
           <CompanionRosterPanel activeSkinSlug={equipped.skin?.slug ?? figureConfig.skinSlug} />
         </div>

@@ -77,7 +77,7 @@ export const PLAYER_PATHS: PlayerPathOption[] = [
     emoji: "🎭",
     description: "Equip skins, spirit animals, VIBE case & daily wheel.",
     hubHref: "/account/profile#trainer",
-    createHref: "/account/profile#locker-rewards",
+    createHref: "/account/profile/arena",
     onboardingBlurb: "Your trainer loadout changes orbit phenomena and locker gambling modifiers.",
     welcomeLine: "Equip a skin — your orbit aura shifts the VIBE case and wheel.",
     howItWorks: [
