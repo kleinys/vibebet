@@ -11,7 +11,9 @@ export type AnimalKind =
   | "dragon"
   | "stag"
   | "phoenix"
-  | "raven";
+  | "raven"
+  | "serpent"
+  | "bear";
 export type HumanArchetype = "oracle" | "seer" | "knight" | "void" | "cosmic";
 
 export interface FigurePalette {
@@ -47,6 +49,11 @@ const SKIN_TO_ARCHETYPE: Record<string, HumanArchetype> = {
   "void-prophet": "void",
   "cosmic-oracle": "cosmic",
   "ember-knight": "knight",
+  "frost-walker": "void",
+  "storm-titan": "knight",
+  "nebula-ronin": "cosmic",
+  "blood-moon": "oracle",
+  "aurora-sage": "seer",
 };
 
 const SKIN_PALETTE_OVERRIDES: Partial<Record<string, Partial<FigurePalette>>> = {
@@ -67,6 +74,51 @@ const SKIN_PALETTE_OVERRIDES: Partial<Record<string, Partial<FigurePalette>>> = 
     animal: "#fbbf24",
     animalDark: "#b45309",
     aura: "#f59e0b",
+  },
+  "frost-walker": {
+    hair: "#0c4a6e",
+    outfit: "#0284c7",
+    outfitDark: "#075985",
+    accent: "#67e8f9",
+    animal: "#22d3ee",
+    animalDark: "#0e7490",
+    aura: "#38bdf8",
+  },
+  "storm-titan": {
+    hair: "#1e293b",
+    outfit: "#475569",
+    outfitDark: "#334155",
+    accent: "#fbbf24",
+    animal: "#78716c",
+    animalDark: "#44403c",
+    aura: "#eab308",
+  },
+  "nebula-ronin": {
+    hair: "#4c1d95",
+    outfit: "#7c3aed",
+    outfitDark: "#5b21b6",
+    accent: "#e879f9",
+    animal: "#a855f7",
+    animalDark: "#6b21a8",
+    aura: "#d946ef",
+  },
+  "blood-moon": {
+    hair: "#450a0a",
+    outfit: "#991b1b",
+    outfitDark: "#7f1d1d",
+    accent: "#fca5a5",
+    animal: "#dc2626",
+    animalDark: "#991b1b",
+    aura: "#ef4444",
+  },
+  "aurora-sage": {
+    hair: "#064e3b",
+    outfit: "#059669",
+    outfitDark: "#047857",
+    accent: "#6ee7b7",
+    animal: "#34d399",
+    animalDark: "#059669",
+    aura: "#10b981",
   },
 };
 
@@ -132,6 +184,11 @@ const ANIMAL_BY_SKIN: Partial<Record<string, AnimalKind>> = {
   "void-prophet": "wolf",
   "cosmic-oracle": "dragon",
   "ember-knight": "cat",
+  "frost-walker": "serpent",
+  "storm-titan": "bear",
+  "nebula-ronin": "dragon",
+  "blood-moon": "raven",
+  "aurora-sage": "owl",
 };
 
 const ANIMAL_RANK: Record<AnimalKind, number> = {
@@ -143,6 +200,8 @@ const ANIMAL_RANK: Record<AnimalKind, number> = {
   stag: 6,
   phoenix: 7,
   raven: 8,
+  serpent: 9,
+  bear: 10,
 };
 
 function animalFromStreak(streak: number): AnimalKind {
@@ -227,6 +286,8 @@ export function figureLabels(config: FigureConfig): {
     stag: "Spirit Stag",
     phoenix: "Sun Phoenix",
     raven: "Rune Raven",
+    serpent: "Frost Serpent",
+    bear: "Storm Bear",
   };
   return {
     humanTitle:

@@ -27,9 +27,14 @@ export const SKIN_HUMAN_IMAGES: Record<string, string> = {
   "void-prophet": "/characters/humans/void-prophet.webp",
   "cosmic-oracle": "/characters/humans/cosmic-oracle.webp",
   "ember-knight": "/characters/humans/ember-knight.webp",
+  "frost-walker": "/characters/humans/void-prophet.webp",
+  "storm-titan": "/characters/humans/ember-knight.webp",
+  "nebula-ronin": "/characters/humans/cosmic-oracle.webp",
+  "blood-moon": "/characters/humans/oracle-lunar.webp",
+  "aurora-sage": "/characters/humans/neon-seer.webp",
 };
 
-export const ANIMAL_IMAGES: Record<AnimalKind, string> = {
+export const ANIMAL_IMAGES: Record<AnimalKind, string | null> = {
   fox: "/characters/animals/fox-spirit.webp",
   cat: "/characters/animals/ember-cat.webp",
   owl: "/characters/animals/owl-moon.webp",
@@ -38,6 +43,8 @@ export const ANIMAL_IMAGES: Record<AnimalKind, string> = {
   stag: "/characters/animals/spirit-stag.webp",
   phoenix: "/characters/animals/sun-phoenix.webp",
   raven: "/characters/animals/rune-raven.webp",
+  serpent: null,
+  bear: null,
 };
 
 export const CHARACTER_ASSETS: CharacterAssetRef[] = [
@@ -49,6 +56,8 @@ export const CHARACTER_ASSETS: CharacterAssetRef[] = [
   { kind: "animal", slug: "stag", imagePath: ANIMAL_IMAGES.stag, label: "Spirit Stag" },
   { kind: "animal", slug: "phoenix", imagePath: ANIMAL_IMAGES.phoenix, label: "Sun Phoenix" },
   { kind: "animal", slug: "raven", imagePath: ANIMAL_IMAGES.raven, label: "Rune Raven" },
+  { kind: "animal", slug: "serpent", imagePath: null, label: "Frost Serpent" },
+  { kind: "animal", slug: "bear", imagePath: null, label: "Storm Bear" },
   {
     kind: "human",
     slug: "oracle",
@@ -136,6 +145,11 @@ export const SKIN_HUMAN_LABELS: Record<string, string> = {
   "void-prophet": "Void Prophet",
   "cosmic-oracle": "Cosmic Oracle",
   "ember-knight": "Ember Knight",
+  "frost-walker": "Frost Walker",
+  "storm-titan": "Storm Titan",
+  "nebula-ronin": "Nebula Ronin",
+  "blood-moon": "Blood Moon",
+  "aurora-sage": "Aurora Sage",
 };
 
 export const CHARACTER_ART_BRIEF = `

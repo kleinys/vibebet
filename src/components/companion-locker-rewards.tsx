@@ -1,122 +1,285 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { formatVibe } from "@/lib/utils";
+import { CurrencyIconVibe } from "@/components/fantasy-icons";
 
-const CRATE_LOOT = [
-  { label: "Aura Shard", tone: "text-fuchsia-300" },
-  { label: "Gem Dust", tone: "text-violet-300" },
-  { label: "Skin Fragment", tone: "text-amber-300" },
-  { label: "Badge Core", tone: "text-teal-300" },
-  { label: "Spirit Echo", tone: "text-indigo-300" },
-];
+/** Must match `spin_locker_wheel` segment order in migration 202602306. */
+export const WHEEL_SEGMENTS = [
+  { label: "25 VIBE", color: "#6366f1", text: "#e0e7ff" },
+  { label: "100 VIBE", color: "#ec4899", text: "#fce7f3" },
+  { label: "50 VIBE", color: "#14b8a6", text: "#ccfbf1" },
+  { label: "500 VIBE", color: "#f59e0b", text: "#fef3c7" },
+  { label: "10 VIBE", color: "#8b5cf6", text: "#ede9fe" },
+  { label: "250 VIBE", color: "#06b6d4", text: "#cffafe" },
+  { label: "75 VIBE", color: "#22c55e", text: "#dcfce7" },
+  { label: "1000 VIBE", color: "#ef4444", text: "#fee2e2" },
+  { label: "15 VIBE", color: "#a855f7", text: "#f3e8ff" },
+  { label: "200 VIBE", color: "#3b82f6", text: "#dbeafe" },
+  { label: "30 VIBE", color: "#10b981", text: "#d1fae5" },
+  { label: "2500 JACKPOT", color: "#fbbf24", text: "#451a03" },
+] as const;
 
-const WHEEL_SEGMENTS = [
-  "10 Gems",
-  "Skin Shard",
-  "25 Gems",
-  "Badge Token",
-  "50 Gems",
-  "Mystery Skin",
-  "5 Gems",
-  "Jackpot Aura",
-];
+const CRATE_STAKES = [100, 250, 500, 1000] as const;
+const PAID_SPIN_COST = 100;
 
 const BTN =
   "rounded-sm border px-4 py-2 text-[11px] font-semibold uppercase tracking-wider transition disabled:opacity-50";
 
-export function CompanionLockerRewards() {
+type CrateResult = {
+  label: string;
+  payout: number;
+  net: number;
+  newBalance: number;
+};
+
+type WheelResult = {
+  segmentIndex: number;
+  label: string;
+  payout: number;
+  cost: number;
+  net: number;
+  newBalance: number;
+  freeSpin: boolean;
+};
+
+export function CompanionLockerRewards({
+  vibeBalance,
+  spinsUsedToday,
+}: {
+  vibeBalance: number;
+  spinsUsedToday: number;
+}) {
+  const router = useRouter();
+  const [balance, setBalance] = useState(vibeBalance);
+  const [spinsUsed, setSpinsUsed] = useState(spinsUsedToday);
+  const [crateStake, setCrateStake] = useState<(typeof CRATE_STAKES)[number]>(250);
   const [crateOpen, setCrateOpen] = useState(false);
-  const [crateLoot, setCrateLoot] = useState<(typeof CRATE_LOOT)[number] | null>(null);
+  const [crateResult, setCrateResult] = useState<CrateResult | null>(null);
   const [wheelSpinning, setWheelSpinning] = useState(false);
-  const [wheelResult, setWheelResult] = useState<string | null>(null);
+  const [wheelResult, setWheelResult] = useState<WheelResult | null>(null);
   const [wheelRotation, setWheelRotation] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const segmentAngle = 360 / WHEEL_SEGMENTS.length;
+  const freeSpinAvailable = spinsUsed === 0;
 
   const wheelGradient = useMemo(
     () =>
       `conic-gradient(${WHEEL_SEGMENTS.map(
-        (_, i) =>
-          `${i % 2 === 0 ? "rgba(139,92,246,0.55)" : "rgba(30,27,75,0.9)"} ${i * segmentAngle}deg ${(i + 1) * segmentAngle}deg`,
+        (seg, i) =>
+          `${seg.color} ${i * segmentAngle}deg ${(i + 1) * segmentAngle}deg`,
       ).join(", ")})`,
     [segmentAngle],
   );
 
-  function openCrate() {
-    if (crateOpen) return;
+  function parseError(err: unknown): string {
+    if (err && typeof err === "object" && "message" in err) {
+      return String((err as { message: string }).message);
+    }
+    return "Something went wrong. Try again.";
+  }
+
+  async function openCrate() {
+    if (crateOpen || busy) return;
+    setError(null);
+    setBusy(true);
     setCrateOpen(true);
-    setCrateLoot(null);
-    window.setTimeout(() => {
-      setCrateLoot(CRATE_LOOT[Math.floor(Math.random() * CRATE_LOOT.length)]!);
-    }, 900);
+    setCrateResult(null);
+
+    try {
+      const supabase = createClient();
+      const { data, error: rpcError } = await supabase.rpc("open_locker_crate", {
+        p_stake: crateStake,
+      });
+      if (rpcError) throw rpcError;
+
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row) throw new Error("No crate result returned");
+
+      window.setTimeout(() => {
+        const result: CrateResult = {
+          label: row.label as string,
+          payout: Number(row.payout),
+          net: Number(row.net),
+          newBalance: Number(row.new_balance),
+        };
+        setCrateResult(result);
+        setBalance(result.newBalance);
+        setBusy(false);
+        router.refresh();
+      }, 1100);
+    } catch (e) {
+      setCrateOpen(false);
+      setBusy(false);
+      setError(parseError(e));
+    }
   }
 
   function resetCrate() {
     setCrateOpen(false);
-    setCrateLoot(null);
+    setCrateResult(null);
+    setError(null);
   }
 
-  function spinWheel() {
-    if (wheelSpinning) return;
+  async function spinWheel() {
+    if (wheelSpinning || busy) return;
+    setError(null);
+    setBusy(true);
     setWheelSpinning(true);
     setWheelResult(null);
-    const targetIndex = Math.floor(Math.random() * WHEEL_SEGMENTS.length);
-    const spins = 4 + Math.floor(Math.random() * 2);
-    const nextRotation =
-      wheelRotation +
-      spins * 360 +
-      (WHEEL_SEGMENTS.length - targetIndex) * segmentAngle -
-      segmentAngle / 2;
-    setWheelRotation(nextRotation);
-    window.setTimeout(() => {
-      setWheelResult(WHEEL_SEGMENTS[targetIndex]!);
+
+    try {
+      const supabase = createClient();
+      const { data, error: rpcError } = await supabase.rpc("spin_locker_wheel", {
+        p_paid_stake: PAID_SPIN_COST,
+      });
+      if (rpcError) throw rpcError;
+
+      const row = Array.isArray(data) ? data[0] : data;
+      if (!row) throw new Error("No spin result returned");
+
+      const segmentIndex = Number(row.segment_index);
+      const spins = 5 + Math.floor(Math.random() * 2);
+      const nextRotation =
+        wheelRotation +
+        spins * 360 +
+        (WHEEL_SEGMENTS.length - segmentIndex) * segmentAngle -
+        segmentAngle / 2;
+
+      setWheelRotation(nextRotation);
+
+      window.setTimeout(() => {
+        const result: WheelResult = {
+          segmentIndex,
+          label: row.label as string,
+          payout: Number(row.payout),
+          cost: Number(row.cost),
+          net: Number(row.net),
+          newBalance: Number(row.new_balance),
+          freeSpin: Boolean(row.free_spin),
+        };
+        setWheelResult(result);
+        setBalance(result.newBalance);
+        setSpinsUsed((n) => n + 1);
+        setWheelSpinning(false);
+        setBusy(false);
+        router.refresh();
+      }, 3400);
+    } catch (e) {
       setWheelSpinning(false);
-    }, 3200);
+      setBusy(false);
+      setError(parseError(e));
+    }
   }
 
   return (
     <section className="mt-4 rounded-sm border border-white/10 bg-zinc-950/80 p-4 ring-1 ring-white/5">
-      <div className="flex flex-wrap items-end justify-between gap-2">
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">
             Locker rewards
           </h3>
           <p className="mt-1 text-[11px] text-zinc-500">
-            Mystery crates and daily spin — play-money rewards for now.
+            Stake VIBE on crates and the wheel — real play-money payouts from your wallet.
           </p>
+        </div>
+        <div className="inline-flex items-center gap-1.5 rounded-sm border border-amber-500/30 bg-amber-950/40 px-2.5 py-1 text-xs text-amber-200">
+          <CurrencyIconVibe className="h-4 w-4" />
+          <span className="tabular-nums font-medium">{formatVibe(balance)} VIBE</span>
         </div>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <div className="rounded-sm border border-fuchsia-500/20 bg-gradient-to-b from-fuchsia-950/30 to-zinc-950 p-4">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-fuchsia-300/90">
-            Mystery crate
+      {error && (
+        <p className="mt-3 rounded-sm border border-rose-500/25 bg-rose-500/10 px-3 py-2 text-xs text-rose-200">
+          {error}
+        </p>
+      )}
+
+      <div className="mt-4 grid gap-4 xl:grid-cols-2">
+        {/* CS2-style case */}
+        <div className="rounded-sm border border-amber-500/25 bg-gradient-to-b from-amber-950/25 via-zinc-950 to-zinc-950 p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-300/90">
+            VIBE case
           </p>
-          <div className="mt-3 flex flex-col items-center gap-3">
+          <p className="mt-0.5 text-[10px] text-zinc-500">
+            Pay VIBE to open — weighted payout from common to legendary jackpot.
+          </p>
+
+          <div className="mt-4 flex flex-col items-center gap-4">
             <div
-              className={`relative h-28 w-28 ${crateOpen ? "locker-crate-open" : ""}`}
+              className={`locker-case relative h-40 w-36 ${crateOpen ? "locker-case--open" : ""}`}
               aria-hidden
             >
-              <div className="absolute inset-x-2 bottom-0 top-8 rounded-sm border border-fuchsia-400/40 bg-gradient-to-b from-violet-900/80 to-fuchsia-950 shadow-[0_0_24px_rgba(168,85,247,0.25)]" />
-              <div className="locker-crate-lid absolute inset-x-0 top-0 h-10 rounded-sm border border-fuchsia-300/50 bg-gradient-to-b from-fuchsia-400/40 to-violet-800/90" />
-              <div className="absolute inset-x-6 top-[38%] h-1 rounded-sm bg-fuchsia-300/60" />
+              <div className="locker-case__glow" />
+              <div className="locker-case__body">
+                <div className="locker-case__stripe locker-case__stripe--1" />
+                <div className="locker-case__stripe locker-case__stripe--2" />
+                <div className="locker-case__stripe locker-case__stripe--3" />
+                <div className="locker-case__lock" />
+              </div>
+              <div className="locker-case__lid">
+                <div className="locker-case__lid-inner" />
+              </div>
+              {crateOpen && <div className="locker-case__burst" />}
             </div>
-            {crateLoot ? (
-              <p className={`text-sm font-semibold ${crateLoot.tone}`}>{crateLoot.label}</p>
+
+            {crateResult ? (
+              <div className="text-center">
+                <p className="text-sm font-semibold text-amber-200">{crateResult.label}</p>
+                <p className="mt-1 text-xs text-zinc-400">
+                  Payout{" "}
+                  <span className="font-medium text-emerald-300">
+                    +{formatVibe(crateResult.payout)} VIBE
+                  </span>
+                  {" · "}
+                  Net{" "}
+                  <span
+                    className={
+                      crateResult.net >= 0 ? "font-medium text-emerald-300" : "font-medium text-rose-300"
+                    }
+                  >
+                    {crateResult.net >= 0 ? "+" : ""}
+                    {formatVibe(crateResult.net)} VIBE
+                  </span>
+                </p>
+              </div>
             ) : (
               <p className="text-[11px] text-zinc-500">
-                {crateOpen ? "Unpacking…" : "Tap open to reveal loot"}
+                {crateOpen ? "Opening case…" : "Choose stake, then crack it open"}
               </p>
             )}
+
+            <div className="flex flex-wrap justify-center gap-1.5">
+              {CRATE_STAKES.map((stake) => (
+                <button
+                  key={stake}
+                  type="button"
+                  disabled={busy || crateOpen}
+                  onClick={() => setCrateStake(stake)}
+                  className={`rounded-sm border px-2 py-1 text-[10px] font-semibold tabular-nums transition ${
+                    crateStake === stake
+                      ? "border-amber-400/50 bg-amber-500/20 text-amber-100"
+                      : "border-white/10 bg-zinc-900/60 text-zinc-400 hover:border-amber-400/30"
+                  }`}
+                >
+                  {formatVibe(stake)}
+                </button>
+              ))}
+            </div>
+
             <div className="flex gap-2">
-              {!crateLoot ? (
+              {!crateResult ? (
                 <button
                   type="button"
-                  disabled={crateOpen}
+                  disabled={crateOpen || busy || balance < crateStake}
                   onClick={openCrate}
-                  className={`${BTN} border-fuchsia-400/40 bg-fuchsia-500/20 text-fuchsia-100 hover:bg-fuchsia-500/30`}
+                  className={`${BTN} border-amber-400/45 bg-amber-500/20 text-amber-100 hover:bg-amber-500/30`}
                 >
-                  {crateOpen ? "Opening…" : "Open crate · 50 gems"}
+                  {crateOpen ? "Opening…" : `Open case · ${formatVibe(crateStake)} VIBE`}
                 </button>
               ) : (
                 <button
@@ -131,35 +294,84 @@ export function CompanionLockerRewards() {
           </div>
         </div>
 
-        <div className="rounded-sm border border-violet-500/20 bg-gradient-to-b from-violet-950/30 to-zinc-950 p-4">
+        {/* Color wheel */}
+        <div className="rounded-sm border border-violet-500/25 bg-gradient-to-b from-violet-950/30 to-zinc-950 p-4">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-300/90">
-            Daily spin
+            VIBE wheel
           </p>
-          <div className="mt-3 flex flex-col items-center gap-3">
+          <p className="mt-0.5 text-[10px] text-zinc-500">
+            {freeSpinAvailable
+              ? "First spin today is free — extra spins cost 100 VIBE."
+              : `Extra spins cost ${PAID_SPIN_COST} VIBE each.`}
+          </p>
+
+          <div className="mt-4 flex flex-col items-center gap-4">
             <div className="relative">
-              <div className="absolute -top-2 left-1/2 z-10 h-0 w-0 -translate-x-1/2 border-x-[7px] border-x-transparent border-t-[12px] border-t-amber-300" />
+              <div className="absolute -top-3 left-1/2 z-20 h-0 w-0 -translate-x-1/2 border-x-[10px] border-x-transparent border-t-[16px] border-t-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
               <div
-                className="locker-wheel relative h-36 w-36 rounded-full border-2 border-violet-400/40 shadow-[0_0_28px_rgba(139,92,246,0.35)] transition-transform duration-[3200ms] ease-out"
+                className="locker-wheel relative h-56 w-56 rounded-full border-[3px] border-white/20 shadow-[0_0_40px_rgba(139,92,246,0.45)] transition-transform duration-[3400ms] ease-out"
                 style={{
                   background: wheelGradient,
                   transform: `rotate(${wheelRotation}deg)`,
                 }}
               >
-                <div className="absolute inset-[28%] rounded-full border border-white/10 bg-zinc-950/90" />
+                {WHEEL_SEGMENTS.map((seg, i) => {
+                  const angle = i * segmentAngle + segmentAngle / 2;
+                  return (
+                    <span
+                      key={seg.label}
+                      className="locker-wheel__label pointer-events-none absolute left-1/2 top-1/2 w-14 -translate-x-1/2 text-center text-[7px] font-bold uppercase leading-tight tracking-wide"
+                      style={{
+                        color: seg.text,
+                        transform: `rotate(${angle}deg) translateY(-88px)`,
+                        transformOrigin: "50% 88px",
+                      }}
+                    >
+                      {seg.label.replace(" VIBE", "").replace(" JACKPOT", " JP")}
+                    </span>
+                  );
+                })}
+                <div className="absolute inset-[22%] rounded-full border-2 border-white/15 bg-zinc-950/95 shadow-inner">
+                  <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold uppercase tracking-wider text-violet-200">
+                    Spin
+                  </div>
+                </div>
               </div>
             </div>
+
             {wheelResult ? (
-              <p className="text-sm font-semibold text-amber-200">Won: {wheelResult}</p>
+              <div className="text-center">
+                <p className="text-sm font-semibold text-violet-100">Won: {wheelResult.label}</p>
+                <p className="mt-1 text-xs text-zinc-400">
+                  {wheelResult.freeSpin ? "Free spin · " : `Cost ${formatVibe(wheelResult.cost)} VIBE · `}
+                  Net{" "}
+                  <span
+                    className={
+                      wheelResult.net >= 0 ? "font-medium text-emerald-300" : "font-medium text-rose-300"
+                    }
+                  >
+                    {wheelResult.net >= 0 ? "+" : ""}
+                    {formatVibe(wheelResult.net)} VIBE
+                  </span>
+                </p>
+              </div>
             ) : (
-              <p className="text-[11px] text-zinc-500">One free spin per day (demo)</p>
+              <p className="text-[11px] text-zinc-500">
+                {wheelSpinning ? "Spinning…" : "12 segments · up to 2,500 VIBE jackpot"}
+              </p>
             )}
+
             <button
               type="button"
-              disabled={wheelSpinning}
+              disabled={wheelSpinning || busy || (!freeSpinAvailable && balance < PAID_SPIN_COST)}
               onClick={spinWheel}
-              className={`${BTN} border-violet-400/40 bg-violet-500/20 text-violet-100 hover:bg-violet-500/30`}
+              className={`${BTN} border-violet-400/45 bg-violet-500/20 text-violet-100 hover:bg-violet-500/30`}
             >
-              {wheelSpinning ? "Spinning…" : "Spin wheel"}
+              {wheelSpinning
+                ? "Spinning…"
+                : freeSpinAvailable
+                  ? "Free daily spin"
+                  : `Spin · ${PAID_SPIN_COST} VIBE`}
             </button>
           </div>
         </div>

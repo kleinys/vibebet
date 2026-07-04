@@ -21,6 +21,8 @@ const MOTION: Record<AnimalKind, CompanionMotion> = {
   stag: { animal: "companion-motion-stag", aura: "companion-motion-aura-cool", bond: "companion-motion-bond-calm", orbitDuration: 21, morph: "lunar" },
   phoenix: { animal: "companion-motion-phoenix", aura: "companion-motion-aura-warm", bond: "companion-motion-bond-arcane", orbitDuration: 13, morph: "solar" },
   raven: { animal: "companion-motion-raven", aura: "companion-motion-aura-arcane", bond: "companion-motion-bond-alert", orbitDuration: 15, morph: "arcane" },
+  serpent: { animal: "companion-motion-serpent", aura: "companion-motion-aura-cool", bond: "companion-motion-bond-calm", orbitDuration: 19, morph: "storm" },
+  bear: { animal: "companion-motion-bear", aura: "companion-motion-aura-warm", bond: "companion-motion-bond-alert", orbitDuration: 17, morph: "storm" },
 };
 
 export function companionMotion(animal: AnimalKind): CompanionMotion {

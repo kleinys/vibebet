@@ -247,6 +247,43 @@ function RavenSprite({ fill, dark, accent }: { fill: string; dark: string; accen
   );
 }
 
+function SerpentSprite({ fill, dark, accent }: { fill: string; dark: string; accent: string }) {
+  return (
+    <g filter="url(#sprite-glow)">
+      <path
+        d="M12 58 Q20 42 32 38 Q44 34 52 28 Q58 24 60 18 Q58 26 50 32 Q38 40 28 46 Q18 52 14 62 Q22 56 36 52 Q50 48 58 56 Q48 50 34 54 Q20 58 12 58 Z"
+        fill={fill}
+        stroke={dark}
+        strokeWidth="0.6"
+      />
+      <ellipse cx="56" cy="22" rx="8" ry="7" fill={fill} />
+      <path d="M62 20 L68 16 L64 24 Z" fill={dark} />
+      <GlowEyes y={21} leftX={53} rightX={59} glow={accent} />
+      <path d="M18 60 Q24 64 30 62" stroke={accent} strokeWidth="1.2" fill="none" opacity="0.7" />
+      <circle cx="24" cy="52" r="2" fill={accent} opacity="0.5" />
+      <circle cx="40" cy="44" r="1.5" fill={accent} opacity="0.45" />
+    </g>
+  );
+}
+
+function BearSprite({ fill, dark, accent }: { fill: string; dark: string; accent: string }) {
+  return (
+    <g filter="url(#sprite-glow)">
+      <ellipse cx="22" cy="28" rx="7" ry="7" fill={dark} />
+      <ellipse cx="50" cy="28" rx="7" ry="7" fill={dark} />
+      <ellipse cx="22" cy="28" rx="4" ry="4" fill={fill} opacity="0.5" />
+      <ellipse cx="50" cy="28" rx="4" ry="4" fill={fill} opacity="0.5" />
+      <ellipse cx="36" cy="48" rx="18" ry="16" fill={fill} />
+      <ellipse cx="36" cy="52" rx="11" ry="9" fill="#fef3c7" opacity="0.35" />
+      <ellipse cx="36" cy="38" rx="14" ry="12" fill={fill} />
+      <ellipse cx="36" cy="42" rx="7" ry="5" fill="#fef3c7" opacity="0.45" />
+      <ellipse cx="36" cy="40" rx="3" ry="2.5" fill={dark} />
+      <GlowEyes y={36} leftX={31} rightX={41} glow={accent} />
+      <path d="M22 66 L20 72 M30 66 L30 72 M42 66 L42 72 M50 66 L52 72" stroke={dark} strokeWidth="2.5" strokeLinecap="round" />
+    </g>
+  );
+}
+
 function DragonSprite({ fill, dark, accent }: { fill: string; dark: string; accent: string }) {
   return (
     <g filter="url(#sprite-glow)">
@@ -323,6 +360,8 @@ export function AnimalSprite({
       {kind === "stag" && <StagSprite {...props} />}
       {kind === "phoenix" && <PhoenixSprite {...props} />}
       {kind === "raven" && <RavenSprite {...props} />}
+      {kind === "serpent" && <SerpentSprite {...props} />}
+      {kind === "bear" && <BearSprite {...props} />}
     </g>
   );
 }

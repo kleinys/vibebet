@@ -601,6 +601,16 @@ export interface Database {
         Update: never;
         Relationships: [];
       };
+      locker_wheel_daily: {
+        Row: {
+          user_id: string;
+          spin_date: string;
+          spins_used: number;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       user_inventory: {
         Row: {
           id: string;
@@ -893,6 +903,27 @@ export interface Database {
       grant_locker_cosmetics: {
         Args: Record<PropertyKey, never>;
         Returns: number;
+      };
+      open_locker_crate: {
+        Args: { p_stake?: number };
+        Returns: {
+          label: string;
+          payout: number;
+          net: number;
+          new_balance: number;
+        }[];
+      };
+      spin_locker_wheel: {
+        Args: { p_paid_stake?: number };
+        Returns: {
+          segment_index: number;
+          label: string;
+          payout: number;
+          cost: number;
+          net: number;
+          new_balance: number;
+          free_spin: boolean;
+        }[];
       };
       spend_gems_for_item: {
         Args: { p_item_id: string };

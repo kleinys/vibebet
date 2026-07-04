@@ -17,8 +17,24 @@ import { CompanionEvolutionShare } from "@/components/companion-evolution-share"
 import { ClaimLockerPackButton } from "@/components/claim-locker-pack-button";
 import { CompanionLockerRewards } from "@/components/companion-locker-rewards";
 import { figureLabels, resolveFigureConfig } from "@/lib/companion-figure";
+import { getAllBalances } from "@/lib/ledger";
 
 export const revalidate = 0;
+
+function isLockerPackEligible(
+  email: string | undefined,
+  profile: { username?: string | null; display_name?: string | null } | null,
+) {
+  const e = email?.toLowerCase() ?? "";
+  const username = profile?.username?.toLowerCase() ?? "";
+  const display = profile?.display_name?.toLowerCase().replace(/\s/g, "") ?? "";
+  return (
+    e === "test3@example.com" ||
+    username === "kbab" ||
+    e.includes("kbab") ||
+    display === "cool$guy1"
+  );
+}
 
 export default async function ProfilePage() {
   const supabase = await createClient();
@@ -34,7 +50,9 @@ export default async function ProfilePage() {
     .maybeSingle();
 
   const guildsOn = await isEnabled("guilds_enabled");
-  const [equipped, streak, companionInput, myGuild, playerCode, inventoryRes, catalogRes] = await Promise.all([
+  const utcToday = new Date().toISOString().slice(0, 10);
+  const [equipped, streak, companionInput, myGuild, playerCode, inventoryRes, catalogRes, balances, wheelDaily] =
+    await Promise.all([
     getEquippedCosmetics(user.id).catch(() => ({ skin: null, badge: null })),
     getStreakInfo(user.id),
     getCompanionInput(user.id).catch(() => ({
@@ -54,6 +72,14 @@ export default async function ProfilePage() {
       .select("slug, name, kind, rarity, price_gems, is_active")
       .in("kind", ["skin", "badge"])
       .then((r) => r.data ?? []),
+    getAllBalances(user.id).catch(() => ({ vibe: 0, gem: 0 })),
+    supabase
+      .from("locker_wheel_daily")
+      .select("spins_used")
+      .eq("user_id", user.id)
+      .eq("spin_date", utcToday)
+      .maybeSingle()
+      .then((r) => r.data?.spins_used ?? 0),
   ]);
 
   const ownedSlugs = new Set<string>();
@@ -101,6 +127,7 @@ export default async function ProfilePage() {
 
   const figureConfig = resolveFigureConfig(companionInput);
   const companionLabels = figureLabels(figureConfig);
+  const lockerPackEligible = isLockerPackEligible(user.email, profile);
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
@@ -116,8 +143,14 @@ export default async function ProfilePage() {
         </p>
         <div className="mt-5">
           <VibeCompanionCard input={companionInput} lockerItems={lockerItems} />
-          <ClaimLockerPackButton missingCount={missingLockerCount} />
-          <CompanionLockerRewards />
+          <ClaimLockerPackButton
+            missingCount={missingLockerCount}
+            eligible={lockerPackEligible}
+          />
+          <CompanionLockerRewards
+            vibeBalance={balances.vibe}
+            spinsUsedToday={wheelDaily}
+          />
         </div>
         <CompanionEvolutionShare
           displayName={profile?.display_name ?? playerCode?.display_name ?? "Player"}
