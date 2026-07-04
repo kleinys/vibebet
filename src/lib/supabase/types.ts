@@ -890,6 +890,10 @@ export interface Database {
         };
         Returns: undefined;
       };
+      grant_locker_cosmetics: {
+        Args: Record<PropertyKey, never>;
+        Returns: number;
+      };
       spend_gems_for_item: {
         Args: { p_item_id: string };
         Returns: string;
