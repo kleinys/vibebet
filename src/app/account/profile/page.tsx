@@ -16,6 +16,8 @@ import { ProfileShareSection } from "@/components/profile-share-section";
 import { CompanionEvolutionShare } from "@/components/companion-evolution-share";
 import { ClaimLockerPackButton } from "@/components/claim-locker-pack-button";
 import { CompanionLockerRewards } from "@/components/companion-locker-rewards";
+import { CompanionDiscoverBar } from "@/components/companion-discover-bar";
+import { CompanionRosterPanel } from "@/components/companion-roster-panel";
 import { figureLabels, resolveFigureConfig } from "@/lib/companion-figure";
 import { getAllBalances } from "@/lib/ledger";
 
@@ -134,12 +136,17 @@ export default async function ProfilePage() {
       <h1 className="text-2xl font-semibold">Account</h1>
       <AccountNav active="/account/profile" />
 
-      <section className="mt-6 overflow-hidden rounded-sm border border-fuchsia-500/30 bg-gradient-to-br from-zinc-900/80 to-zinc-950 p-6 shadow-lg shadow-fuchsia-950/30">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-fuchsia-300/90">
+      <section
+        id="trainer"
+        className="mt-6 scroll-mt-24 overflow-hidden rounded-sm border border-fuchsia-500/30 bg-gradient-to-br from-zinc-900/80 to-zinc-950 p-6 shadow-lg shadow-fuchsia-950/30"
+      >
+        <CompanionDiscoverBar compact />
+        <h2 className="mt-4 text-xs font-semibold uppercase tracking-wider text-fuchsia-300/90">
           Your trainer &amp; companion
         </h2>
         <p className="mt-1 text-xs text-zinc-500">
-          Human form + spirit animal — both evolve with streaks and shop items.
+          Tap a skin pill to equip — each skin pairs a trainer with a spirit animal. Scroll down
+          for VIBE case &amp; wheel.
         </p>
         <div className="mt-5">
           <VibeCompanionCard input={companionInput} lockerItems={lockerItems} />
@@ -151,6 +158,7 @@ export default async function ProfilePage() {
             vibeBalance={balances.vibe}
             spinsUsedToday={wheelDaily}
           />
+          <CompanionRosterPanel activeSkinSlug={equipped.skin?.slug ?? figureConfig.skinSlug} />
         </div>
         <CompanionEvolutionShare
           displayName={profile?.display_name ?? playerCode?.display_name ?? "Player"}

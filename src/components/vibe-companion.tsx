@@ -8,6 +8,7 @@ import {
 } from "@/lib/companion-figure";
 import { CompanionFigure, CompanionFigureScene } from "@/components/companion-figure";
 import type { LockerEquipItem } from "@/components/companion-locker-equip";
+import { rosterBySkin } from "@/lib/companion-roster";
 
 export function VibeCompanion({
   input,
@@ -73,6 +74,7 @@ export function VibeCompanionCard({
   }
   const labels = figureLabels(config);
   const { companion } = config;
+  const roster = rosterBySkin(config.skinSlug);
 
   return (
     <div className="flex flex-col gap-6">
@@ -84,6 +86,11 @@ export function VibeCompanionCard({
             · Stage {companion.stage}/5
           </span>
         </p>
+        {roster && (
+          <p className="mt-1 text-xs text-violet-300/90">
+            Orbit morph: {roster.elementLabel} — {roster.trait}
+          </p>
+        )}
         <p className="mt-1 text-sm text-zinc-300">
           {config.showHuman ? (
             <>

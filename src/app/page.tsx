@@ -10,6 +10,7 @@ import { formatProbability } from "@/lib/cpmm";
 import { formatVibe } from "@/lib/utils";
 import { CATEGORY_LABELS } from "@/lib/supabase/types";
 import { LiveFeedSection } from "@/components/live-feed-section";
+import { CompanionDiscoverBar } from "@/components/companion-discover-bar";
 import type { MarketSummary } from "@/lib/markets";
 
 export const revalidate = 0;
@@ -223,6 +224,10 @@ export default async function HomePage() {
               )}
           </div>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-6 pt-4">
+        <CompanionDiscoverBar />
       </section>
 
       <LiveFeedSection />

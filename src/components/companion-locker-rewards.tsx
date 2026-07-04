@@ -177,7 +177,7 @@ export function CompanionLockerRewards({
   }
 
   return (
-    <section className="mt-4 rounded-sm border border-white/10 bg-zinc-950/80 p-4 ring-1 ring-white/5">
+    <section id="locker-rewards" className="mt-4 scroll-mt-24 rounded-sm border border-white/10 bg-zinc-950/80 p-4 ring-1 ring-white/5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-300">
@@ -186,6 +186,11 @@ export function CompanionLockerRewards({
           <p className="mt-1 text-[11px] text-zinc-500">
             Stake VIBE on crates and the wheel — real play-money payouts from your wallet.
           </p>
+          <ol className="mt-2 list-decimal space-y-0.5 pl-4 text-[10px] text-zinc-500">
+            <li>Pick a case stake (100–1,000 VIBE) or spin the wheel (1 free/day, then 100 VIBE).</li>
+            <li>VIBE is deducted instantly; payout lands in the same wallet.</li>
+            <li>Check net profit on the result line — negative net means you lost the stake.</li>
+          </ol>
         </div>
         <div className="inline-flex items-center gap-1.5 rounded-sm border border-amber-500/30 bg-amber-950/40 px-2.5 py-1 text-xs text-amber-200">
           <CurrencyIconVibe className="h-4 w-4" />

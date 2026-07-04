@@ -31,7 +31,7 @@ export async function GettingStartedBar({
   const showPlaybook = !mobileNavOn;
   const showSecondaryLinks = !mobileNavOn && user;
 
-  if (mobileNavOn && user && !showWizard) {
+  if (mobileNavOn && !user && !showWizard) {
     return null;
   }
 
@@ -66,6 +66,20 @@ export async function GettingStartedBar({
               className="rounded-sm bg-fuchsia-500 px-3.5 py-1 font-medium text-white shadow-sm shadow-fuchsia-500/30 hover:bg-fuchsia-400"
             >
               Read the Playbook
+            </Link>
+          </>
+        )}
+
+        {user && (
+          <>
+            <Link
+              href="/account/profile"
+              className="text-violet-300/90 hover:text-violet-200 hover:underline"
+            >
+              Trainer &amp; locker →
+            </Link>
+            <Link href="/account/quests" className="text-zinc-400 hover:text-zinc-200">
+              Quests →
             </Link>
           </>
         )}

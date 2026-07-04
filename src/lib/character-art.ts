@@ -27,11 +27,11 @@ export const SKIN_HUMAN_IMAGES: Record<string, string> = {
   "void-prophet": "/characters/humans/void-prophet.webp",
   "cosmic-oracle": "/characters/humans/cosmic-oracle.webp",
   "ember-knight": "/characters/humans/ember-knight.webp",
-  "frost-walker": "/characters/humans/void-prophet.webp",
-  "storm-titan": "/characters/humans/ember-knight.webp",
-  "nebula-ronin": "/characters/humans/cosmic-oracle.webp",
-  "blood-moon": "/characters/humans/oracle-lunar.webp",
-  "aurora-sage": "/characters/humans/neon-seer.webp",
+  "frost-walker": "/characters/humans/frost-walker.webp",
+  "storm-titan": "/characters/humans/storm-titan.webp",
+  "nebula-ronin": "/characters/humans/nebula-ronin.webp",
+  "blood-moon": "/characters/humans/blood-moon.webp",
+  "aurora-sage": "/characters/humans/aurora-sage.webp",
 };
 
 export const ANIMAL_IMAGES: Record<AnimalKind, string | null> = {
@@ -43,8 +43,8 @@ export const ANIMAL_IMAGES: Record<AnimalKind, string | null> = {
   stag: "/characters/animals/spirit-stag.webp",
   phoenix: "/characters/animals/sun-phoenix.webp",
   raven: "/characters/animals/rune-raven.webp",
-  serpent: null,
-  bear: null,
+  serpent: "/characters/animals/frost-serpent.webp",
+  bear: "/characters/animals/storm-bear.webp",
 };
 
 export const CHARACTER_ASSETS: CharacterAssetRef[] = [
@@ -56,8 +56,8 @@ export const CHARACTER_ASSETS: CharacterAssetRef[] = [
   { kind: "animal", slug: "stag", imagePath: ANIMAL_IMAGES.stag, label: "Spirit Stag" },
   { kind: "animal", slug: "phoenix", imagePath: ANIMAL_IMAGES.phoenix, label: "Sun Phoenix" },
   { kind: "animal", slug: "raven", imagePath: ANIMAL_IMAGES.raven, label: "Rune Raven" },
-  { kind: "animal", slug: "serpent", imagePath: null, label: "Frost Serpent" },
-  { kind: "animal", slug: "bear", imagePath: null, label: "Storm Bear" },
+  { kind: "animal", slug: "serpent", imagePath: ANIMAL_IMAGES.serpent, label: "Frost Serpent" },
+  { kind: "animal", slug: "bear", imagePath: ANIMAL_IMAGES.bear, label: "Storm Bear" },
   {
     kind: "human",
     slug: "oracle",
@@ -117,7 +117,7 @@ export function characterImagePath(
   return getCharacterAsset(kind, slug)?.imagePath ?? null;
 }
 
-const CHARACTER_ART_VERSION = "6";
+const CHARACTER_ART_VERSION = "7";
 
 function withArtVersion(path: string | null): string | null {
   return path ? `${path}?v=${CHARACTER_ART_VERSION}` : null;
