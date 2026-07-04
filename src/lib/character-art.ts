@@ -48,6 +48,7 @@ export const ANIMAL_IMAGES: Record<AnimalKind, string | null> = {
   mantis: "/characters/animals/neon-mantis.webp",
   bat: "/characters/animals/eclipse-bat.webp",
   crane: "/characters/animals/nebula-crane.webp",
+  tiger: "/characters/animals/ember-tiger.webp",
 };
 
 export const CHARACTER_ASSETS: CharacterAssetRef[] = [
@@ -123,7 +124,7 @@ export function characterImagePath(
   return getCharacterAsset(kind, slug)?.imagePath ?? null;
 }
 
-const CHARACTER_ART_VERSION = "8";
+const CHARACTER_ART_VERSION = "9";
 
 function withArtVersion(path: string | null): string | null {
   return path ? `${path}?v=${CHARACTER_ART_VERSION}` : null;

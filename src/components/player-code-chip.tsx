@@ -105,7 +105,7 @@ export function InviteRewardsStrip({
 
   return (
     <div className="border-b border-violet-500/10 bg-gradient-to-r from-violet-950/40 via-[#020617] to-fuchsia-950/30">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-3 py-2 sm:px-4">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-4 py-4 sm:px-5 sm:py-4">
         <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
           <span className="text-[10px] font-semibold uppercase tracking-wider text-violet-400/70">
             Player code

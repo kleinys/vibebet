@@ -95,6 +95,23 @@ export function SpiritMorphDecor({ morph }: { morph: SpiritMorphElement }) {
         <>
           <span className="companion-spirit-element__void-ring" />
           <span className="companion-spirit-element__void-spiral" />
+          <span className="companion-spirit-element__bolt companion-spirit-element__bolt--1" />
+          <span className="companion-spirit-element__bolt companion-spirit-element__bolt--2" />
+          <span className="companion-spirit-element__bolt companion-spirit-element__bolt--3" />
+        </>
+      );
+    case "reddwarf":
+      return (
+        <>
+          {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
+            <span
+              key={deg}
+              className="companion-spirit-element__ray companion-spirit-element__ray--dwarf"
+              style={{ "--ray-angle": `${deg}deg` } as CSSProperties}
+            />
+          ))}
+          <span className="companion-spirit-element__stellar-flare companion-spirit-element__stellar-flare--1" />
+          <span className="companion-spirit-element__stellar-flare companion-spirit-element__stellar-flare--2" />
         </>
       );
     case "nebula":

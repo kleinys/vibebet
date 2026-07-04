@@ -171,6 +171,13 @@ body {
     drop-shadow(0 0 18px var(--spirit-element-soft));
 }
 
+/* Storm wolf — shift built-in blue lightning to purple */
+.companion-orbit-animal-img--wolf {
+  filter: hue-rotate(58deg) saturate(1.18) brightness(1.02)
+    drop-shadow(0 10px 22px rgba(0, 0, 0, 0.45))
+    drop-shadow(0 0 22px rgba(168, 85, 247, 0.55));
+}
+
 /* Spirit element ball — morphs per animal while passing behind trainer */
 .companion-spirit-element {
   --element-size: min(32vw, 148px);
@@ -285,6 +292,72 @@ body {
 
 .companion-spirit-element--solar .companion-spirit-element__halo {
   background: radial-gradient(circle, rgba(253, 224, 71, 0.65) 0%, transparent 70%);
+}
+
+.companion-spirit-element__ray--dwarf {
+  background: linear-gradient(to top, rgba(239, 68, 68, 0.95) 0%, rgba(254, 202, 202, 0.85) 55%, transparent 100%);
+  filter: blur(0.5px);
+  animation: companion-dwarf-ray-pulse 1.4s ease-in-out infinite alternate;
+}
+
+.companion-spirit-element__stellar-flare {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(2px);
+  opacity: 0.85;
+  animation: companion-dwarf-flare 2.2s ease-in-out infinite alternate;
+}
+
+.companion-spirit-element__stellar-flare--1 {
+  inset: 8% 12% auto 8%;
+  height: calc(var(--element-size) * 0.22);
+  background: radial-gradient(circle, rgba(254, 202, 202, 0.75) 0%, transparent 72%);
+}
+
+.companion-spirit-element__stellar-flare--2 {
+  inset: auto 10% 12% 14%;
+  height: calc(var(--element-size) * 0.18);
+  background: radial-gradient(circle, rgba(248, 113, 113, 0.65) 0%, transparent 70%);
+  animation-delay: 0.6s;
+}
+
+.companion-spirit-element--reddwarf .companion-spirit-element__core {
+  background: radial-gradient(circle at 40% 35%, #fef2f2 0%, #ef4444 38%, #991b1b 68%, #450a0a 100%);
+  box-shadow:
+    0 0 40px 14px rgba(239, 68, 68, 0.85),
+    0 0 80px 28px rgba(185, 28, 28, 0.45);
+}
+
+.companion-spirit-element--reddwarf .companion-spirit-element__halo {
+  background: radial-gradient(circle, rgba(248, 113, 113, 0.65) 0%, transparent 70%);
+}
+
+.companion-spirit-element--reddwarf .companion-spirit-element__trail {
+  background: radial-gradient(circle, rgba(220, 38, 38, 0.5) 0%, transparent 72%);
+}
+
+.companion-spirit-element--voidrift .companion-spirit-element__bolt {
+  background: linear-gradient(to bottom, #f3e8ff 0%, #c084fc 45%, #7e22ce 100%);
+  filter: drop-shadow(0 0 10px #d8b4fe) drop-shadow(0 0 20px #9333ea);
+}
+
+.companion-spirit-element--voidrift .companion-spirit-element__bolt--1 {
+  top: 16%;
+  animation: companion-storm-bolt-flash 0.85s ease-in-out infinite;
+}
+
+.companion-spirit-element--voidrift .companion-spirit-element__bolt--2 {
+  top: 22%;
+  margin-left: calc(var(--element-size) * -0.2);
+  transform: scale(0.82) rotate(-14deg);
+  animation: companion-storm-bolt-flash 1s ease-in-out infinite 0.3s;
+}
+
+.companion-spirit-element--voidrift .companion-spirit-element__bolt--3 {
+  top: 20%;
+  margin-left: calc(var(--element-size) * 0.12);
+  transform: scale(0.76) rotate(12deg);
+  animation: companion-storm-bolt-flash 0.9s ease-in-out infinite 0.55s;
 }
 
 /* ── Storm (storm wolf) ── */
@@ -620,6 +693,17 @@ body {
 .companion-motion-mantis { animation: companion-cat-idle 3.8s ease-in-out infinite; }
 .companion-motion-bat { animation: companion-raven-idle 4.2s ease-in-out infinite; }
 .companion-motion-crane { animation: companion-stag-idle 5s ease-in-out infinite; }
+.companion-motion-tiger { animation: companion-cat-idle 3.6s ease-in-out infinite; }
+
+@keyframes companion-dwarf-ray-pulse {
+  0%, 100% { opacity: 0.55; transform: rotate(var(--ray-angle, 0deg)) scaleY(0.88); }
+  50% { opacity: 1; transform: rotate(var(--ray-angle, 0deg)) scaleY(1.08); }
+}
+
+@keyframes companion-dwarf-flare {
+  0%, 100% { opacity: 0.45; transform: scale(0.92); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
 
 @keyframes companion-aurora-wave {
   0%, 100% { transform: translateX(-4%) scaleX(0.92); opacity: 0.65; }

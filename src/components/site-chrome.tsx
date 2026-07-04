@@ -47,11 +47,7 @@ export async function SiteChrome() {
       className="sticky top-0 z-50 bg-zinc-950 shadow-sm shadow-black/20"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
-      <Header
-        mobileNavOn={mobileNavOn}
-        playerCode={playerCode}
-        referralsOn={referralsOn}
-      />
+      <Header mobileNavOn={mobileNavOn} />
       {playerCode && (
         <InviteRewardsStrip
           code={playerCode}

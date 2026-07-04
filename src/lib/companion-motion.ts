@@ -9,6 +9,7 @@ export type SpiritMorphElement =
   | "neon"
   | "voidrift"
   | "cosmic"
+  | "reddwarf"
   | "forge"
   | "frost"
   | "thunder"
@@ -41,6 +42,7 @@ const MOTION: Record<AnimalKind, CompanionMotion> = {
   mantis: { animal: "companion-motion-mantis", aura: "companion-motion-aura-cool", bond: "companion-motion-bond-alert", orbitDuration: 16, morph: "neon" },
   bat: { animal: "companion-motion-bat", aura: "companion-motion-aura-arcane", bond: "companion-motion-bond-calm", orbitDuration: 15, morph: "eclipse" },
   crane: { animal: "companion-motion-crane", aura: "companion-motion-aura-arcane", bond: "companion-motion-bond-arcane", orbitDuration: 20, morph: "nebula" },
+  tiger: { animal: "companion-motion-tiger", aura: "companion-motion-aura-warm", bond: "companion-motion-bond-alert", orbitDuration: 15, morph: "reddwarf" },
 };
 
 export function companionMotion(animal: AnimalKind): CompanionMotion {
@@ -55,6 +57,7 @@ export const SPIRIT_MORPH_LABELS: Record<SpiritMorphElement, string> = {
   neon: "Neon Pulse",
   voidrift: "Void Rift",
   cosmic: "Star Singularity",
+  reddwarf: "Red Dwarf",
   forge: "Forge Ember",
   frost: "Ice Crystal",
   thunder: "Thunder Core",
@@ -73,6 +76,7 @@ export const SPIRIT_MORPH_DESCRIPTIONS: Record<SpiritMorphElement, string> = {
   neon: "Cyan-magenta holographic pulse rings.",
   voidrift: "Dark purple spiral rift sucking in light.",
   cosmic: "Indigo singularity with orbiting star motes.",
+  reddwarf: "Crimson stellar sphere with heat flares — a dying red sun.",
   forge: "Molten sparks from a blacksmith's ember core.",
   frost: "Sharp ice crystal shards orbiting a pale core.",
   thunder: "Storm cloud wrapped in gold lightning.",

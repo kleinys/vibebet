@@ -19,7 +19,8 @@ export type AnimalKind =
   | "bear"
   | "mantis"
   | "bat"
-  | "crane";
+  | "crane"
+  | "tiger";
 export type HumanArchetype = "oracle" | "seer" | "knight" | "void" | "cosmic";
 
 export interface FigurePalette {
@@ -199,7 +200,7 @@ const ANIMAL_BY_SKIN: Partial<Record<string, AnimalKind>> = {
   "neon-seer": "mantis",
   "void-prophet": "wolf",
   "cosmic-oracle": "dragon",
-  "ember-knight": "cat",
+  "ember-knight": "tiger",
   "frost-walker": "serpent",
   "storm-titan": "bear",
   "nebula-ronin": "crane",
@@ -221,6 +222,7 @@ const ANIMAL_RANK: Record<AnimalKind, number> = {
   mantis: 11,
   bat: 12,
   crane: 13,
+  tiger: 14,
 };
 
 function animalFromStreak(streak: number): AnimalKind {
@@ -314,6 +316,7 @@ export function figureLabels(config: FigureConfig): {
     mantis: "Neon Mantis",
     bat: "Eclipse Bat",
     crane: "Nebula Crane",
+    tiger: "Ember Tiger",
   };
   return {
     humanTitle:

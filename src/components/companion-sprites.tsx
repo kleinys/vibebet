@@ -389,6 +389,7 @@ export function AnimalSprite({
       {kind === "owl" && <OwlSprite {...props} />}
       {kind === "fox" && <FoxSprite {...props} />}
       {kind === "cat" && <CatSprite {...props} />}
+      {kind === "tiger" && <CatSprite {...props} />}
       {kind === "wolf" && <WolfSprite {...props} />}
       {kind === "dragon" && <DragonSprite {...props} />}
       {kind === "stag" && <StagSprite {...props} />}

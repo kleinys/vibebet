@@ -10,7 +10,11 @@ import sharp from "sharp";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, "..");
-const dirs = ["public/characters/animals", "public/characters/humans"];
+const dirs = [
+  "public/characters/animals",
+  "public/characters/humans",
+  "public/characters/phenomena",
+];
 
 const DARK_MATCH = 38;
 const LIGHT_MATCH = 14;

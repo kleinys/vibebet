@@ -9,6 +9,7 @@ export const PHENOMENON_IMAGES: Record<SpiritMorphElement, string> = {
   neon: "/characters/phenomena/neon.webp",
   voidrift: "/characters/phenomena/voidrift.webp",
   cosmic: "/characters/phenomena/cosmic.webp",
+  reddwarf: "/characters/phenomena/reddwarf.webp",
   forge: "/characters/phenomena/forge.webp",
   frost: "/characters/phenomena/frost.webp",
   thunder: "/characters/phenomena/thunder.webp",
@@ -19,7 +20,7 @@ export const PHENOMENON_IMAGES: Record<SpiritMorphElement, string> = {
   arcane: "/characters/phenomena/cosmic.webp",
 };
 
-const PHENOMENON_ART_VERSION = "1";
+const PHENOMENON_ART_VERSION = "2";
 
 export function phenomenonImagePath(morph: SpiritMorphElement): string {
   return `${PHENOMENON_IMAGES[morph]}?v=${PHENOMENON_ART_VERSION}`;
