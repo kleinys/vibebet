@@ -299,12 +299,12 @@ begin
   v_payout := floor(v_pool * 0.9)::bigint;
 
   select id into v_escrow from public.accounts
-  where kind = 'system_burn' and currency = 'vibe' and code = public._rps_escrow_code(v_id);
+  where kind = 'system_burn'::account_kind and currency = 'vibe'::currency and code = public._rps_escrow_code(v_id);
 
   if v_winner_id is not null then
     select public._wallet_for_user(v_winner_id) into v_winner_wallet;
     select id into v_mint from public.accounts
-    where kind = 'system_mint' and currency = 'vibe' and code = 'vibe_mint';
+    where kind = 'system_mint'::account_kind and currency = 'vibe'::currency and code = 'vibe_mint';
 
     insert into public.ledger_transactions (kind, external_ref, metadata, created_by)
     values ('rps_duel_settle', 'rps_bot_settle:' || v_id::text,
@@ -403,10 +403,10 @@ begin
   v_payout := floor(v_pool * 0.9)::bigint;
 
   select id into v_escrow from public.accounts
-  where kind = 'system_burn' and currency = 'vibe' and code = public._high_card_escrow_code(v_id);
+  where kind = 'system_burn'::account_kind and currency = 'vibe'::currency and code = public._high_card_escrow_code(v_id);
   select public._wallet_for_user(v_winner_id) into v_winner_wallet;
   select id into v_mint from public.accounts
-  where kind = 'system_mint' and currency = 'vibe' and code = 'vibe_mint';
+  where kind = 'system_mint'::account_kind and currency = 'vibe'::currency and code = 'vibe_mint';
 
   insert into public.ledger_transactions (kind, external_ref, metadata, created_by)
   values ('high_card_settle', 'hc_bot_settle:' || v_id::text,
@@ -494,10 +494,10 @@ begin
   v_payout := floor(v_pool * 0.9)::bigint;
 
   select id into v_escrow from public.accounts
-  where kind = 'system_burn' and currency = 'vibe' and code = public._dice_escrow_code(v_id);
+  where kind = 'system_burn'::account_kind and currency = 'vibe'::currency and code = public._dice_escrow_code(v_id);
   select public._wallet_for_user(v_winner_id) into v_winner_wallet;
   select id into v_mint from public.accounts
-  where kind = 'system_mint' and currency = 'vibe' and code = 'vibe_mint';
+  where kind = 'system_mint'::account_kind and currency = 'vibe'::currency and code = 'vibe_mint';
 
   insert into public.ledger_transactions (kind, external_ref, metadata, created_by)
   values ('dice_duel_settle', 'dice_bot_settle:' || v_id::text,

@@ -65,10 +65,10 @@ begin
   end if;
   v_pool := v_game.stake * 2; v_payout := floor(v_pool * 0.9)::bigint;
   if v_game.stake > 0 then
-    select id into v_escrow from public.accounts where kind = 'system_burn' and currency = 'vibe' and code = public._connect4_escrow_code(p_game_id);
+    select id into v_escrow from public.accounts where kind = 'system_burn'::account_kind and currency = 'vibe'::currency and code = public._connect4_escrow_code(p_game_id);
     if v_winner is not null then
       select public._wallet_for_user(v_winner) into v_wallet;
-      select id into v_mint from public.accounts where kind = 'system_mint' and currency = 'vibe' and code = 'vibe_mint';
+      select id into v_mint from public.accounts where kind = 'system_mint'::account_kind and currency = 'vibe'::currency and code = 'vibe_mint';
       insert into public.ledger_transactions (kind, external_ref, metadata, created_by)
       values ('connect4_settle', 'c4_bot_settle:' || p_game_id::text, jsonb_build_object('connect4_id', p_game_id, 'winner_id', v_winner, 'vs_bot', true), v_winner)
       returning id into v_tx_id;

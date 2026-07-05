@@ -32,9 +32,9 @@ begin
 
   v_pool := p_stake * 2;
   v_payout := floor(v_pool * 0.9)::bigint;
-  select id into v_escrow from public.accounts where kind = 'system_burn' and currency = 'vibe' and code = public._trivia_escrow_code(v_id);
+  select id into v_escrow from public.accounts where kind = 'system_burn'::account_kind and currency = 'vibe'::currency and code = public._trivia_escrow_code(v_id);
   select public._wallet_for_user(v_winner) into v_wallet;
-  select id into v_mint from public.accounts where kind = 'system_mint' and currency = 'vibe' and code = 'vibe_mint';
+  select id into v_mint from public.accounts where kind = 'system_mint'::account_kind and currency = 'vibe'::currency and code = 'vibe_mint';
   insert into public.ledger_transactions (kind, external_ref, metadata, created_by)
   values ('trivia_settle', 'trivia_bot_settle:' || v_id::text, jsonb_build_object('trivia_duel_id', v_id, 'vs_bot', true), v_winner)
   returning id into v_tx_id;
@@ -68,9 +68,9 @@ begin
 
   v_pool := p_stake * 2;
   v_payout := floor(v_pool * 0.9)::bigint;
-  select id into v_escrow from public.accounts where kind = 'system_burn' and currency = 'vibe' and code = public._liars_dice_escrow_code(v_id);
+  select id into v_escrow from public.accounts where kind = 'system_burn'::account_kind and currency = 'vibe'::currency and code = public._liars_dice_escrow_code(v_id);
   select public._wallet_for_user(v_winner) into v_wallet;
-  select id into v_mint from public.accounts where kind = 'system_mint' and currency = 'vibe' and code = 'vibe_mint';
+  select id into v_mint from public.accounts where kind = 'system_mint'::account_kind and currency = 'vibe'::currency and code = 'vibe_mint';
   insert into public.ledger_transactions (kind, external_ref, metadata, created_by)
   values ('liars_dice_settle', 'liars_bot_settle:' || v_id::text, jsonb_build_object('liars_dice_id', v_id, 'vs_bot', true), v_winner)
   returning id into v_tx_id;
@@ -122,9 +122,9 @@ begin
 
   v_pool := p_stake * 2;
   v_payout := floor(v_pool * 0.9)::bigint;
-  select id into v_escrow from public.accounts where kind = 'system_burn' and currency = 'vibe' and code = public._lightning_escrow_code(v_id);
+  select id into v_escrow from public.accounts where kind = 'system_burn'::account_kind and currency = 'vibe'::currency and code = public._lightning_escrow_code(v_id);
   select public._wallet_for_user(v_winner) into v_wallet;
-  select id into v_mint from public.accounts where kind = 'system_mint' and currency = 'vibe' and code = 'vibe_mint';
+  select id into v_mint from public.accounts where kind = 'system_mint'::account_kind and currency = 'vibe'::currency and code = 'vibe_mint';
   insert into public.ledger_transactions (kind, external_ref, metadata, created_by)
   values ('lightning_duel_settle', 'lt_bot_settle:' || v_id::text, jsonb_build_object('lightning_duel_id', v_id, 'vs_bot', true), v_winner)
   returning id into v_tx_id;

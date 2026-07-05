@@ -18,7 +18,7 @@ begin
   end if;
 
   select id into v_wallet from public.accounts
-  where owner_user_id = v_user_id and kind = 'user_wallet' and currency = 'vibe';
+  where owner_user_id = v_user_id and kind = 'user_wallet'::account_kind and currency = 'vibe'::currency;
 
   if v_wallet is null then
     raise notice 'VIBE wallet missing for test3@example.com';
@@ -26,7 +26,7 @@ begin
   end if;
 
   select id into v_mint from public.accounts
-  where kind = 'system_mint' and currency = 'vibe' and code = 'vibe_mint';
+  where kind = 'system_mint'::account_kind and currency = 'vibe'::currency and code = 'vibe_mint';
 
   insert into public.ledger_transactions (kind, external_ref, metadata, created_by)
   values (

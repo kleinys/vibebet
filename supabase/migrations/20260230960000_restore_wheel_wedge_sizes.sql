@@ -94,15 +94,15 @@ begin
   end if;
 
   select id into v_mint from public.accounts
-  where kind = 'system_mint' and currency = 'vibe' and code = 'vibe_mint';
+  where kind = 'system_mint'::account_kind and currency = 'vibe'::currency and code = 'vibe_mint';
   if v_mint is null then raise exception 'mint missing'; end if;
 
   if v_cost > 0 then
     select id into v_burn from public.accounts
-    where kind = 'system_burn' and currency = 'vibe' and code = 'locker_wheel_burn';
+    where kind = 'system_burn'::account_kind and currency = 'vibe'::currency and code = 'locker_wheel_burn';
     if v_burn is null then
       insert into public.accounts (kind, currency, code)
-      values ('system_burn', 'vibe', 'locker_wheel_burn')
+      values ('system_burn'::account_kind, 'vibe'::currency, 'locker_wheel_burn')
       returning id into v_burn;
     end if;
   end if;

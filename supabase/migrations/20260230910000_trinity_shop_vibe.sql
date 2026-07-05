@@ -141,11 +141,11 @@ begin
   end if;
 
   select id into v_burn_account from public.accounts
-  where kind = 'system_burn' and currency = 'vibe' and code = 'shop_vibe_burn';
+  where kind = 'system_burn'::account_kind and currency = 'vibe'::currency and code = 'shop_vibe_burn';
 
   if v_burn_account is null then
     insert into public.accounts (kind, currency, code)
-    values ('system_burn', 'vibe', 'shop_vibe_burn')
+    values ('system_burn'::account_kind, 'vibe'::currency, 'shop_vibe_burn')
     returning id into v_burn_account;
   end if;
 
