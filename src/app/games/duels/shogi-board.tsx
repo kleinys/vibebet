@@ -9,7 +9,29 @@ import { playShogiMove, resignShogiGame, leaveShogiGame, offerShogiDraw, acceptS
 import { SkillDuelControls } from "@/components/skill-duel-controls";
 
 const PIECE_CHARS: Record<string, string> = {
-  p: "歩", l: "香", n: "桂", s: "銀", g: "金", b: "角", r: "飛", k: "玉",
+  p: "歩",
+  pawn: "歩",
+  l: "香",
+  lance: "香",
+  n: "桂",
+  knight: "桂",
+  s: "銀",
+  silver: "銀",
+  g: "金",
+  gold: "金",
+  b: "角",
+  bishop: "角",
+  r: "飛",
+  rook: "飛",
+  k: "玉",
+  king: "玉",
+  tokin: "と",
+  promotedpawn: "と",
+  promotedlance: "成香",
+  promotedknight: "成桂",
+  promotedsilver: "成銀",
+  horse: "馬",
+  dragon: "龍",
 };
 
 function boardFromSfen(sfen: string) {
@@ -104,13 +126,15 @@ export function ShogiBoard({
               type="button"
               disabled={isSpectator || !isMyTurn || pending}
               onClick={() => click(idx)}
-              className={`flex h-9 w-9 items-center justify-center text-sm ${
+              className={`flex h-9 w-9 items-center justify-center text-xs font-medium ${
                 from === makeSquareName(idx) ? "ring-2 ring-emerald-400" : ""
               } bg-amber-200/30`}
             >
               {cell.piece ? (
-                <span className={cell.color === "sente" ? "text-zinc-900" : "text-rose-700"}>
-                  {PIECE_CHARS[cell.piece] ?? cell.piece}
+                <span
+                  className={`leading-none ${cell.color === "sente" ? "text-zinc-900" : "text-rose-700 rotate-180"}`}
+                >
+                  {PIECE_CHARS[cell.piece] ?? "?"}
                 </span>
               ) : null}
             </button>
