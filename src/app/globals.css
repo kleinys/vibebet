@@ -1772,8 +1772,9 @@ body {
 
 .hypnotic-arena__stage-wrap {
   margin-bottom: 0.75rem;
-  max-height: min(68vw, 400px);
-  min-height: 280px;
+  min-height: min(72vw, 480px);
+  height: min(78vw, 520px);
+  max-height: none;
   overflow: hidden;
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -1781,8 +1782,32 @@ body {
 }
 
 .hypnotic-arena__stage-wrap .companion-stage {
-  max-height: min(68vw, 400px);
-  min-height: 280px;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  max-height: none;
+  aspect-ratio: auto;
+}
+
+.hypnotic-arena__stage-wrap .companion-stage--flank {
+  overflow: visible;
+}
+
+.hypnotic-arena__stage-wrap .companion-figure-raster--human-center {
+  height: auto !important;
+  max-height: min(68vw, 460px);
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+.hypnotic-arena__stage-wrap .companion-figure-slot--flank-center {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100%;
+  padding-bottom: 2%;
 }
 
 /* Momentum bar */
@@ -2405,46 +2430,55 @@ body {
 /* ── Flank layout: phenomenon left, trainer center, animal right ── */
 .companion-stage--flank .companion-stage__focal--flank {
   display: grid;
-  grid-template-columns: 1fr minmax(140px, 46%) 1fr;
-  align-items: end;
+  grid-template-columns: minmax(72px, 22%) minmax(160px, 1fr) minmax(72px, 22%);
+  align-items: center;
+  justify-items: center;
   width: 100%;
   height: 100%;
-  padding: 0 2%;
+  padding: 2% 1% 0;
+  box-sizing: border-box;
 }
 
 .companion-flank {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
+  width: 100%;
+  height: 100%;
 }
 
 .companion-flank--phenomenon {
-  justify-content: flex-start;
-  padding-left: 2%;
-  padding-bottom: 8%;
+  justify-self: center;
+  align-self: center;
+  padding: 0;
 }
 
 .companion-flank--animal {
-  justify-content: flex-end;
-  padding-right: 0;
-  padding-bottom: 6%;
-  z-index: 3;
+  justify-self: center;
+  align-self: center;
+  padding: 0;
+  z-index: 4;
 }
 
 .companion-figure-slot--flank-center {
-  z-index: 1;
+  z-index: 2;
   justify-self: center;
+  align-self: flex-end;
   width: 100%;
-  max-width: 280px;
+  max-width: min(52vw, 320px);
+  height: 92%;
 }
 
 .companion-flank-phenomenon {
   position: relative;
-  width: min(28vw, 110px);
-  height: min(28vw, 110px);
-  transform: translateX(-4%);
+  width: min(24vw, 120px);
+  height: min(24vw, 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: none;
 }
 
 .companion-flank-phenomenon .companion-spirit-element {
@@ -2452,23 +2486,39 @@ body {
   left: auto;
   bottom: auto;
   transform: none;
-  --element-size: min(28vw, 110px);
+  width: 100%;
+  height: 100%;
+  --element-size: min(24vw, 120px);
   animation: companion-backdrop-breathe 3s ease-in-out infinite;
 }
 
+.companion-flank-phenomenon .companion-spirit-element__art {
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 20px rgba(255, 120, 40, 0.45))
+    drop-shadow(0 4px 16px rgba(0, 0, 0, 0.35));
+}
+
+.companion-flank-phenomenon .companion-spirit-element__art-glow {
+  mix-blend-mode: screen;
+  opacity: 0.85;
+}
+
 .companion-flank-animal {
-  width: min(34vw, 130px);
+  width: min(28vw, 140px);
+  height: min(28vw, 140px);
   display: flex;
-  justify-content: flex-end;
-  transform: translateX(8%);
+  align-items: center;
+  justify-content: center;
+  transform: none;
 }
 
 .companion-figure-raster--flank {
-  max-height: min(36vw, 150px);
+  max-height: min(28vw, 140px);
+  max-width: 100%;
   width: auto;
   height: auto;
   object-fit: contain;
-  object-position: bottom right;
+  object-position: center center;
 }
 
 .companion-stage--flank.companion-stage--react-watch-wheel .companion-flank-animal {
@@ -2484,11 +2534,16 @@ body {
 }
 
 /* Raster wheel + cases */
+.locker-casino-wheel-wrap {
+  background: transparent;
+}
+
 .locker-casino-wheel--raster {
   width: 100%;
   height: 100%;
   object-fit: contain;
   transform-origin: center center;
+  background: transparent !important;
 }
 
 .locker-tier-case--raster {
@@ -2502,6 +2557,7 @@ body {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  background: transparent !important;
   filter: drop-shadow(0 16px 28px rgba(0, 0, 0, 0.55));
 }
 
