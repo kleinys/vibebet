@@ -83,7 +83,7 @@ export function LockerArenaEntry({
         <div className="flex flex-col items-stretch justify-center gap-3 p-5 sm:p-6">
           <Link
             href="/account/profile/arena"
-            className="inline-flex items-center justify-center rounded-sm bg-gradient-to-r from-amber-500 via-orange-500 to-fuchsia-600 px-8 py-4 text-center text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-amber-900/40 transition hover:brightness-110 sm:text-base"
+            className="hypnotic-cta hypnotic-cta--magnet inline-flex items-center justify-center rounded-sm bg-gradient-to-r from-amber-500 via-orange-500 to-fuchsia-600 px-8 py-4 text-center text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-amber-900/40 transition hover:brightness-110 sm:text-base"
           >
             Enter VIBE arena
           </Link>

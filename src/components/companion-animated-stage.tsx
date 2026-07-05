@@ -8,6 +8,7 @@ import { stageBackdropStyle } from "@/lib/companion-stage-style";
 import { AnimalSprite, HumanSprite, SpriteGlowDefs } from "@/components/companion-sprites";
 import { FantasySvgDefs } from "@/components/fantasy-icons";
 import { SpiritElementBall } from "@/components/spirit-morph-decor";
+import type { HypnoticReaction } from "@/lib/hypnotic-flow";
 
 const FIGURE_SHADOW =
   "drop-shadow(0 24px 48px rgba(0,0,0,0.7)) drop-shadow(0 0 32px var(--figure-aura))";
@@ -37,7 +38,13 @@ function EyeGlow() {
   );
 }
 
-export function CompanionAnimatedStage({ config }: { config: FigureConfig }) {
+export function CompanionAnimatedStage({
+  config,
+  reaction = "idle",
+}: {
+  config: FigureConfig;
+  reaction?: HypnoticReaction;
+}) {
   const { animal, human, skinSlug, showHuman, palette, animalScale, humanScale, badge, morph } =
     config;
   const motion = companionMotion(animal);
@@ -52,7 +59,7 @@ export function CompanionAnimatedStage({ config }: { config: FigureConfig }) {
 
   return (
     <div
-      className={`companion-stage ${showHuman ? "companion-stage--duo" : "companion-stage--solo"}`}
+      className={`companion-stage ${showHuman ? "companion-stage--duo" : "companion-stage--solo"} companion-stage--react-${reaction}`}
       style={stageStyle}
     >
       <div className={`companion-stage__backdrop ${motion.aura}`} aria-hidden />

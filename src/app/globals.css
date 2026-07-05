@@ -1664,3 +1664,541 @@ body {
 .companion-motion-bear {
   animation: companion-wolf-idle 4.5s ease-in-out infinite;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Hypnotic UX — ambient bait, morph floor, momentum, cinema reactions
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.hypnotic-particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+  transform: translate(var(--parallax-x, 0), var(--parallax-y, 0));
+  transition: transform 0.15s ease-out;
+}
+
+.hypnotic-particles__ember {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.9) 0%, rgba(245, 158, 11, 0.4) 50%, transparent 100%);
+  opacity: 0.5;
+  animation: hypnotic-ember-drift 6s ease-in-out infinite;
+}
+
+.hypnotic-particles--magnet .hypnotic-particles__ember {
+  animation-name: hypnotic-ember-magnet;
+}
+
+.hypnotic-particles__trail {
+  position: absolute;
+  bottom: 8%;
+  left: 50%;
+  width: 2px;
+  height: 40%;
+  transform: translateX(-50%);
+  background: linear-gradient(to top, transparent, rgba(251, 191, 36, 0.35), transparent);
+  animation: hypnotic-trail-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes hypnotic-ember-drift {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: translate(4px, -12px) scale(1.2);
+  }
+}
+
+@keyframes hypnotic-ember-magnet {
+  0% {
+    opacity: 0.2;
+    transform: translate(0, 20px) scale(0.8);
+  }
+  60% {
+    opacity: 0.7;
+    transform: translate(0, -30px) scale(1.1);
+  }
+  100% {
+    opacity: 0.15;
+    transform: translate(0, -60px) scale(0.6);
+  }
+}
+
+@keyframes hypnotic-trail-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+/* Magnetic CTAs */
+.hypnotic-cta--magnet {
+  animation: hypnotic-cta-magnet 2.2s ease-in-out infinite;
+  box-shadow: 0 0 24px rgba(251, 191, 36, 0.35);
+}
+
+@keyframes hypnotic-cta-magnet {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 36px rgba(251, 191, 36, 0.55), 0 0 60px rgba(168, 85, 247, 0.2);
+    transform: scale(1.03);
+  }
+}
+
+/* Arena layout */
+.hypnotic-arena {
+  position: relative;
+  padding: 1rem 1rem 1.25rem;
+}
+
+.hypnotic-arena__layout {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 1rem;
+}
+
+.hypnotic-arena__stage-wrap {
+  margin-bottom: 1rem;
+  max-height: min(52vw, 320px);
+  overflow: hidden;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #020617;
+}
+
+.hypnotic-arena__stage-wrap .companion-stage {
+  max-height: min(52vw, 320px);
+}
+
+/* Momentum bar */
+.hypnotic-momentum {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 3rem;
+  flex-shrink: 0;
+  padding-top: 0.5rem;
+}
+
+.hypnotic-momentum__label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(251, 191, 36, 0.8);
+  margin-bottom: 0.5rem;
+}
+
+.hypnotic-momentum__track {
+  position: relative;
+  width: 10px;
+  flex: 1;
+  min-height: 120px;
+  max-height: 200px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+  overflow: hidden;
+}
+
+.hypnotic-momentum__fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, #f59e0b, #fbbf24, #fef3c7);
+  border-radius: 999px;
+  transition: height 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+}
+
+.hypnotic-momentum__fill--super {
+  background: linear-gradient(to top, #a855f7, #f59e0b, #fef3c7);
+  animation: hypnotic-momentum-super 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes hypnotic-momentum-super {
+  from {
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.5);
+  }
+  to {
+    box-shadow: 0 0 24px rgba(168, 85, 247, 0.7);
+  }
+}
+
+.hypnotic-momentum__tick {
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.hypnotic-momentum__pct {
+  margin-top: 0.35rem;
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(251, 191, 36, 0.9);
+}
+
+.hypnotic-momentum__super {
+  margin-top: 0.5rem;
+  font-size: 8px;
+  font-weight: 800;
+  text-align: center;
+  color: #fbbf24;
+  animation: hypnotic-cta-magnet 1.5s ease-in-out infinite;
+}
+
+/* Morph viewport — case ↔ wheel transformer */
+.hypnotic-morph-floor__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.5rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.hypnotic-morph-floor__tab {
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.35rem 0.75rem;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #71717a;
+  transition: all 0.25s ease;
+}
+
+.hypnotic-morph-floor__tab--active {
+  border-color: rgba(168, 85, 247, 0.45);
+  background: rgba(139, 92, 246, 0.2);
+  color: #e9d5ff;
+}
+
+.hypnotic-morph-viewport {
+  position: relative;
+  min-height: 380px;
+  padding: 1.25rem 0.5rem;
+  perspective: 800px;
+}
+
+.hypnotic-morph-viewport__case,
+.hypnotic-morph-viewport__wheel {
+  position: absolute;
+  inset: 1.25rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  transition:
+    opacity 0.55s ease,
+    transform 0.65s cubic-bezier(0.34, 1.2, 0.64, 1),
+    filter 0.5s ease;
+  transform-origin: center center;
+}
+
+.hypnotic-morph-viewport--wheel .hypnotic-morph-viewport__case {
+  opacity: 0;
+  pointer-events: none;
+  transform: rotateY(90deg) scale(0.7);
+  filter: blur(4px);
+}
+
+.hypnotic-morph-viewport--wheel .hypnotic-morph-viewport__wheel {
+  opacity: 1;
+  pointer-events: auto;
+  transform: rotateY(0deg) scale(1);
+}
+
+.hypnotic-morph-viewport--case .hypnotic-morph-viewport__wheel {
+  opacity: 0;
+  pointer-events: none;
+  transform: rotateY(-90deg) scale(0.7);
+  filter: blur(4px);
+}
+
+.hypnotic-morph-viewport--case .hypnotic-morph-viewport__case {
+  opacity: 1;
+  pointer-events: auto;
+  transform: rotateY(0deg) scale(1);
+}
+
+.hypnotic-morph-viewport--morphing .hypnotic-morph-viewport__sparks {
+  opacity: 1;
+}
+
+.hypnotic-morph-viewport__sparks {
+  position: absolute;
+  inset: 30% 20%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.25) 0%, transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  animation: locker-case-burst 0.7s ease-out;
+}
+
+/* Stake chips */
+.hypnotic-stake-chip--recommended {
+  animation: hypnotic-chip-glow 1.8s ease-in-out infinite;
+}
+
+@keyframes hypnotic-chip-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 8px rgba(251, 191, 36, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
+  }
+}
+
+.hypnotic-stake-chip--slide {
+  animation: hypnotic-chip-slide 0.42s ease-in forwards;
+}
+
+@keyframes hypnotic-chip-slide {
+  to {
+    transform: translateY(48px) scale(0.6);
+    opacity: 0;
+  }
+}
+
+.locker-case--docked .locker-case__body {
+  animation: hypnotic-case-dock 0.5s ease;
+}
+
+.locker-case__docked-chip {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: 800;
+  color: #fef3c7;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
+  animation: hypnotic-chip-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes hypnotic-case-dock {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.04);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.hypnotic-wheel--spin-blur {
+  filter: blur(0.5px) brightness(1.08);
+}
+
+/* Stage reactor — trainer/animal cinema reactions */
+.hypnotic-stage-reactor {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.hypnotic-stage-reactor--super .companion-stage {
+  filter: saturate(1.25) brightness(1.08);
+}
+
+.hypnotic-stage-reactor--super .companion-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 40%, rgba(251, 191, 36, 0.15) 0%, transparent 60%);
+  pointer-events: none;
+  animation: hypnotic-momentum-super 1s ease-in-out infinite alternate;
+}
+
+.companion-stage--react-watch-wheel .companion-human-wrap {
+  animation: hypnotic-trainer-lean 0.8s ease forwards;
+}
+
+.companion-stage--react-watch-wheel .companion-orbit-carrier {
+  animation-play-state: paused !important;
+}
+
+.companion-stage--react-approve .companion-human-wrap {
+  animation: hypnotic-trainer-nod 1.2s ease;
+}
+
+.companion-stage--react-leash .companion-orbit-track {
+  animation: hypnotic-fox-leash 3.5s ease-in-out infinite;
+}
+
+.companion-stage--react-afterglow .companion-orbit-carrier {
+  animation-duration: 24s !important;
+  opacity: 0.45;
+  filter: blur(1px);
+}
+
+@keyframes hypnotic-trainer-lean {
+  to {
+    transform: translateY(6px) scale(1.02);
+  }
+}
+
+@keyframes hypnotic-trainer-nod {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(4px) rotate(1deg);
+  }
+  60% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes hypnotic-fox-leash {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(18deg);
+  }
+}
+
+/* VIBE orbs flying to spirit */
+.hypnotic-vibe-orb {
+  position: absolute;
+  left: 50%;
+  bottom: 28%;
+  z-index: 30;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #fef3c7;
+  background: radial-gradient(circle, rgba(251, 191, 36, 0.9), rgba(245, 158, 11, 0.6));
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.7);
+  animation: hypnotic-vibe-fly 2s ease-in forwards;
+  pointer-events: none;
+}
+
+@keyframes hypnotic-vibe-fly {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 80px) scale(0.4);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, 40px) scale(1.1);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -60px) scale(0.9);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -120px) scale(0.3);
+  }
+}
+
+/* Confetti */
+.hypnotic-confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 25;
+  overflow: hidden;
+}
+
+.hypnotic-confetti__bit {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  width: 6px;
+  height: 6px;
+  background: hsl(calc(var(--i) * 15), 80%, 60%);
+  animation: hypnotic-confetti-burst 1.4s ease-out forwards;
+  animation-delay: calc(var(--i) * 0.03s);
+}
+
+@keyframes hypnotic-confetti-burst {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0deg) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(
+        calc(-50% + (var(--i) - 12) * 10px),
+        calc(-50% - 50px - (var(--i) % 6) * 18px)
+      )
+      rotate(220deg)
+      scale(0.4);
+  }
+}
+
+/* Profile ambient bait */
+.hypnotic-profile-ambient {
+  position: relative;
+  min-height: 280px;
+}
+
+.hypnotic-profile-ambient__stage {
+  position: relative;
+  z-index: 2;
+}
+
+.hypnotic-profile-ambient--bait .companion-stage__backdrop {
+  animation: companion-backdrop-breathe 4s ease-in-out infinite;
+}
+
+.hypnotic-profile-ambient__magnet-line {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  height: 35%;
+  transform: translateX(-50%);
+  background: linear-gradient(to top, rgba(251, 191, 36, 0.5), transparent);
+  z-index: 3;
+  animation: hypnotic-trail-pulse 2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hypnotic-particles__ember,
+  .hypnotic-cta--magnet,
+  .hypnotic-stake-chip--recommended,
+  .hypnotic-momentum__fill--super,
+  .companion-stage--react-leash .companion-orbit-track {
+    animation: none !important;
+  }
+
+  .hypnotic-morph-viewport__case,
+  .hypnotic-morph-viewport__wheel {
+    transition: opacity 0.2s ease !important;
+    transform: none !important;
+  }
+}

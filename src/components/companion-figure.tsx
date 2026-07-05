@@ -1,6 +1,7 @@
 import type { FigureConfig } from "@/lib/companion-figure";
 import { FantasySvgDefs } from "@/components/fantasy-icons";
 import { CompanionAnimatedStage } from "@/components/companion-animated-stage";
+import { HypnoticProfileAmbient } from "@/components/hypnotic/hypnotic-profile-ambient";
 import {
   CompanionLockerEquip,
   type LockerEquipItem,
@@ -116,30 +117,33 @@ export function CompanionFigureScene({
   config,
   labels,
   lockerItems,
+  freeSpinAvailable = false,
 }: {
   config: FigureConfig;
   labels?: { humanTitle: string; animalTitle: string };
   lockerItems?: { skins: LockerEquipItem[]; badges: LockerEquipItem[] };
+  freeSpinAvailable?: boolean;
 }) {
   return (
     <div className="relative overflow-hidden rounded-sm border border-white/10 bg-[#020617] ring-1 ring-white/5">
-      <CompanionAnimatedStage config={config} />
-      {lockerItems ? (
-        <CompanionLockerEquip skins={lockerItems.skins} badges={lockerItems.badges} />
-      ) : (
-        labels && (
-          <div className="relative z-10 flex flex-wrap justify-center gap-2 px-3 pb-3 pt-1 text-center sm:px-4 sm:pb-4">
-            {config.showHuman && (
-              <span className="rounded-sm border border-fuchsia-400/35 bg-fuchsia-500/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-fuchsia-100 shadow-sm shadow-fuchsia-900/40">
-                {labels.humanTitle}
+      <HypnoticProfileAmbient config={config} freeSpinAvailable={freeSpinAvailable}>
+        {lockerItems ? (
+          <CompanionLockerEquip skins={lockerItems.skins} badges={lockerItems.badges} />
+        ) : (
+          labels && (
+            <div className="relative z-10 flex flex-wrap justify-center gap-2 px-3 pb-3 pt-1 text-center sm:px-4 sm:pb-4">
+              {config.showHuman && (
+                <span className="rounded-sm border border-fuchsia-400/35 bg-fuchsia-500/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-fuchsia-100 shadow-sm shadow-fuchsia-900/40">
+                  {labels.humanTitle}
+                </span>
+              )}
+              <span className="rounded-sm border border-teal-400/35 bg-teal-500/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-teal-100 shadow-sm shadow-teal-900/40">
+                {labels.animalTitle}
               </span>
-            )}
-            <span className="rounded-sm border border-teal-400/35 bg-teal-500/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-teal-100 shadow-sm shadow-teal-900/40">
-              {labels.animalTitle}
-            </span>
-          </div>
-        )
-      )}
+            </div>
+          )
+        )}
+      </HypnoticProfileAmbient>
     </div>
   );
 }

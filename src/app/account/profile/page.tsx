@@ -149,7 +149,7 @@ export default async function ProfilePage() {
           VIBE arena below to stake on cases and the wheel.
         </p>
         <div className="mt-5">
-          <VibeCompanionCard input={companionInput} lockerItems={lockerItems} />
+          <VibeCompanionCard input={companionInput} lockerItems={lockerItems} freeSpinAvailable={wheelDaily === 0} />
           <ClaimLockerPackButton
             missingCount={missingLockerCount}
             eligible={lockerPackEligible}

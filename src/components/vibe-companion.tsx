@@ -71,10 +71,12 @@ export function VibeCompanionCard({
   input,
   companion: precomputed,
   lockerItems,
+  freeSpinAvailable = false,
 }: {
   input: CompanionInput;
   companion?: CompanionState;
   lockerItems?: { skins: LockerEquipItem[]; badges: LockerEquipItem[] };
+  freeSpinAvailable?: boolean;
 }) {
   const config = resolveFigureConfig(input);
   if (precomputed) {
@@ -87,7 +89,7 @@ export function VibeCompanionCard({
 
   return (
     <div className="flex flex-col gap-6">
-      <CompanionFigureScene config={config} labels={labels} lockerItems={lockerItems} />
+      <CompanionFigureScene config={config} labels={labels} lockerItems={lockerItems} freeSpinAvailable={freeSpinAvailable} />
       <div className="min-w-0">
         <p className="text-lg font-semibold text-zinc-100">
           {companion.name}{" "}
