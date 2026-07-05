@@ -2,7 +2,7 @@ import Link from "next/link";
 import { isEnabled } from "@/lib/feature-flags";
 import { getLiveEvents } from "@/lib/live-events";
 import { getActiveSpectatorDuels } from "@/lib/duels";
-import { fetchDiscoveredStreamsWithMeta } from "@/lib/stream-discovery";
+import { fetchDiscoveredStreamsWithMeta, streamWatchHref, type DiscoveredStream } from "@/lib/stream-discovery";
 import { LIVE_EVENT_CATEGORIES } from "@/lib/stream-url";
 import { formatVibe } from "@/lib/utils";
 
@@ -36,15 +36,14 @@ export default async function LiveHubPage() {
   const [events, duels, discovery] = await Promise.all([
     getLiveEvents(40),
     duelsOn && spectatorOn ? getActiveSpectatorDuels(12) : Promise.resolve([]),
-    fetchDiscoveredStreamsWithMeta({ youtubeLimit: 20 }),
+    fetchDiscoveredStreamsWithMeta({ youtubeLimit: 12, twitchLimit: 12 }),
   ]);
 
   const discovered = discovery.streams;
+  const youtubeStreams = discovered.filter((s) => s.provider === "youtube");
+  const twitchStreams = discovered.filter((s) => s.provider === "twitch");
   const liveNow = events.filter((e) => e.status === "live");
   const upcoming = events.filter((e) => e.status === "scheduled");
-  const hasDiscovery = discovered.length > 0;
-  const discoveryConfigured = discovery.configured;
-  const discoveryError = discovery.error;
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
@@ -144,67 +143,102 @@ export default async function LiveHubPage() {
         )}
       </section>
 
-      <section className="mt-10">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <h2 className="text-xs font-semibold uppercase tracking-wider text-sky-400">
-            Live on YouTube
-          </h2>
-          {discoveryConfigured && discoveryError && (
-            <p className="text-[11px] text-amber-400/90">{discoveryError}</p>
-          )}
-          {!discoveryConfigured && (
-            <p className="text-[11px] text-zinc-500">
-              Add <code className="font-mono">YOUTUBE_API_KEY</code> in Vercel env (no HTTP referrer lock).
-            </p>
-          )}
-        </div>
-        {hasDiscovery ? (
-          <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {discovered.slice(0, 20).map((s) => {
-              const videoId = s.id.startsWith("youtube-") ? s.id.slice(8) : s.id;
-              const watchHref = `/live/watch?provider=${s.provider}&id=${encodeURIComponent(videoId)}&title=${encodeURIComponent(s.title)}&channel=${encodeURIComponent(s.channel)}`;
-              return (
-              <li key={s.id}>
-                <Link
-                  href={watchHref}
-                  className="block overflow-hidden rounded-xl border border-white/5 bg-zinc-900/40 transition hover:border-sky-500/35"
-                >
-                  {s.thumbnailUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={s.thumbnailUrl}
-                      alt=""
-                      className="aspect-video w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex aspect-video items-center justify-center bg-zinc-800/60 text-xs text-zinc-500">
-                      No preview
-                    </div>
-                  )}
-                  <div className="p-3">
-                    <span className="text-[10px] font-semibold uppercase text-zinc-500">
-                      {s.provider}
-                      {s.viewerCount > 0 ? ` · ${s.viewerCount.toLocaleString()} watching` : ""}
-                    </span>
-                    <p className="mt-1 line-clamp-2 text-sm font-medium leading-snug text-zinc-100">
-                      {s.title}
-                    </p>
-                    <p className="mt-0.5 text-xs text-zinc-500">{s.channel}</p>
-                  </div>
-                </Link>
-              </li>
-            );})}
-          </ul>
-        ) : (
-          <div className="mt-4 rounded-xl border border-dashed border-white/10 bg-zinc-900/20 p-6 text-sm text-zinc-500">
-            {discoveryConfigured
-              ? (discoveryError ??
-                "No live YouTube streams right now. Hosted events and duels still work above.")
-              : "Add YOUTUBE_API_KEY in Vercel → Settings → Environment Variables (Production), then redeploy."}
-          </div>
-        )}
-      </section>
+      <DiscoveredStreamsSection
+        title="Live on Twitch"
+        accent="text-purple-400"
+        hoverBorder="hover:border-purple-500/35"
+        streams={twitchStreams}
+        configured={discovery.twitchConfigured}
+        error={discovery.twitchError}
+        emptyConfigured="No live Twitch streams right now."
+        emptyNotConfigured="Add TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET in Vercel, then redeploy."
+        configHint="Add TWITCH_CLIENT_ID + TWITCH_CLIENT_SECRET in Vercel env."
+      />
+
+      <DiscoveredStreamsSection
+        title="Live on YouTube"
+        accent="text-sky-400"
+        hoverBorder="hover:border-sky-500/35"
+        streams={youtubeStreams}
+        configured={discovery.youtubeConfigured}
+        error={discovery.youtubeError}
+        emptyConfigured="No live YouTube streams right now."
+        emptyNotConfigured="Add YOUTUBE_API_KEY in Vercel → Settings → Environment Variables (Production), then redeploy."
+        configHint="Add YOUTUBE_API_KEY in Vercel env (no HTTP referrer lock)."
+      />
     </div>
+  );
+}
+
+function DiscoveredStreamsSection({
+  title,
+  accent,
+  hoverBorder,
+  streams,
+  configured,
+  error,
+  emptyConfigured,
+  emptyNotConfigured,
+  configHint,
+}: {
+  title: string;
+  accent: string;
+  hoverBorder: string;
+  streams: DiscoveredStream[];
+  configured: boolean;
+  error: string | null;
+  emptyConfigured: string;
+  emptyNotConfigured: string;
+  configHint: string;
+}) {
+  return (
+    <section className="mt-10">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <h2 className={`text-xs font-semibold uppercase tracking-wider ${accent}`}>{title}</h2>
+        {configured && error && streams.length === 0 && (
+          <p className="text-[11px] text-amber-400/90">{error}</p>
+        )}
+        {!configured && <p className="text-[11px] text-zinc-500">{configHint}</p>}
+      </div>
+      {streams.length > 0 ? (
+        <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {streams.map((s) => (
+            <li key={s.id}>
+              <Link
+                href={streamWatchHref(s)}
+                className={`block overflow-hidden rounded-xl border border-white/5 bg-zinc-900/40 transition ${hoverBorder}`}
+              >
+                {s.thumbnailUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={s.thumbnailUrl} alt="" className="aspect-video w-full object-cover" />
+                ) : (
+                  <div className="flex aspect-video items-center justify-center bg-zinc-800/60 text-xs text-zinc-500">
+                    No preview
+                  </div>
+                )}
+                <div className="p-3">
+                  <span className="text-[10px] font-semibold uppercase text-zinc-500">
+                    {s.provider}
+                    {s.viewerCount > 0 ? ` · ${s.viewerCount.toLocaleString()} watching` : ""}
+                  </span>
+                  <p className="mt-1 line-clamp-2 text-sm font-medium leading-snug text-zinc-100">
+                    {s.title}
+                  </p>
+                  <p className="mt-0.5 text-xs text-zinc-500">
+                    {s.channel}
+                    {s.gameOrCategory ? ` · ${s.gameOrCategory}` : ""}
+                  </p>
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="mt-4 rounded-xl border border-dashed border-white/10 bg-zinc-900/20 p-6 text-sm text-zinc-500">
+          {configured ? (error ?? emptyConfigured) : emptyNotConfigured}
+        </div>
+      )}
+    </section>
   );
 }
 

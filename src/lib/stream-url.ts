@@ -39,6 +39,44 @@ function parentHost(): string {
   return process.env.NEXT_PUBLIC_SITE_URL?.replace(/^https?:\/\//, "").split("/")[0] ?? "localhost";
 }
 
+/** Twitch requires parent= for each allowed embed domain (repeat param). */
+export function twitchParentQuery(): string {
+  const hosts = new Set<string>();
+
+  if (typeof window !== "undefined") {
+    hosts.add(window.location.hostname);
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (siteUrl) {
+    try {
+      hosts.add(new URL(siteUrl).hostname);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const vercelUrl = process.env.NEXT_PUBLIC_VERCEL_URL?.trim() ?? process.env.VERCEL_URL?.trim();
+  if (vercelUrl) {
+    hosts.add(vercelUrl.replace(/^https?:\/\//, "").split("/")[0]);
+  }
+
+  hosts.add("localhost");
+
+  return [...hosts]
+    .filter(Boolean)
+    .map((h) => `parent=${encodeURIComponent(h)}`)
+    .join("&");
+}
+
+function twitchChannelEmbed(channel: string): string {
+  return `https://player.twitch.tv/?channel=${encodeURIComponent(channel)}&${twitchParentQuery()}&autoplay=true&muted=false`;
+}
+
+function twitchVideoEmbed(videoId: string): string {
+  return `https://player.twitch.tv/?video=${encodeURIComponent(videoId)}&${twitchParentQuery()}&autoplay=true&muted=false`;
+}
+
 export function parseStreamUrl(raw: string | null | undefined): ParsedStream {
   if (!raw?.trim()) {
     return { provider: "none", embedUrl: null, watchUrl: null, label: PROVIDER_LABELS.none };
@@ -102,7 +140,7 @@ export function parseStreamUrl(raw: string | null | undefined): ParsedStream {
     if (channel && !["videos", "directory", "settings", "popout"].includes(channel)) {
       return {
         provider: "twitch",
-        embedUrl: `https://player.twitch.tv/?channel=${encodeURIComponent(channel)}&parent=${parent}`,
+        embedUrl: twitchChannelEmbed(channel),
         watchUrl: trimmed,
         label: PROVIDER_LABELS.twitch,
       };
@@ -110,7 +148,7 @@ export function parseStreamUrl(raw: string | null | undefined): ParsedStream {
     if (parts[0] === "videos" && parts[1]) {
       return {
         provider: "twitch",
-        embedUrl: `https://player.twitch.tv/?video=${encodeURIComponent(parts[1])}&parent=${parent}`,
+        embedUrl: twitchVideoEmbed(parts[1]),
         watchUrl: trimmed,
         label: PROVIDER_LABELS.twitch,
       };
@@ -118,13 +156,18 @@ export function parseStreamUrl(raw: string | null | undefined): ParsedStream {
   }
 
   if (host === "player.twitch.tv") {
-    const sep = trimmed.includes("?") ? "&" : "?";
-    const withParent = trimmed.includes("parent=")
-      ? trimmed
-      : `${trimmed}${sep}parent=${encodeURIComponent(parent)}`;
+    const parentQuery = twitchParentQuery();
+    const base = trimmed.split("?")[0];
+    const qs = new URLSearchParams(trimmed.includes("?") ? trimmed.split("?")[1] : "");
+    for (const pair of parentQuery.split("&")) {
+      const [k, v] = pair.split("=");
+      if (k === "parent") qs.append("parent", decodeURIComponent(v ?? ""));
+    }
+    if (!qs.has("autoplay")) qs.set("autoplay", "true");
+    const embedUrl = `${base}?${qs.toString()}`;
     return {
       provider: "twitch",
-      embedUrl: withParent,
+      embedUrl,
       watchUrl: trimmed,
       label: PROVIDER_LABELS.twitch,
     };
