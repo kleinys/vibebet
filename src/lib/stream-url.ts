@@ -76,7 +76,7 @@ export function parseStreamUrl(raw: string | null | undefined): ParsedStream {
     if (id) {
       return {
         provider: "youtube",
-        embedUrl: `https://www.youtube.com/embed/${id}?autoplay=0&rel=0`,
+        embedUrl: `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`,
         watchUrl: trimmed,
         label: PROVIDER_LABELS.youtube,
       };
@@ -88,7 +88,7 @@ export function parseStreamUrl(raw: string | null | undefined): ParsedStream {
     if (id) {
       return {
         provider: "youtube",
-        embedUrl: `https://www.youtube.com/embed/${id}?autoplay=0&rel=0`,
+        embedUrl: `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`,
         watchUrl: trimmed,
         label: PROVIDER_LABELS.youtube,
       };
