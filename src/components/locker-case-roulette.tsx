@@ -2,19 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { CaseTier } from "@/components/locker-tier-case";
+import { CASE_IMAGES } from "@/lib/locker-assets";
 
 const TIER_ORDER: CaseTier[] = ["common", "uncommon", "rare", "epic", "legendary"];
 
-const TIER_COLORS: Record<CaseTier, { bg: string; border: string; label: string }> = {
-  common: { bg: "#3f3f46", border: "#71717a", label: "Common" },
-  uncommon: { bg: "#166534", border: "#4ade80", label: "Uncommon" },
-  rare: { bg: "#1d4ed8", border: "#60a5fa", label: "Rare" },
-  epic: { bg: "#6b21a8", border: "#c084fc", label: "Epic" },
-  legendary: { bg: "#b45309", border: "#fbbf24", label: "Jackpot" },
-};
+function caseImageForTier(tier: CaseTier): string {
+  if (tier === "common") return CASE_IMAGES.uncommon;
+  return CASE_IMAGES[tier];
+}
 
-const CARD_W = 72;
-const GAP = 8;
+const CARD_W = 80;
+const GAP = 10;
 
 function buildReel(target: CaseTier, targetIndex: number): CaseTier[] {
   const items: CaseTier[] = [];
@@ -45,7 +43,7 @@ export function LockerCaseRoulette({
       return;
     }
     const landIndex = 28 + targetIndex;
-    const targetOffset = landIndex * (CARD_W + GAP) - 140;
+    const targetOffset = landIndex * (CARD_W + GAP) - 150;
     const id = requestAnimationFrame(() => setOffset(targetOffset));
     const done = window.setTimeout(() => onDone?.(), 2600);
     return () => {
@@ -64,21 +62,17 @@ export function LockerCaseRoulette({
           className="locker-case-roulette__track"
           style={{ transform: `translateX(-${offset}px)` }}
         >
-          {reel.map((tier, i) => {
-            const c = TIER_COLORS[tier];
-            return (
-              <div
-                key={`${tier}-${i}`}
-                className="locker-case-roulette__card"
-                style={{
-                  background: c.bg,
-                  borderColor: c.border,
-                }}
-              >
-                <span>{c.label}</span>
-              </div>
-            );
-          })}
+          {reel.map((tier, i) => (
+            <div key={`${tier}-${i}`} className="locker-case-roulette__card">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={caseImageForTier(tier)}
+                alt=""
+                draggable={false}
+                className="locker-case-roulette__img"
+              />
+            </div>
+          ))}
         </div>
       </div>
     </div>

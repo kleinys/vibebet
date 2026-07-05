@@ -1,14 +1,35 @@
--- Trinity shop: VIBE-priced trainer / animal / phenomenon pieces + spend_vibe_for_item
+-- Step 2: Trinity shop pricing + spend_vibe_for_item
+-- PREREQUISITE: Run 20260230900000_trinity_item_kind_enum.sql FIRST (separate queries).
 
-alter type public.item_kind add value if not exists 'animal';
-alter type public.item_kind add value if not exists 'phenomenon';
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_enum e
+    JOIN pg_type t ON e.enumtypid = t.oid
+    JOIN pg_namespace n ON t.typnamespace = n.oid
+    WHERE n.nspname = 'public'
+      AND t.typname = 'item_kind'
+      AND e.enumlabel = 'animal'
+  ) THEN
+    RAISE EXCEPTION
+      'Missing enum value "animal". Run Step 1 first in a NEW SQL tab:
+
+ALTER TYPE public.item_kind ADD VALUE ''animal'';
+ALTER TYPE public.item_kind ADD VALUE ''phenomenon'';
+
+Then verify:
+SELECT e.enumlabel FROM pg_enum e JOIN pg_type t ON e.enumtypid = t.oid WHERE t.typname = ''item_kind'';
+
+Then run this file again.';
+  END IF;
+END $$;
 
 alter table public.shop_items
   add column if not exists price_vibe bigint not null default 0 check (price_vibe >= 0);
 
 create index if not exists shop_items_price_vibe_idx on public.shop_items (price_vibe) where price_vibe > 0;
 
--- Exponential trainer VIBE + gem prices (rank 0 = starter free)
 create temp table _trinity_skin_prices (
   slug text primary key,
   rank int not null,
@@ -40,7 +61,6 @@ set
 from _trinity_skin_prices t
 where si.slug = t.slug and si.kind = 'skin';
 
--- Spirit animals (VIBE only)
 insert into public.shop_items (slug, name, description, kind, rarity, price_gems, price_vibe)
 select
   t.slug || '--animal',
@@ -58,7 +78,6 @@ on conflict (slug) do update set
   description = excluded.description,
   name = excluded.name;
 
--- Orbit phenomena (VIBE only)
 insert into public.shop_items (slug, name, description, kind, rarity, price_gems, price_vibe)
 select
   t.slug || '--phenomenon',

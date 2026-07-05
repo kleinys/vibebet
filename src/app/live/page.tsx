@@ -2,7 +2,7 @@ import Link from "next/link";
 import { isEnabled } from "@/lib/feature-flags";
 import { getLiveEvents } from "@/lib/live-events";
 import { getActiveSpectatorDuels } from "@/lib/duels";
-import { fetchDiscoveredStreams, streamDiscoveryConfigured } from "@/lib/stream-discovery";
+import { fetchDiscoveredStreamsWithMeta } from "@/lib/stream-discovery";
 import { LIVE_EVENT_CATEGORIES } from "@/lib/stream-url";
 import { formatVibe } from "@/lib/utils";
 
@@ -33,16 +33,18 @@ export default async function LiveHubPage() {
     );
   }
 
-  const [events, duels, discovered] = await Promise.all([
+  const [events, duels, discovery] = await Promise.all([
     getLiveEvents(40),
     duelsOn && spectatorOn ? getActiveSpectatorDuels(12) : Promise.resolve([]),
-    fetchDiscoveredStreams({ youtubeLimit: 20 }),
+    fetchDiscoveredStreamsWithMeta({ youtubeLimit: 20 }),
   ]);
 
+  const discovered = discovery.streams;
   const liveNow = events.filter((e) => e.status === "live");
   const upcoming = events.filter((e) => e.status === "scheduled");
   const hasDiscovery = discovered.length > 0;
-  const discoveryHint = !streamDiscoveryConfigured();
+  const discoveryConfigured = discovery.configured;
+  const discoveryError = discovery.error;
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
@@ -147,9 +149,12 @@ export default async function LiveHubPage() {
           <h2 className="text-xs font-semibold uppercase tracking-wider text-sky-400">
             Live on YouTube
           </h2>
-          {discoveryHint && (
+          {discoveryConfigured && discoveryError && (
+            <p className="text-[11px] text-amber-400/90">{discoveryError}</p>
+          )}
+          {!discoveryConfigured && (
             <p className="text-[11px] text-zinc-500">
-              Add <code className="font-mono">YOUTUBE_API_KEY</code> in Vercel env to enable.
+              Add <code className="font-mono">YOUTUBE_API_KEY</code> in Vercel env (no HTTP referrer lock).
             </p>
           )}
         </div>
@@ -191,9 +196,10 @@ export default async function LiveHubPage() {
           </ul>
         ) : (
           <div className="mt-4 rounded-xl border border-dashed border-white/10 bg-zinc-900/20 p-6 text-sm text-zinc-500">
-            External stream discovery uses the YouTube Data API (server-side fetch).
-            Add <code className="font-mono">YOUTUBE_API_KEY</code> to show top live streams here.
-            Twitch can be added later when your dev account has 2FA enabled.
+            {discoveryConfigured
+              ? (discoveryError ??
+                "No live YouTube streams right now. Hosted events and duels still work above.")
+              : "Add YOUTUBE_API_KEY in Vercel → Settings → Environment Variables (Production), then redeploy."}
           </div>
         )}
       </section>

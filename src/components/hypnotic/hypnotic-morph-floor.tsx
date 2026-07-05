@@ -13,7 +13,7 @@ import {
   PAID_SPIN_COST,
 } from "@/lib/hypnotic-flow";
 import { WHEEL_SEGMENTS } from "@/components/companion-locker-rewards";
-import { LockerCasinoWheel, WHEEL_ART_POINTER_INDEX } from "@/components/locker-casino-wheel";
+import { LockerCasinoWheel } from "@/components/locker-casino-wheel";
 import {
   LockerTierCase,
   resultLabelToTier,
@@ -199,7 +199,8 @@ export function HypnoticMorphFloor({
       const nextRotation =
         wheelRotation +
         spins * 360 +
-        (WHEEL_ART_POINTER_INDEX - segmentIndex) * segmentAngle;
+        (WHEEL_SEGMENTS.length - segmentIndex) * segmentAngle -
+        segmentAngle / 2;
 
       setWheelRotation(nextRotation);
 
