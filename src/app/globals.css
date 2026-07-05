@@ -2020,6 +2020,22 @@ body {
   }
 }
 
+@media (min-width: 1280px) {
+  .hypnotic-morph-floor__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.hypnotic-morph-panel--plinko {
+  border-color: rgba(217, 70, 239, 0.18);
+  background: linear-gradient(180deg, rgba(112, 26, 117, 0.12) 0%, rgba(0, 0, 0, 0.2) 100%);
+}
+
+.hypnotic-morph-panel--slots {
+  border-color: rgba(244, 63, 94, 0.18);
+  background: linear-gradient(180deg, rgba(136, 19, 55, 0.12) 0%, rgba(0, 0, 0, 0.2) 100%);
+}
+
 .hypnotic-morph-floor__grid--cinema-dim {
   opacity: 0.28;
   filter: blur(3px) saturate(0.6);
@@ -2427,6 +2443,16 @@ body {
   letter-spacing: 0.05em;
 }
 
+.locker-casino-wheel-svg__label--premium {
+  stroke: rgba(0, 0, 0, 0.88);
+  stroke-width: 4px;
+  letter-spacing: 0.02em;
+}
+
+.locker-casino-wheel-wrap--cinema .locker-casino-wheel-svg__label--premium {
+  stroke-width: 4.5px;
+}
+
 .locker-casino-wheel-svg__label--jackpot {
   fill: #fef9c3;
   stroke: rgba(120, 53, 15, 0.85);
@@ -2455,8 +2481,8 @@ body {
 }
 
 .locker-casino-wheel-wrap--cinema {
-  width: min(88vw, 440px);
-  height: min(88vw, 440px);
+  width: min(92vw, 520px);
+  height: min(92vw, 520px);
 }
 
 .locker-casino-wheel-wrap--cinema .locker-casino-wheel-svg {
@@ -2664,7 +2690,7 @@ body {
 }
 
 .hypnotic-cinema-overlay__case {
-  transform: scale(1.24);
+  transform: scale(1.35);
   filter: drop-shadow(0 20px 46px rgba(0, 0, 0, 0.55));
 }
 

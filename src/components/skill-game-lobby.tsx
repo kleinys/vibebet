@@ -105,7 +105,7 @@ export function SkillGameLobby({
           >
             {createPending ? "Posting…" : "Post game"}
           </button>
-          <PlayDuelVsBotButton gameKey={gameKey} label="Play vs Bot" />
+          <PlayDuelVsBotButton gameKey={gameKey} label="Play vs Bot (free)" />
         </div>
         <FriendChallengeFields stakeInputName="stake" />
         {gameKey === "chess" && (

@@ -7,12 +7,10 @@ import { playDuelVsBot } from "@/app/games/duels/bot-actions";
 
 export function PlayDuelVsBotButton({
   gameKey,
-  stake = 50,
   className = "",
-  label = "vs Bot",
+  label = "vs Bot (free)",
 }: {
   gameKey: string;
-  stake?: number;
   className?: string;
   label?: string;
 }) {
@@ -29,7 +27,7 @@ export function PlayDuelVsBotButton({
             gameKey === "rps"
               ? (["rock", "paper", "scissors"] as const)[Math.floor(Math.random() * 3)]
               : undefined;
-          const result = await playDuelVsBot(gameKey, stake, move);
+          const result = await playDuelVsBot(gameKey, move);
           if (result.error) {
             toast.error(result.error);
             return;

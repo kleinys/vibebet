@@ -89,7 +89,7 @@ export function DuelGameCard({ game }: { game: GameDefinition }) {
             {showBot && (
               <PlayDuelVsBotButton
                 gameKey={game.key}
-                label={game.kind === "skill" ? "Play vs Bot" : "vs Bot"}
+                label={game.kind === "skill" ? "Play vs Bot (free)" : "vs Bot (free)"}
               />
             )}
           </div>

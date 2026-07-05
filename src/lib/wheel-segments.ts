@@ -70,15 +70,24 @@ export function wheelConicGradient(): string {
 
 export function wheelLabelFontSize(label: string, size: "panel" | "cinema"): number {
   if (label.includes("2500") || label.includes("JACKPOT")) {
-    return size === "cinema" ? 10 : 9;
+    return size === "cinema" ? 22 : 20;
   }
   if (label.includes("1000")) {
-    return size === "cinema" ? 12 : 11;
+    return size === "cinema" ? 20 : 18;
   }
   if (label.startsWith("500")) {
-    return size === "cinema" ? 13 : 12;
+    return size === "cinema" ? 18 : 17;
   }
   return size === "cinema" ? 17 : 15;
+}
+
+export function isPremiumWheelSegment(label: string): boolean {
+  return (
+    label.includes("2500") ||
+    label.includes("JACKPOT") ||
+    label.includes("1000") ||
+    label.startsWith("500")
+  );
 }
 
 export function isJackpotSegment(label: string): boolean {

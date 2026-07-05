@@ -6,17 +6,13 @@ import { playInstantVsBot, type InstantBotKey } from "@/app/games/duels/bot-acti
 
 export function PlayVsBotButton({
   gameKey,
-  stakeInputId,
   moveInputName,
   move,
-  defaultStake = 100,
   onWin,
 }: {
   gameKey: InstantBotKey;
-  stakeInputId: string;
   moveInputName?: string;
   move?: "rock" | "paper" | "scissors";
-  defaultStake?: number;
   onWin?: () => void;
 }) {
   const [pending, startTransition] = useTransition();
@@ -27,9 +23,6 @@ export function PlayVsBotButton({
       disabled={pending}
       onClick={() =>
         startTransition(async () => {
-          const stakeEl = document.getElementById(stakeInputId) as HTMLInputElement | null;
-          const stake = Number(stakeEl?.value ?? defaultStake);
-
           let pickedMove: "rock" | "paper" | "scissors" | undefined = move;
           if (gameKey === "rps" && !pickedMove && moveInputName) {
             const picked = document.querySelector<HTMLInputElement>(
@@ -38,7 +31,7 @@ export function PlayVsBotButton({
             pickedMove = (picked?.value as "rock" | "paper" | "scissors" | undefined) ?? "rock";
           }
 
-          const result = await playInstantVsBot(gameKey, stake, pickedMove);
+          const result = await playInstantVsBot(gameKey, pickedMove);
           if (result.error) {
             toast.error(result.error);
             return;
@@ -49,7 +42,7 @@ export function PlayVsBotButton({
       }
       className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-4 py-1.5 text-sm font-medium text-emerald-100 hover:bg-emerald-500/20 disabled:opacity-50"
     >
-      {pending ? "Playing bot…" : "Play vs Bot"}
+      {pending ? "Playing bot…" : "Play vs Bot (free)"}
     </button>
   );
 }

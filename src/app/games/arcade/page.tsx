@@ -3,9 +3,8 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { createClient as createSb } from "@/lib/supabase/server";
-import { CoinFlipPanel, DiceDuelPanel, LuckySlotsPanel, PlinkoPanel } from "./arcade-panels";
+import { CoinFlipPanel, DiceDuelPanel } from "./arcade-panels";
 import { getShareProfile } from "@/lib/share-profile";
-import { getPendingScratchers } from "./actions";
 
 export const revalidate = 0;
 
@@ -43,7 +42,6 @@ export default async function ArcadePage() {
   if (!user) redirect("/login?next=/games/arcade");
 
   const openDuels = await getOpenDiceDuels();
-  const scratchers = await getPendingScratchers();
   const shareProfile = (await getShareProfile(user.id)) ?? {
     displayName: "Player",
     username: null,
@@ -56,11 +54,13 @@ export default async function ArcadePage() {
       </Link>
       <h1 className="mt-3 text-2xl font-semibold">Arcade</h1>
       <p className="mt-1 text-sm text-zinc-400">
-        Quick games — coin flip, dice duels, Plinko, lucky slots &amp; scratchers.
+        Quick games — coin flip and dice duels. Plinko &amp; lucky slots live in the{" "}
+        <Link href="/account/profile/arena" className="text-fuchsia-300 hover:underline">
+          VIBE arena
+        </Link>
+        .
       </p>
       <div className="mt-8 space-y-8">
-        <PlinkoPanel />
-        <LuckySlotsPanel pendingTickets={scratchers.tickets ?? []} />
         <CoinFlipPanel shareProfile={shareProfile} />
         <DiceDuelPanel openDuels={openDuels} userId={user.id} shareProfile={shareProfile} />
       </div>

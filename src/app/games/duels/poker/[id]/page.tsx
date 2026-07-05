@@ -11,7 +11,6 @@ export const revalidate = 0;
 
 export default async function PokerGamePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  if (!(await isEnabled("poker_enabled"))) notFound();
 
   const supabase = await createClient();
   const {
@@ -22,6 +21,11 @@ export default async function PokerGamePage({ params }: { params: Promise<{ id: 
   const { data } = await supabase.rpc("get_poker_game", { p_game_id: id });
   const game = Array.isArray(data) ? data[0] : null;
   if (!game) notFound();
+
+  const pokerOn = await isEnabled("poker_enabled");
+  if (!pokerOn && game.creator_id !== user.id && game.opponent_id !== user.id) {
+    notFound();
+  }
 
   const canJoin =
     game.status === "open" &&

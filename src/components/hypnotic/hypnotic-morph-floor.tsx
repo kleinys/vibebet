@@ -14,6 +14,7 @@ import {
 } from "@/lib/hypnotic-flow";
 import { wheelRotationToSegment } from "@/lib/wheel-segments";
 import { HypnoticModifierBanner } from "@/components/hypnotic/hypnotic-modifier-banner";
+import { HypnoticCinemaOverlay } from "@/components/hypnotic/hypnotic-cinema-overlay";
 import { LockerCasinoWheel } from "@/components/locker-casino-wheel";
 import {
   LockerTierCase,
@@ -22,8 +23,12 @@ import {
   type CaseTier,
 } from "@/components/locker-tier-case";
 import { LockerCaseRoulette } from "@/components/locker-case-roulette";
+<<<<<<< HEAD
 import { HypnoticCinemaOverlay } from "@/components/hypnotic/hypnotic-cinema-overlay";
 import { HypnoticPlinkoGame } from "@/components/hypnotic/hypnotic-plinko-game";
+=======
+import { LuckySlotsPanel, PlinkoPanel } from "@/app/games/arcade/arcade-panels";
+>>>>>>> d8961cbb171e9e6c9900588a7e4ddff618748328
 
 const BTN =
   "rounded-sm border px-4 py-2 text-[11px] font-semibold uppercase tracking-wider transition disabled:opacity-50";
@@ -49,10 +54,12 @@ export function HypnoticMorphFloor({
   vibeBalance,
   spinsUsedToday,
   equippedSkinSlug,
+  pendingScratchers = [],
 }: {
   vibeBalance: number;
   spinsUsedToday: number;
   equippedSkinSlug?: string | null;
+  pendingScratchers?: { id: string; prize: number }[];
 }) {
   const router = useRouter();
   const {
@@ -63,6 +70,7 @@ export function HypnoticMorphFloor({
     setStakeDocked,
     onWheelWin,
     onCaseResult,
+    cinema,
     setCinema,
     setReaction,
     morphing,
@@ -86,6 +94,9 @@ export function HypnoticMorphFloor({
   const autoFullscreenRef = useRef(false);
 
   const freeSpinAvailable = spinsUsed === 0;
+  const cinemaActive = cinema === "wheel-spin" || cinema === "case-open";
+  const cinemaMode =
+    cinema === "wheel-spin" ? "wheel" : cinema === "case-open" ? "case" : null;
 
   const caseTier = crateResult
     ? resultLabelToTier(crateResult.label)
@@ -112,10 +123,7 @@ export function HypnoticMorphFloor({
         onCaseResult(pending.net, parseMomentumFromRpc(sync));
       }
       crateSyncRef.current = null;
-      if (autoFullscreenRef.current && document.fullscreenElement) {
-        void document.exitFullscreen();
-      }
-      autoFullscreenRef.current = false;
+      exitGamblingFullscreen();
       router.refresh();
       return null;
     });
@@ -131,15 +139,7 @@ export function HypnoticMorphFloor({
     }, 420);
   }
 
-  async function openCrate() {
-    if (crateOpen || busy) return;
-    setError(null);
-    setBusy(true);
-    setCrateOpen(true);
-    setCrateResult(null);
-    setCinema("case-open");
-    setReaction("watch-wheel");
-
+  async function enterGamblingFullscreen() {
     const arena = document.getElementById("hypnotic-arena-root");
     if (arena && !document.fullscreenElement) {
       try {
@@ -149,6 +149,24 @@ export function HypnoticMorphFloor({
         autoFullscreenRef.current = false;
       }
     }
+  }
+
+  function exitGamblingFullscreen() {
+    if (autoFullscreenRef.current && document.fullscreenElement) {
+      void document.exitFullscreen();
+    }
+    autoFullscreenRef.current = false;
+  }
+
+  async function openCrate() {
+    if (crateOpen || busy) return;
+    setError(null);
+    setBusy(true);
+    setCrateOpen(true);
+    setCrateResult(null);
+    setCinema("case-open");
+    setReaction("watch-wheel");
+    await enterGamblingFullscreen();
 
     try {
       const supabase = createClient();
@@ -175,10 +193,7 @@ export function HypnoticMorphFloor({
       setBusy(false);
       setCinema("idle");
       setReaction("idle");
-      if (autoFullscreenRef.current && document.fullscreenElement) {
-        void document.exitFullscreen();
-      }
-      autoFullscreenRef.current = false;
+      exitGamblingFullscreen();
       setError(parseError(e));
     }
   }
@@ -191,10 +206,7 @@ export function HypnoticMorphFloor({
     crateSyncRef.current = null;
     setError(null);
     setStakeDocked(false);
-    if (autoFullscreenRef.current && document.fullscreenElement) {
-      void document.exitFullscreen();
-    }
-    autoFullscreenRef.current = false;
+    exitGamblingFullscreen();
   }
 
   async function spinWheel() {
@@ -205,6 +217,7 @@ export function HypnoticMorphFloor({
     setWheelResult(null);
     setCinema("wheel-spin");
     setReaction("watch-wheel");
+    await enterGamblingFullscreen();
 
     try {
       const supabase = createClient();
@@ -238,6 +251,7 @@ export function HypnoticMorphFloor({
         setWheelSpinning(false);
         setBusy(false);
         onWheelWin(result.payout, parseMomentumFromRpc(row as Record<string, unknown>));
+        exitGamblingFullscreen();
         router.refresh();
       }, WHEEL_SPIN_MS);
     } catch (e) {
@@ -245,25 +259,13 @@ export function HypnoticMorphFloor({
       setBusy(false);
       setCinema("idle");
       setReaction("idle");
+      exitGamblingFullscreen();
       setError(parseError(e));
     }
   }
 
   return (
     <div className="hypnotic-morph-floor">
-      <HypnoticCinemaOverlay
-        visible={crateOpen && !crateResult}
-        mode="case"
-        wheelRotation={wheelRotation}
-        wheelSpinning={wheelSpinning}
-        superActive={superActive}
-        caseRouletteActive={crateOpen && !crateResult}
-        caseRouletteTier={caseRouletteTier ?? caseTier}
-        caseTier={caseRouletteTier ?? caseTier}
-        crateOpen={crateOpen}
-        onCaseRouletteDone={finishCrateOpen}
-      />
-
       <div className="hypnotic-morph-floor__tabs" role="tablist">
         <button
           type="button"
@@ -301,6 +303,21 @@ export function HypnoticMorphFloor({
         >
           Plinko
         </button>
+<<<<<<< HEAD
+=======
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === "slots"}
+          className={`hypnotic-morph-floor__tab ${mode === "slots" ? "hypnotic-morph-floor__tab--active" : ""}`}
+          onClick={() => {
+            setMode("slots");
+            document.getElementById("vibe-slots")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }}
+        >
+          Lucky slots
+        </button>
+>>>>>>> d8961cbb171e9e6c9900588a7e4ddff618748328
         <div className="ml-auto inline-flex items-center gap-1.5 rounded-sm border border-amber-500/30 bg-amber-950/40 px-2.5 py-1 text-xs text-amber-200">
           <CurrencyIconVibe className="h-4 w-4" />
           <span className="tabular-nums font-medium">{formatVibe(balance)} VIBE</span>
@@ -320,7 +337,9 @@ export function HypnoticMorphFloor({
         </p>
       )}
 
-      <div className="hypnotic-morph-floor__grid">
+      <div
+        className={`hypnotic-morph-floor__grid ${cinemaActive ? "hypnotic-morph-floor__grid--cinema-dim" : ""}`}
+      >
         {/* VIBE case — always visible beside wheel on md+ */}
         <section
           className={`hypnotic-morph-panel hypnotic-morph-panel--case ${mode === "case" ? "hypnotic-morph-panel--focused" : ""}`}
@@ -490,19 +509,49 @@ export function HypnoticMorphFloor({
           </div>
         </section>
 
+<<<<<<< HEAD
         {/* Plinko Game */}
+=======
+>>>>>>> d8961cbb171e9e6c9900588a7e4ddff618748328
         <section
           className={`hypnotic-morph-panel hypnotic-morph-panel--plinko ${mode === "plinko" ? "hypnotic-morph-panel--focused" : ""}`}
           id="vibe-plinko"
         >
+<<<<<<< HEAD
           <p className="hypnotic-morph-panel__title text-[10px] font-semibold uppercase tracking-wider text-fuchsia-300/90">
             PLINKO GAME
           </p>
           <div className="mt-4">
             <HypnoticPlinkoGame />
+=======
+          <div className="w-full max-w-md [&_section]:mt-0 [&_section]:border-0 [&_section]:bg-transparent [&_section]:p-0">
+            <PlinkoPanel />
+          </div>
+        </section>
+
+        <section
+          className={`hypnotic-morph-panel hypnotic-morph-panel--slots ${mode === "slots" ? "hypnotic-morph-panel--focused" : ""}`}
+          id="vibe-slots"
+        >
+          <div className="w-full max-w-md [&_section]:mt-0 [&_section]:border-0 [&_section]:bg-transparent [&_section]:p-0">
+            <LuckySlotsPanel pendingTickets={pendingScratchers} />
+>>>>>>> d8961cbb171e9e6c9900588a7e4ddff618748328
           </div>
         </section>
       </div>
+
+      <HypnoticCinemaOverlay
+        visible={cinemaActive}
+        mode={cinemaMode}
+        wheelRotation={wheelRotation}
+        wheelSpinning={wheelSpinning}
+        superActive={superActive}
+        caseRouletteActive={crateOpen && caseRouletteTier != null && !crateResult}
+        caseRouletteTier={caseRouletteTier ?? "common"}
+        caseTier={caseTier}
+        crateOpen={crateOpen}
+        onCaseRouletteDone={finishCrateOpen}
+      />
     </div>
   );
 }
