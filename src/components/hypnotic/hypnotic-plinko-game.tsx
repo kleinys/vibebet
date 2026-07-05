@@ -33,8 +33,8 @@ type PlinkoBall = {
 
 export function HypnoticPlinkoGame() {
   const [balls, setBalls] = useState<PlinkoBall[]>([]);
-  const [ballIdCounter, setBallIdCounter] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [ballIdCounter, setBallIdCounter] = useState<number>(0);
+  const [isAnimating, setIsAnimating] = useState<boolean>(false);
   const [lastWinSlot, setLastWinSlot] = useState<number | null>(null);
   const [winMessage, setWinMessage] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -57,8 +57,8 @@ export function HypnoticPlinkoGame() {
       active: true,
     };
 
-    setBalls(prev => [...prev, newBall]);
-    setBallIdCounter(prev => prev + 1);
+    setBalls((prev: PlinkoBall[]) => [...prev, newBall]);
+    setBallIdCounter((prev: number) => prev + 1);
   };
 
   // Physics simulation loop
@@ -71,9 +71,9 @@ export function HypnoticPlinkoGame() {
       const deltaTime = currentTime - lastTimeRef.current;
       lastTimeRef.current = currentTime;
       
-      setBalls(prevBalls => {
+      setBalls((prevBalls: PlinkoBall[]) => {
         let stillAnimating = false;
-        const updatedBalls = prevBalls.map(ball => {
+        const updatedBalls: PlinkoBall[] = prevBalls.map((ball: PlinkoBall) => {
           if (!ball.active) return ball;
 
           // Apply gravity
@@ -164,11 +164,11 @@ export function HypnoticPlinkoGame() {
         });
 
         // Check if any balls are still animating
-        const anyStillAnimating = updatedBalls.some(ball => ball.active);
+        const anyStillAnimating = updatedBalls.some((ball: PlinkoBall) => ball.active);
         
         if (!anyStillAnimating && prevBalls.length > 0) {
           // All balls have finished, find the last one that finished
-          const lastFinishedBall = prevBalls.find(ball => !ball.active && ball.finalSlot !== undefined);
+          const lastFinishedBall = prevBalls.find((ball: PlinkoBall) => !ball.active && ball.finalSlot !== undefined);
           if (lastFinishedBall && lastFinishedBall.finalSlot !== undefined) {
             setLastWinSlot(lastFinishedBall.finalSlot);
             setWinMessage(`Won ${PLINKO_SLOTS[lastFinishedBall.finalSlot].multiplier}× multiplier!`);
@@ -182,7 +182,7 @@ export function HypnoticPlinkoGame() {
         return updatedBalls;
       });
       
-      if (balls.some(ball => ball.active)) {
+      if (balls.some((ball: PlinkoBall) => ball.active)) {
         animationRef.current = requestAnimationFrame(animate);
       }
       
@@ -193,7 +193,7 @@ export function HypnoticPlinkoGame() {
       };
     };
     
-    if (balls.some(ball => ball.active)) {
+    if (balls.some((ball: PlinkoBall) => ball.active)) {
       animationRef.current = requestAnimationFrame(animate);
     }
     
@@ -207,8 +207,8 @@ export function HypnoticPlinkoGame() {
   // Clean up completed balls after animation
   useEffect(() => {
     const timer = setTimeout(() => {
-      setBalls(prev => prev.filter(ball => ball.active || 
-        (ball.finalSlot !== undefined && Date.now() - (ball as any)._timestamp < 3000)));
+      setBalls((prev: PlinkoBall[]) => prev.filter((ball: PlinkoBall) => ball.active || 
+        (ball.finalSlot !== undefined)));
     }, 3000);
 
     return () => clearTimeout(timer);
@@ -228,9 +228,9 @@ export function HypnoticPlinkoGame() {
         className="relative w-full h-80 bg-gradient-to-b from-zinc-900 to-zinc-950 rounded-xl border border-fuchsia-500/30 overflow-hidden"
       >
         {/* Pegs */}
-        {Array.from({ length: 8 }).map((_, rowIndex) => (
+        {Array.from({ length: 8 }).map((_, rowIndex: number) => (
           <div key={rowIndex} className="absolute w-full" style={{ top: `${rowIndex * 8 + 10}%` }}>
-            {Array.from({ length: 10 - rowIndex % 2 }).map((_, colIndex) => {
+            {Array.from({ length: 10 - rowIndex % 2 }).map((_, colIndex: number) => {
               const offsetX = (rowIndex % 2) * (100 / ((10 - rowIndex % 2) * 2));
               return (
                 <div
@@ -247,7 +247,7 @@ export function HypnoticPlinkoGame() {
         ))}
 
         {/* Balls */}
-        {balls.map((ball) => (
+        {balls.map((ball: PlinkoBall) => (
           <div
             key={ball.id}
             className={`absolute w-4 h-4 rounded-full bg-gradient-to-br from-amber-300 to-orange-500 shadow-lg ${
@@ -264,7 +264,7 @@ export function HypnoticPlinkoGame() {
 
         {/* Slots at the bottom */}
         <div className="absolute bottom-0 left-0 right-0 flex h-16">
-          {PLINKO_SLOTS.map((slot, index) => (
+          {PLINKO_SLOTS.map((slot: PlinkoSlot, index: number) => (
             <div
               key={index}
               className={`flex-1 flex flex-col items-center justify-end border-t-2 border-l border-white/20 p-1 text-[9px] transition-all duration-500 ${
