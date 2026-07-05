@@ -23,12 +23,7 @@ import {
   type CaseTier,
 } from "@/components/locker-tier-case";
 import { LockerCaseRoulette } from "@/components/locker-case-roulette";
-<<<<<<< HEAD
-import { HypnoticCinemaOverlay } from "@/components/hypnotic/hypnotic-cinema-overlay";
-import { HypnoticPlinkoGame } from "@/components/hypnotic/hypnotic-plinko-game";
-=======
 import { LuckySlotsPanel, PlinkoPanel } from "@/app/games/arcade/arcade-panels";
->>>>>>> d8961cbb171e9e6c9900588a7e4ddff618748328
 
 const BTN =
   "rounded-sm border px-4 py-2 text-[11px] font-semibold uppercase tracking-wider transition disabled:opacity-50";
@@ -303,8 +298,6 @@ export function HypnoticMorphFloor({
         >
           Plinko
         </button>
-<<<<<<< HEAD
-=======
         <button
           type="button"
           role="tab"
@@ -317,7 +310,6 @@ export function HypnoticMorphFloor({
         >
           Lucky slots
         </button>
->>>>>>> d8961cbb171e9e6c9900588a7e4ddff618748328
         <div className="ml-auto inline-flex items-center gap-1.5 rounded-sm border border-amber-500/30 bg-amber-950/40 px-2.5 py-1 text-xs text-amber-200">
           <CurrencyIconVibe className="h-4 w-4" />
           <span className="tabular-nums font-medium">{formatVibe(balance)} VIBE</span>
@@ -509,21 +501,10 @@ export function HypnoticMorphFloor({
           </div>
         </section>
 
-<<<<<<< HEAD
-        {/* Plinko Game */}
-=======
->>>>>>> d8961cbb171e9e6c9900588a7e4ddff618748328
         <section
           className={`hypnotic-morph-panel hypnotic-morph-panel--plinko ${mode === "plinko" ? "hypnotic-morph-panel--focused" : ""}`}
           id="vibe-plinko"
         >
-<<<<<<< HEAD
-          <p className="hypnotic-morph-panel__title text-[10px] font-semibold uppercase tracking-wider text-fuchsia-300/90">
-            PLINKO GAME
-          </p>
-          <div className="mt-4">
-            <HypnoticPlinkoGame />
-=======
           <div className="w-full max-w-md [&_section]:mt-0 [&_section]:border-0 [&_section]:bg-transparent [&_section]:p-0">
             <PlinkoPanel />
           </div>
@@ -535,7 +516,6 @@ export function HypnoticMorphFloor({
         >
           <div className="w-full max-w-md [&_section]:mt-0 [&_section]:border-0 [&_section]:bg-transparent [&_section]:p-0">
             <LuckySlotsPanel pendingTickets={pendingScratchers} />
->>>>>>> d8961cbb171e9e6c9900588a7e4ddff618748328
           </div>
         </section>
       </div>
