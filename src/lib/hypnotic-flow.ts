@@ -1,14 +1,19 @@
 /** Client-side hypnotic UX state — momentum, cinema phases, recommended stakes. */
 
-<<<<<<< HEAD
-export type HypnoticMode = "case" | "wheel" | "plinko";
-export type HypnoticReaction = "idle" | "watch-wheel" | "approve" | "leash" | "bond" | "win" | "loss";
-export type HypnoticCinema = "idle" | "wheel-spin" | "case-open";
-=======
 export type HypnoticMode = "case" | "wheel" | "plinko" | "slots";
-export type HypnoticReaction = "idle" | "watch-wheel" | "approve" | "super" | "leash" | "afterglow";
-export type HypnoticCinema = "idle" | "wheel-spin" | "vibe-absorb" | "case-open" | "confetti";
->>>>>>> d8961cbb171e9e6c9900588a7e4ddff618748328
+export type HypnoticReaction =
+  | "idle"
+  | "watch-wheel"
+  | "approve"
+  | "super"
+  | "leash"
+  | "afterglow";
+export type HypnoticCinema =
+  | "idle"
+  | "wheel-spin"
+  | "vibe-absorb"
+  | "case-open"
+  | "confetti";
 
 export const CRATE_STAKES = [100, 250, 500, 1000] as const;
 export const PAID_SPIN_COST = 100;
