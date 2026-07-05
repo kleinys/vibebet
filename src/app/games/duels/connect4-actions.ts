@@ -60,6 +60,21 @@ export async function playConnect4Move(gameId: string, col: number) {
   return { ok: "Move played." };
 }
 
+export async function playConnect4BotMove(gameId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("play_connect4_bot_move", {
+    p_game_id: gameId,
+  });
+  if (error) return { error: error.message };
+
+  const row = Array.isArray(data) ? data[0] : null;
+  revalidatePath(`/games/duels/connect4/${gameId}`);
+  if (row?.winner_id || row?.is_draw) {
+    return { ok: row.is_draw ? "Draw!" : "Game over!", settled: true as const };
+  }
+  return { ok: "Bot moved." };
+}
+
 export async function cancelConnect4Game(gameId: string) {
   const supabase = await createClient();
   const { error } = await supabase.rpc("cancel_connect4_game", { p_game_id: gameId });

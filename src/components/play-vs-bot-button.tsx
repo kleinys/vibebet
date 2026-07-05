@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { toast } from "sonner";
-import { playVsBot, type BotGameKey } from "@/app/games/duels/bot-actions";
+import { playInstantVsBot, type InstantBotKey } from "@/app/games/duels/bot-actions";
 
 export function PlayVsBotButton({
   gameKey,
@@ -12,7 +12,7 @@ export function PlayVsBotButton({
   defaultStake = 100,
   onWin,
 }: {
-  gameKey: BotGameKey;
+  gameKey: InstantBotKey;
   stakeInputId: string;
   moveInputName?: string;
   move?: "rock" | "paper" | "scissors";
@@ -38,7 +38,7 @@ export function PlayVsBotButton({
             pickedMove = (picked?.value as "rock" | "paper" | "scissors" | undefined) ?? "rock";
           }
 
-          const result = await playVsBot(gameKey, stake, pickedMove);
+          const result = await playInstantVsBot(gameKey, stake, pickedMove);
           if (result.error) {
             toast.error(result.error);
             return;

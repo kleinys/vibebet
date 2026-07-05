@@ -1518,6 +1518,90 @@ export interface Database {
           bot_name: string;
         }[];
       };
+      start_connect4_vs_bot: {
+        Args: { p_friendly?: boolean; p_stake?: number };
+        Returns: string;
+      };
+      play_connect4_bot_move: {
+        Args: { p_game_id: string };
+        Returns: { winner_id: string | null; is_draw: boolean; col_played: number }[];
+      };
+      start_checkers_vs_bot: {
+        Args: { p_friendly?: boolean; p_stake?: number };
+        Returns: string;
+      };
+      start_go_vs_bot: {
+        Args: { p_friendly?: boolean; p_stake?: number };
+        Returns: string;
+      };
+      start_shogi_vs_bot: {
+        Args: { p_friendly?: boolean; p_stake?: number };
+        Returns: string;
+      };
+      start_poker_vs_bot: {
+        Args: { p_state: Record<string, unknown>; p_friendly?: boolean; p_stake?: number };
+        Returns: string;
+      };
+      play_trivia_vs_bot: {
+        Args: { p_stake?: number };
+        Returns: {
+          your_score: number;
+          bot_score: number;
+          winner_id: string;
+          payout: number;
+          bot_name: string;
+        }[];
+      };
+      play_liars_dice_vs_bot: {
+        Args: { p_stake?: number };
+        Returns: {
+          winner_id: string;
+          payout: number;
+          bot_name: string;
+          you_won: boolean;
+        }[];
+      };
+      play_lightning_duel_vs_bot: {
+        Args: { p_stake?: number; p_side?: string };
+        Returns: {
+          winner_id: string;
+          payout: number;
+          bot_name: string;
+          strike_price: number;
+          settle_price: number;
+        }[];
+      };
+      play_plinko: {
+        Args: { p_stake: number; p_risk?: string };
+        Returns: {
+          slot_index: number;
+          multiplier: number;
+          payout: number;
+          net: number;
+          new_balance: number;
+        }[];
+      };
+      spin_lucky_slots: {
+        Args: { p_stake?: number };
+        Returns: {
+          reel1: string;
+          reel2: string;
+          reel3: string;
+          line_payout: number;
+          scratcher_won: boolean;
+          ticket_id: string | null;
+          net: number;
+          new_balance: number;
+        }[];
+      };
+      reveal_lucky_scratcher: {
+        Args: { p_ticket_id: string };
+        Returns: { prize: number; new_balance: number }[];
+      };
+      get_pending_scratchers: {
+        Args: Record<string, never>;
+        Returns: { id: string; prize: number; created_at: string }[];
+      };
       cancel_dice_duel: {
         Args: { p_duel_id: string };
         Returns: undefined;

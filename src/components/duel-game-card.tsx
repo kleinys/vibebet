@@ -1,10 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useTransition } from "react";
-import { toast } from "sonner";
-import { playVsBot, type BotGameKey } from "@/app/games/duels/bot-actions";
-import { PlayChessVsBotButton } from "@/components/play-chess-vs-bot-button";
+import { PlayDuelVsBotButton } from "@/components/play-duel-vs-bot-button";
 import type { GameDefinition } from "@/lib/game-catalog";
 
 const KIND_STYLES = {
@@ -41,26 +38,11 @@ const KIND_LABELS = {
   oracle: "Auto-settled",
 } as const;
 
-const BOT_KEYS: Partial<Record<string, BotGameKey>> = {
-  rps: "rps",
-  high_card: "high_card",
-  dice: "dice",
-};
+const NO_BOT_KEYS = new Set(["lightning"]);
 
 export function DuelGameCard({ game }: { game: GameDefinition }) {
-  const [pending, startTransition] = useTransition();
   const style = KIND_STYLES[game.kind];
-  const botKey = BOT_KEYS[game.key];
-
-  function quickBot() {
-    if (!botKey) return;
-    startTransition(async () => {
-      const move = botKey === "rps" ? ("rock" as const) : undefined;
-      const result = await playVsBot(botKey, 50, move);
-      if (result.error) toast.error(result.error);
-      else toast.success(result.ok ?? "Done!");
-    });
-  }
+  const showBot = !NO_BOT_KEYS.has(game.key);
 
   return (
     <li className="group list-none">
@@ -87,10 +69,12 @@ export function DuelGameCard({ game }: { game: GameDefinition }) {
         </div>
 
         <div className="relative mt-4 flex flex-1 flex-col">
-          <h3 className="font-[family-name:var(--font-geist-sans)] text-lg font-semibold tracking-tight text-zinc-50">
+          <h3 className="font-[family-name:var(--font-gothic)] text-xl font-normal tracking-wide text-zinc-50">
             {game.name}
           </h3>
-          <p className="mt-1.5 flex-1 text-[13px] leading-relaxed text-zinc-400">{game.description}</p>
+          <p className="mt-1.5 flex-1 font-[family-name:var(--font-gothic)] text-[13px] font-light leading-relaxed text-zinc-400">
+            {game.description}
+          </p>
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {game.href && (
@@ -102,18 +86,11 @@ export function DuelGameCard({ game }: { game: GameDefinition }) {
                 <span aria-hidden>→</span>
               </Link>
             )}
-            {botKey && (
-              <button
-                type="button"
-                disabled={pending}
-                onClick={quickBot}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/35 bg-emerald-500/10 px-3.5 py-2 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/20 disabled:opacity-50"
-              >
-                {pending ? "…" : "vs Bot"}
-              </button>
-            )}
-            {game.key === "chess" && (
-              <PlayChessVsBotButton className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/35 bg-emerald-500/10 px-3.5 py-2 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-500/20 disabled:opacity-50" />
+            {showBot && (
+              <PlayDuelVsBotButton
+                gameKey={game.key}
+                label={game.kind === "skill" ? "Play vs Bot" : "vs Bot"}
+              />
             )}
           </div>
         </div>

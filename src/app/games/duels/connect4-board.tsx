@@ -1,13 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useEffect, useRef, useTransition } from "react";
 import { toast } from "sonner";
 import {
   acceptConnect4Draw,
   declineConnect4Draw,
   leaveConnect4Game,
   offerConnect4Draw,
+  playConnect4BotMove,
   playConnect4Move,
   resignConnect4Game,
 } from "./connect4-actions";
@@ -20,6 +21,7 @@ export function Connect4Board({
   currentTurnId,
   userId,
   creatorId,
+  botId,
   status,
   winnerId,
   moveCount = 0,
@@ -31,6 +33,7 @@ export function Connect4Board({
   currentTurnId: string | null;
   userId: string;
   creatorId: string;
+  botId?: string | null;
   status: string;
   winnerId: string | null;
   moveCount?: number;
@@ -39,8 +42,30 @@ export function Connect4Board({
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const myPiece = userId === creatorId ? 1 : 2;
+  const botBusy = useRef(false);
+
   const inPlay = status === "active" || status === "matched";
+  const isBotTurn =
+    inPlay &&
+    !isSpectator &&
+    botId &&
+    currentTurnId === botId;
+
+  useEffect(() => {
+    if (!isBotTurn || pending || botBusy.current) return;
+    botBusy.current = true;
+    startTransition(async () => {
+      const r = await playConnect4BotMove(gameId);
+      botBusy.current = false;
+      if (r.error) toast.error(r.error);
+      else {
+        if (r.settled) toast.info(r.ok ?? "Bot moved.");
+        router.refresh();
+      }
+    });
+  }, [isBotTurn, gameId, pending, router, currentTurnId]);
+
+  const myPiece = userId === creatorId ? 1 : 2;
   const isLocked = status === "active";
   const isMyTurn = inPlay && !isSpectator && currentTurnId === userId;
   const drawPending = drawOfferedBy && drawOfferedBy !== userId;

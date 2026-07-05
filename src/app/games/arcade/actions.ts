@@ -74,3 +74,60 @@ export async function cancelDiceDuel(duelId: string) {
   revalidatePath("/games/arcade");
   return { ok: "Cancelled." };
 }
+
+export async function playPlinko(stake: number, risk: "low" | "medium" | "high") {
+  if (stake < 10 || stake > 5000) return { error: "Stake must be 10–5,000 VIBE." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("play_plinko", {
+    p_stake: stake,
+    p_risk: risk,
+  });
+  if (error) return { error: error.message };
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return { error: "No result." };
+  revalidatePath("/games/arcade");
+  return {
+    ok: `Slot ${row.slot_index + 1} · ${row.multiplier}× → ${row.payout} VIBE (${row.net >= 0 ? "+" : ""}${row.net}).`,
+    won: row.net > 0,
+    slot: row.slot_index as number,
+    multiplier: Number(row.multiplier),
+  };
+}
+
+export async function spinLuckySlots(stake: number) {
+  if (stake < 10 || stake > 2000) return { error: "Stake must be 10–2,000 VIBE." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("spin_lucky_slots", { p_stake: stake });
+  if (error) return { error: error.message };
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return { error: "No result." };
+  revalidatePath("/games/arcade");
+  return {
+    ok: `${row.reel1} | ${row.reel2} | ${row.reel3}${row.scratcher_won ? " — scratcher ticket won!" : row.line_payout ? ` → ${row.line_payout} VIBE` : ""}`,
+    reels: [row.reel1, row.reel2, row.reel3] as string[],
+    scratcherWon: row.scratcher_won as boolean,
+    ticketId: row.ticket_id as string | null,
+    payout: row.line_payout as number,
+  };
+}
+
+export async function revealLuckyScratcher(ticketId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("reveal_lucky_scratcher", {
+    p_ticket_id: ticketId,
+  });
+  if (error) return { error: error.message };
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return { error: "No result." };
+  revalidatePath("/games/arcade");
+  return { ok: `Scratched! +${row.prize} VIBE`, prize: row.prize as number };
+}
+
+export async function getPendingScratchers() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_pending_scratchers");
+  if (error) return { error: error.message, tickets: [] as { id: string; prize: number }[] };
+  return {
+    tickets: (data ?? []) as { id: string; prize: number; created_at: string }[],
+  };
+}

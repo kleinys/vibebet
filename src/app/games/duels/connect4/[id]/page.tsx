@@ -55,6 +55,9 @@ export default async function Connect4GamePage({
     .eq("id", user.id)
     .maybeSingle();
 
+  const { data: botIdRaw } = await supabase.rpc("get_platform_bot_id");
+  const platformBotId = botIdRaw as string | null;
+
   const userWon =
     isParticipant && game.status === "settled" && game.winner_id === user.id;
 
@@ -111,6 +114,7 @@ export default async function Connect4GamePage({
             currentTurnId={game.current_turn_id}
             userId={user.id}
             creatorId={game.creator_id}
+            botId={platformBotId}
             status={game.status}
             winnerId={game.winner_id}
             moveCount={game.move_count ?? 0}

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useTransition } from "react";
 import { toast } from "sonner";
 import { FriendChallengeFields } from "@/components/friend-challenge-fields";
-import { PlayChessVsBotButton } from "@/components/play-chess-vs-bot-button";
+import { PlayDuelVsBotButton } from "@/components/play-duel-vs-bot-button";
 import {
   acceptCheckersGame,
   cancelCheckersGame,
@@ -105,7 +105,7 @@ export function SkillGameLobby({
           >
             {createPending ? "Posting…" : "Post game"}
           </button>
-          {gameKey === "chess" && <PlayChessVsBotButton />}
+          <PlayDuelVsBotButton gameKey={gameKey} label="Play vs Bot" />
         </div>
         <FriendChallengeFields stakeInputName="stake" />
         {gameKey === "chess" && (

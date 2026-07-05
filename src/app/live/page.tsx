@@ -160,12 +160,13 @@ export default async function LiveHubPage() {
         </div>
         {hasDiscovery ? (
           <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {discovered.slice(0, 20).map((s) => (
+            {discovered.slice(0, 20).map((s) => {
+              const videoId = s.id.startsWith("youtube-") ? s.id.slice(8) : s.id;
+              const watchHref = `/live/watch?provider=${s.provider}&id=${encodeURIComponent(videoId)}&title=${encodeURIComponent(s.title)}&channel=${encodeURIComponent(s.channel)}`;
+              return (
               <li key={s.id}>
-                <a
-                  href={s.watchUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  href={watchHref}
                   className="block overflow-hidden rounded-xl border border-white/5 bg-zinc-900/40 transition hover:border-sky-500/35"
                 >
                   {s.thumbnailUrl ? (
@@ -190,9 +191,9 @@ export default async function LiveHubPage() {
                     </p>
                     <p className="mt-0.5 text-xs text-zinc-500">{s.channel}</p>
                   </div>
-                </a>
+                </Link>
               </li>
-            ))}
+            );})}
           </ul>
         ) : (
           <div className="mt-4 rounded-xl border border-dashed border-white/10 bg-zinc-900/20 p-6 text-sm text-zinc-500">
