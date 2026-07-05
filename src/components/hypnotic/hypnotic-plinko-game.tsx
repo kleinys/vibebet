@@ -24,8 +24,11 @@ type PlinkoBall = {
   id: number;
   x: number;
   y: number;
+  velocityX: number;
+  velocityY: number;
   active: boolean;
   finalSlot?: number;
+  hasHitPeg?: boolean;
 };
 
 export function HypnoticPlinkoGame() {
@@ -33,19 +36,24 @@ export function HypnoticPlinkoGame() {
   const [ballIdCounter, setBallIdCounter] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [lastWinSlot, setLastWinSlot] = useState<number | null>(null);
+  const [winMessage, setWinMessage] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>(0);
+  const lastTimeRef = useRef<number | null>(null);
 
   const dropBall = () => {
     if (isAnimating) return;
     
     setIsAnimating(true);
     setLastWinSlot(null);
+    setWinMessage(null);
     
     const newBall: PlinkoBall = {
       id: ballIdCounter,
       x: 50, // Start from middle (percentage)
-      y: 0,
+      y: 5,
+      velocityX: (Math.random() - 0.5) * 0.5, // Small initial horizontal velocity
+      velocityY: 0.5, // Initial downward velocity
       active: true,
     };
 
@@ -53,63 +61,142 @@ export function HypnoticPlinkoGame() {
     setBallIdCounter(prev => prev + 1);
   };
 
-  // Animation loop
+  // Physics simulation loop
   useEffect(() => {
-    if (balls.some(ball => ball.active)) {
-      animationRef.current = requestAnimationFrame(() => {
-        setBalls(prevBalls => {
-          const updatedBalls = prevBalls.map(ball => {
-            if (!ball.active) return ball;
+    const animate = (currentTime: number) => {
+      if (!lastTimeRef.current) {
+        lastTimeRef.current = currentTime;
+      }
+      
+      const deltaTime = currentTime - lastTimeRef.current;
+      lastTimeRef.current = currentTime;
+      
+      setBalls(prevBalls => {
+        let stillAnimating = false;
+        const updatedBalls = prevBalls.map(ball => {
+          if (!ball.active) return ball;
 
-            // Simulate physics - move ball downward with slight horizontal movement
-            const newY = ball.y + 1.5;
-            const newX = ball.x + (Math.random() - 0.5) * 1.5; // Random horizontal movement
-            
-            // Check if ball reached the bottom (simulate hitting pegs)
-            if (newY >= 85) { // 85% down the board
-              // Determine which slot it landed in
-              const slotWidth = 100 / PLINKO_SLOTS.length;
-              const slotIndex = Math.min(
-                PLINKO_SLOTS.length - 1, 
-                Math.floor(newX / slotWidth)
-              );
+          // Apply gravity
+          let newVelY = ball.velocityY + 0.05 * (deltaTime / 16);
+          let newVelX = ball.velocityX;
+          
+          // Calculate new position
+          let newX = ball.x + newVelX * (deltaTime / 16);
+          let newY = ball.y + newVelY * (deltaTime / 16);
+          
+          // Boundary checks - keep ball within horizontal bounds
+          if (newX < 2) {
+            newX = 2;
+            newVelX = Math.abs(newVelX) * 0.8; // Bounce with energy loss
+          } else if (newX > 98) {
+            newX = 98;
+            newVelX = -Math.abs(newVelX) * 0.8;
+          }
+          
+          // Simulate peg collisions (simplified)
+          // We'll simulate pegs at fixed positions
+          const rowHeight = 8;
+          const pegRows = 8;
+          
+          for (let row = 1; row <= pegRows; row++) {
+            const pegY = row * rowHeight + 10; // Pegs start at 18% down
+            if (Math.abs(newY - pegY) < 2 && Math.abs(ball.y - pegY) >= 2) { // Ball is near a peg row
+              // Determine if there's a peg at this X position
+              const rowIndex = row - 1;
+              const colsInRow = 10 - (rowIndex % 2); // Alternating rows
+              const offsetX = (rowIndex % 2) * (100 / (colsInRow * 2)); // Offset for alternating rows
               
-              // Return completed ball
-              return {
-                ...ball,
-                y: 85,
-                active: false,
-                finalSlot: slotIndex
-              };
-            }
-
-            return {
-              ...ball,
-              x: Math.max(2, Math.min(98, newX)), // Keep within bounds
-              y: newY
-            };
-          });
-
-          // Check if all balls have finished animating
-          const stillAnimating = updatedBalls.some(ball => ball.active);
-          if (!stillAnimating) {
-            setIsAnimating(false);
-            
-            // Find the last completed ball and set the winning slot
-            const lastCompletedBall = updatedBalls.find(ball => 
-              !ball.active && ball.finalSlot !== undefined
-            );
-            
-            if (lastCompletedBall) {
-              setLastWinSlot(lastCompletedBall.finalSlot);
+              for (let col = 0; col < colsInRow; col++) {
+                const pegX = offsetX + (col * (100 / colsInRow));
+                
+                if (Math.abs(newX - pegX) < 3) { // Ball hits a peg
+                  // Add some randomness to the bounce
+                  newVelX += (Math.random() - 0.5) * 0.8;
+                  newVelY *= 0.9; // Energy loss
+                  
+                  // Move ball away from peg to prevent sticking
+                  if (newX < pegX) {
+                    newX = pegX - 3;
+                  } else {
+                    newX = pegX + 3;
+                  }
+                  
+                  break;
+                }
+              }
             }
           }
-
-          return updatedBalls;
+          
+          // Check if ball reached the bottom (slots area)
+          if (newY >= 80) {
+            newY = 80; // Lock at bottom
+            newVelY = 0;
+            newVelX = 0;
+            
+            // Determine which slot it landed in
+            const slotWidth = 100 / PLINKO_SLOTS.length;
+            const slotIndex = Math.min(
+              PLINKO_SLOTS.length - 1, 
+              Math.max(0, Math.floor(newX / slotWidth))
+            );
+            
+            // Return completed ball
+            stillAnimating = true; // Keep checking other balls
+            return {
+              ...ball,
+              x: newX,
+              y: newY,
+              velocityX: newVelX,
+              velocityY: newVelY,
+              active: false,
+              finalSlot: slotIndex
+            };
+          }
+          
+          stillAnimating = true;
+          return {
+            ...ball,
+            x: newX,
+            y: newY,
+            velocityX: newVelX,
+            velocityY: newVelY
+          };
         });
-      });
-    }
 
+        // Check if any balls are still animating
+        const anyStillAnimating = updatedBalls.some(ball => ball.active);
+        
+        if (!anyStillAnimating && prevBalls.length > 0) {
+          // All balls have finished, find the last one that finished
+          const lastFinishedBall = prevBalls.find(ball => !ball.active && ball.finalSlot !== undefined);
+          if (lastFinishedBall && lastFinishedBall.finalSlot !== undefined) {
+            setLastWinSlot(lastFinishedBall.finalSlot);
+            setWinMessage(`Won ${PLINKO_SLOTS[lastFinishedBall.finalSlot].multiplier}× multiplier!`);
+            setTimeout(() => {
+              setWinMessage(null);
+            }, 3000);
+          }
+          setIsAnimating(false);
+        }
+        
+        return updatedBalls;
+      });
+      
+      if (balls.some(ball => ball.active)) {
+        animationRef.current = requestAnimationFrame(animate);
+      }
+      
+      return () => {
+        if (animationRef.current) {
+          cancelAnimationFrame(animationRef.current);
+        }
+      };
+    };
+    
+    if (balls.some(ball => ball.active)) {
+      animationRef.current = requestAnimationFrame(animate);
+    }
+    
     return () => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
@@ -121,11 +208,11 @@ export function HypnoticPlinkoGame() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setBalls(prev => prev.filter(ball => ball.active || 
-        (Date.now() - (ball as any)._timestamp) < 3000)); // Keep completed balls for 3 seconds
+        (ball.finalSlot !== undefined && Date.now() - (ball as any)._timestamp < 3000)));
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [balls]);
+  }, []);
 
   return (
     <div className="hypnotic-plinko-game w-full max-w-2xl mx-auto">
@@ -142,17 +229,20 @@ export function HypnoticPlinkoGame() {
       >
         {/* Pegs */}
         {Array.from({ length: 8 }).map((_, rowIndex) => (
-          <div key={rowIndex} className="absolute w-full" style={{ top: `${rowIndex * 10 + 10}%` }}>
-            {Array.from({ length: 10 - rowIndex % 2 }).map((_, colIndex) => (
-              <div
-                key={`${rowIndex}-${colIndex}`}
-                className="absolute w-2 h-2 rounded-full bg-fuchsia-400/60"
-                style={{
-                  left: `${(colIndex * 10) + (rowIndex % 2) * 5}%`,
-                  boxShadow: '0 0 8px rgba(192, 132, 252, 0.6)'
-                }}
-              />
-            ))}
+          <div key={rowIndex} className="absolute w-full" style={{ top: `${rowIndex * 8 + 10}%` }}>
+            {Array.from({ length: 10 - rowIndex % 2 }).map((_, colIndex) => {
+              const offsetX = (rowIndex % 2) * (100 / ((10 - rowIndex % 2) * 2));
+              return (
+                <div
+                  key={`${rowIndex}-${colIndex}`}
+                  className="absolute w-2 h-2 rounded-full bg-fuchsia-400/80"
+                  style={{
+                    left: `${offsetX + (colIndex * (100 / (10 - rowIndex % 2)))}%`,
+                    boxShadow: '0 0 8px rgba(192, 132, 252, 0.8)'
+                  }}
+                />
+              );
+            })}
           </div>
         ))}
 
@@ -167,7 +257,6 @@ export function HypnoticPlinkoGame() {
               left: `${ball.x}%`,
               top: `${ball.y}%`,
               transform: 'translate(-50%, -50%)',
-              transition: ball.active ? 'none' : 'all 0.3s ease',
               zIndex: 10
             }}
           />
@@ -190,12 +279,9 @@ export function HypnoticPlinkoGame() {
         </div>
 
         {/* Winner indicator */}
-        {lastWinSlot !== null && (
-          <div 
-            className="absolute top-4 left-1/2 transform -translate-x-1/2 animate-bounce text-emerald-400 font-bold text-lg px-4 py-2 bg-black/50 rounded-lg"
-            style={{ animation: 'hypnotic-pulse 1.5s infinite' }}
-          >
-            Won {PLINKO_SLOTS[lastWinSlot].multiplier}× multiplier!
+        {winMessage && (
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 text-emerald-400 font-bold text-lg px-4 py-2 bg-black/50 rounded-lg animate-pulse">
+            {winMessage}
           </div>
         )}
       </div>
@@ -212,16 +298,4 @@ export function HypnoticPlinkoGame() {
       </div>
     </div>
   );
-}
-
-// Add custom animation styles
-if (typeof document !== 'undefined') {
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes hypnotic-pulse {
-      0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); }
-      50% { opacity: 0.7; transform: translateX(-50%) scale(1.05); }
-    }
-  `;
-  document.head.appendChild(style);
 }
