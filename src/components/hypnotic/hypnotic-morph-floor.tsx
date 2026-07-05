@@ -23,7 +23,8 @@ import {
   type CaseTier,
 } from "@/components/locker-tier-case";
 import { LockerCaseRoulette } from "@/components/locker-case-roulette";
-import { LuckySlotsPanel, PlinkoPanel } from "@/app/games/arcade/arcade-panels";
+import { LuckySlotsPanel } from "@/app/games/arcade/arcade-panels";
+import { HypnoticPlinkoGame } from "@/components/hypnotic/hypnotic-plinko-game";
 
 const BTN =
   "rounded-sm border px-4 py-2 text-[11px] font-semibold uppercase tracking-wider transition disabled:opacity-50";
@@ -505,8 +506,11 @@ export function HypnoticMorphFloor({
           className={`hypnotic-morph-panel hypnotic-morph-panel--plinko ${mode === "plinko" ? "hypnotic-morph-panel--focused" : ""}`}
           id="vibe-plinko"
         >
-          <div className="w-full max-w-md [&_section]:mt-0 [&_section]:border-0 [&_section]:bg-transparent [&_section]:p-0">
-            <PlinkoPanel />
+          <p className="hypnotic-morph-panel__title text-[10px] font-semibold uppercase tracking-wider text-fuchsia-300/90">
+            PLINKO GAME
+          </p>
+          <div className="mt-4">
+            <HypnoticPlinkoGame />
           </div>
         </section>
 
