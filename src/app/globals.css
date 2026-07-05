@@ -2434,6 +2434,16 @@ body {
   letter-spacing: 0.05em;
 }
 
+.locker-casino-wheel-svg__label--premium {
+  stroke: rgba(0, 0, 0, 0.88);
+  stroke-width: 4px;
+  letter-spacing: 0.02em;
+}
+
+.locker-casino-wheel-wrap--cinema .locker-casino-wheel-svg__label--premium {
+  stroke-width: 4.5px;
+}
+
 .locker-casino-wheel-svg__label--jackpot {
   fill: #fef9c3;
   stroke: rgba(120, 53, 15, 0.85);
