@@ -14,6 +14,7 @@ import {
 } from "@/lib/hypnotic-flow";
 import { wheelRotationToSegment } from "@/lib/wheel-segments";
 import { HypnoticModifierBanner } from "@/components/hypnotic/hypnotic-modifier-banner";
+import { HypnoticCinemaOverlay } from "@/components/hypnotic/hypnotic-cinema-overlay";
 import { LockerCasinoWheel } from "@/components/locker-casino-wheel";
 import {
   LockerTierCase,
@@ -62,6 +63,7 @@ export function HypnoticMorphFloor({
     setStakeDocked,
     onWheelWin,
     onCaseResult,
+    cinema,
     setCinema,
     setReaction,
     morphing,
@@ -85,6 +87,9 @@ export function HypnoticMorphFloor({
   const autoFullscreenRef = useRef(false);
 
   const freeSpinAvailable = spinsUsed === 0;
+  const cinemaActive = cinema === "wheel-spin" || cinema === "case-open";
+  const cinemaMode =
+    cinema === "wheel-spin" ? "wheel" : cinema === "case-open" ? "case" : null;
 
   const caseTier = crateResult
     ? resultLabelToTier(crateResult.label)
@@ -307,7 +312,9 @@ export function HypnoticMorphFloor({
         </p>
       )}
 
-      <div className="hypnotic-morph-floor__grid">
+      <div
+        className={`hypnotic-morph-floor__grid ${cinemaActive ? "hypnotic-morph-floor__grid--cinema-dim" : ""}`}
+      >
         {/* VIBE case — always visible beside wheel on md+ */}
         <section
           className={`hypnotic-morph-panel hypnotic-morph-panel--case ${mode === "case" ? "hypnotic-morph-panel--focused" : ""}`}
@@ -477,6 +484,19 @@ export function HypnoticMorphFloor({
           </div>
         </section>
       </div>
+
+      <HypnoticCinemaOverlay
+        visible={cinemaActive}
+        mode={cinemaMode}
+        wheelRotation={wheelRotation}
+        wheelSpinning={wheelSpinning}
+        superActive={superActive}
+        caseRouletteActive={crateOpen && caseRouletteTier != null && !crateResult}
+        caseRouletteTier={caseRouletteTier ?? "common"}
+        caseTier={caseTier}
+        crateOpen={crateOpen}
+        onCaseRouletteDone={finishCrateOpen}
+      />
     </div>
   );
 }

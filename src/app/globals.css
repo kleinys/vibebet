@@ -2446,8 +2446,8 @@ body {
 }
 
 .locker-casino-wheel-wrap--cinema {
-  width: min(88vw, 440px);
-  height: min(88vw, 440px);
+  width: min(92vw, 520px);
+  height: min(92vw, 520px);
 }
 
 .locker-casino-wheel-wrap--cinema .locker-casino-wheel-svg {
@@ -2655,7 +2655,7 @@ body {
 }
 
 .hypnotic-cinema-overlay__case {
-  transform: scale(1.24);
+  transform: scale(1.35);
   filter: drop-shadow(0 20px 46px rgba(0, 0, 0, 0.55));
 }
 
