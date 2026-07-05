@@ -22,6 +22,7 @@ import {
   type CaseTier,
 } from "@/components/locker-tier-case";
 import { LockerCaseRoulette } from "@/components/locker-case-roulette";
+import { HypnoticCinemaOverlay } from "@/components/hypnotic/hypnotic-cinema-overlay";
 
 const BTN =
   "rounded-sm border px-4 py-2 text-[11px] font-semibold uppercase tracking-wider transition disabled:opacity-50";
@@ -81,6 +82,7 @@ export function HypnoticMorphFloor({
   const [caseRouletteTier, setCaseRouletteTier] = useState<CaseTier | null>(null);
   const [pendingCrate, setPendingCrate] = useState<CrateResult | null>(null);
   const crateSyncRef = useRef<Record<string, unknown> | null>(null);
+  const autoFullscreenRef = useRef(false);
 
   const freeSpinAvailable = spinsUsed === 0;
 
@@ -109,6 +111,10 @@ export function HypnoticMorphFloor({
         onCaseResult(pending.net, parseMomentumFromRpc(sync));
       }
       crateSyncRef.current = null;
+      if (autoFullscreenRef.current && document.fullscreenElement) {
+        void document.exitFullscreen();
+      }
+      autoFullscreenRef.current = false;
       router.refresh();
       return null;
     });
@@ -132,6 +138,16 @@ export function HypnoticMorphFloor({
     setCrateResult(null);
     setCinema("case-open");
     setReaction("watch-wheel");
+
+    const arena = document.getElementById("hypnotic-arena-root");
+    if (arena && !document.fullscreenElement) {
+      try {
+        await arena.requestFullscreen();
+        autoFullscreenRef.current = true;
+      } catch {
+        autoFullscreenRef.current = false;
+      }
+    }
 
     try {
       const supabase = createClient();
@@ -158,6 +174,10 @@ export function HypnoticMorphFloor({
       setBusy(false);
       setCinema("idle");
       setReaction("idle");
+      if (autoFullscreenRef.current && document.fullscreenElement) {
+        void document.exitFullscreen();
+      }
+      autoFullscreenRef.current = false;
       setError(parseError(e));
     }
   }
@@ -170,6 +190,10 @@ export function HypnoticMorphFloor({
     crateSyncRef.current = null;
     setError(null);
     setStakeDocked(false);
+    if (autoFullscreenRef.current && document.fullscreenElement) {
+      void document.exitFullscreen();
+    }
+    autoFullscreenRef.current = false;
   }
 
   async function spinWheel() {
@@ -226,6 +250,19 @@ export function HypnoticMorphFloor({
 
   return (
     <div className="hypnotic-morph-floor">
+      <HypnoticCinemaOverlay
+        visible={crateOpen && !crateResult}
+        mode="case"
+        wheelRotation={wheelRotation}
+        wheelSpinning={wheelSpinning}
+        superActive={superActive}
+        caseRouletteActive={crateOpen && !crateResult}
+        caseRouletteTier={caseRouletteTier ?? caseTier}
+        caseTier={caseRouletteTier ?? caseTier}
+        crateOpen={crateOpen}
+        onCaseRouletteDone={finishCrateOpen}
+      />
+
       <div className="hypnotic-morph-floor__tabs" role="tablist">
         <button
           type="button"
