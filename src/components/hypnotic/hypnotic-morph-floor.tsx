@@ -11,7 +11,9 @@ import { useHypnoticFlow } from "@/components/hypnotic/hypnotic-flow-provider";
 import {
   CRATE_STAKES,
   PAID_SPIN_COST,
+  WHEEL_SPIN_MS,
 } from "@/lib/hypnotic-flow";
+import { HypnoticCinemaOverlay } from "@/components/hypnotic/hypnotic-cinema-overlay";
 import { WHEEL_SEGMENTS } from "@/components/companion-locker-rewards";
 import { LockerCasinoWheel } from "@/components/locker-casino-wheel";
 import {
@@ -41,8 +43,6 @@ type WheelResult = {
   newBalance: number;
   freeSpin: boolean;
 };
-
-const WHEEL_SPIN_MS = 5000;
 
 export function HypnoticMorphFloor({
   vibeBalance,
@@ -90,6 +90,14 @@ export function HypnoticMorphFloor({
   const caseTier = crateResult
     ? resultLabelToTier(crateResult.label)
     : stakeToTier(crateStake);
+
+  const cinemaActive =
+    wheelSpinning || (caseRouletteTier != null && !crateResult);
+  const cinemaMode: "wheel" | "case" | null = wheelSpinning
+    ? "wheel"
+    : caseRouletteTier != null && !crateResult
+      ? "case"
+      : null;
 
   function parseError(err: unknown): string {
     if (err && typeof err === "object" && "message" in err) {
@@ -233,6 +241,19 @@ export function HypnoticMorphFloor({
 
   return (
     <div className="hypnotic-morph-floor">
+      <HypnoticCinemaOverlay
+        visible={cinemaActive}
+        mode={cinemaMode}
+        wheelRotation={wheelRotation}
+        wheelSpinning={wheelSpinning}
+        superActive={superActive}
+        caseRouletteActive={caseRouletteTier != null && !crateResult}
+        caseRouletteTier={caseRouletteTier ?? "common"}
+        caseTier={caseTier}
+        crateOpen={crateOpen}
+        onCaseRouletteDone={finishCrateOpen}
+      />
+
       <div className="hypnotic-morph-floor__tabs" role="tablist">
         <button
           type="button"
@@ -279,7 +300,9 @@ export function HypnoticMorphFloor({
         </p>
       )}
 
-      <div className="hypnotic-morph-floor__grid">
+      <div
+        className={`hypnotic-morph-floor__grid ${cinemaActive ? "hypnotic-morph-floor__grid--cinema-dim" : ""}`}
+      >
         {/* VIBE case — always visible beside wheel on md+ */}
         <section
           className={`hypnotic-morph-panel hypnotic-morph-panel--case ${mode === "case" ? "hypnotic-morph-panel--focused" : ""}`}
@@ -288,11 +311,16 @@ export function HypnoticMorphFloor({
           <p className="hypnotic-morph-panel__title text-[10px] font-semibold uppercase tracking-wider text-amber-300/90">
             VIBE case
           </p>
-          <LockerCaseRoulette
-            active={crateOpen && caseRouletteTier != null && !crateResult}
-            targetTier={caseRouletteTier ?? "common"}
-            onDone={finishCrateOpen}
-          />
+          {!cinemaActive && (
+            <LockerCaseRoulette
+              active={crateOpen && caseRouletteTier != null && !crateResult}
+              targetTier={caseRouletteTier ?? "common"}
+              onDone={finishCrateOpen}
+            />
+          )}
+          {cinemaActive && cinemaMode === "case" && (
+            <p className="mb-2 text-center text-[10px] text-amber-200/70">Fullscreen roll…</p>
+          )}
           <LockerTierCase
             tier={caseTier}
             open={crateOpen}
@@ -396,42 +424,50 @@ export function HypnoticMorphFloor({
           <p className="hypnotic-morph-panel__title text-[10px] font-semibold uppercase tracking-wider text-violet-300/90">
             Daily wheel
           </p>
-          <LockerCasinoWheel
-            rotation={wheelRotation}
-            spinning={wheelSpinning}
-            glowing={wheelSpinning || superActive}
-          />
-
-          {wheelResult ? (
-            <div className="mt-4 text-center">
-              <p className="text-sm font-semibold text-violet-100">Won: {wheelResult.label}</p>
-              {superActive && (
-                <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-violet-300">
-                  SUPER 2× jackpot
-                </p>
-              )}
-              <p className="mt-1 text-xs text-zinc-400">
-                {wheelResult.freeSpin ? "Free spin · " : `Cost ${formatVibe(wheelResult.cost)} VIBE · `}
-                Net{" "}
-                <span
-                  className={
-                    wheelResult.net >= 0 ? "font-medium text-emerald-300" : "font-medium text-rose-300"
-                  }
-                >
-                  {wheelResult.net >= 0 ? "+" : ""}
-                  {formatVibe(wheelResult.net)} VIBE
-                </span>
-              </p>
-            </div>
-          ) : (
-            <p className="mt-4 text-center text-[11px] text-zinc-500">
-              {wheelSpinning
-                ? "Wheel slowing…"
-                : freeSpinAvailable
-                  ? "1 free spin today"
-                  : `Extra spins · ${PAID_SPIN_COST} VIBE`}
-            </p>
+          {!cinemaActive && (
+            <LockerCasinoWheel
+              rotation={wheelRotation}
+              spinning={wheelSpinning}
+              glowing={wheelSpinning || superActive}
+            />
           )}
+          {cinemaActive && cinemaMode === "wheel" && (
+            <div className="flex min-h-[280px] flex-col items-center justify-center gap-2 text-violet-200/70">
+              <span className="text-3xl animate-pulse">🎡</span>
+              <p className="text-[11px]">Fullscreen spin…</p>
+            </div>
+          )}
+          {!cinemaActive &&
+            (wheelResult ? (
+              <div className="mt-4 text-center">
+                <p className="text-sm font-semibold text-violet-100">Won: {wheelResult.label}</p>
+                {superActive && (
+                  <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-violet-300">
+                    SUPER 2× jackpot
+                  </p>
+                )}
+                <p className="mt-1 text-xs text-zinc-400">
+                  {wheelResult.freeSpin ? "Free spin · " : `Cost ${formatVibe(wheelResult.cost)} VIBE · `}
+                  Net{" "}
+                  <span
+                    className={
+                      wheelResult.net >= 0 ? "font-medium text-emerald-300" : "font-medium text-rose-300"
+                    }
+                  >
+                    {wheelResult.net >= 0 ? "+" : ""}
+                    {formatVibe(wheelResult.net)} VIBE
+                  </span>
+                </p>
+              </div>
+            ) : (
+              <p className="mt-4 text-center text-[11px] text-zinc-500">
+                {wheelSpinning
+                  ? "Wheel slowing…"
+                  : freeSpinAvailable
+                    ? "1 free spin today"
+                    : `Extra spins · ${PAID_SPIN_COST} VIBE`}
+              </p>
+            ))}
 
           <div className="mt-4 flex justify-center">
             <button

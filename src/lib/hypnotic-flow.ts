@@ -7,6 +7,10 @@ export type HypnoticCinema = "idle" | "wheel-spin" | "vibe-absorb" | "case-open"
 export const CRATE_STAKES = [100, 250, 500, 1000] as const;
 export const PAID_SPIN_COST = 100;
 export const SUPER_MODE_MS = 30_000;
+/** Wheel deceleration animation (ms). */
+export const WHEEL_SPIN_MS = 8_500;
+/** Case tier roulette scroll (ms). */
+export const CASE_ROULETTE_MS = 4_800;
 
 export function nearestCrateStake(amount: number): (typeof CRATE_STAKES)[number] {
   let best: (typeof CRATE_STAKES)[number] = CRATE_STAKES[0];

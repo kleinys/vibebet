@@ -1937,6 +1937,13 @@ body {
   }
 }
 
+.hypnotic-morph-floor__grid--cinema-dim {
+  opacity: 0.28;
+  filter: blur(3px) saturate(0.6);
+  pointer-events: none;
+  transition: opacity 0.35s ease, filter 0.35s ease;
+}
+
 .hypnotic-morph-panel {
   position: relative;
   display: flex;
@@ -2278,11 +2285,9 @@ body {
   animation: hypnotic-trail-pulse 2s ease-in-out infinite;
 }
 
-/* ── Casino wheel (PNG art) ── */
+/* ── Casino wheel (SVG) ── */
 .locker-casino-wheel-wrap {
   position: relative;
-  width: min(72vw, 280px);
-  height: min(72vw, 280px);
   margin: 0 auto;
   background: transparent;
 }
@@ -2298,7 +2303,7 @@ body {
 }
 
 .locker-casino-wheel-wrap--spin .locker-casino-wheel-svg__disk {
-  transition: transform 5s cubic-bezier(0.12, 0.8, 0.22, 1);
+  transition: transform 8.5s cubic-bezier(0.08, 0.82, 0.18, 1);
 }
 
 .locker-casino-wheel-wrap:not(.locker-casino-wheel-wrap--spin) .locker-casino-wheel-svg__disk {
@@ -2320,13 +2325,55 @@ body {
 
 .locker-casino-wheel-svg__label {
   paint-order: stroke fill;
-  stroke: rgba(0, 0, 0, 0.55);
-  stroke-width: 2px;
-  letter-spacing: 0.03em;
+  stroke: rgba(0, 0, 0, 0.7);
+  stroke-width: 3px;
+  letter-spacing: 0.04em;
+}
+
+.locker-casino-wheel-wrap--cinema .locker-casino-wheel-svg__label {
+  stroke-width: 3.5px;
+  letter-spacing: 0.05em;
+}
+
+.locker-casino-wheel-svg__label--jackpot {
+  fill: #fef9c3;
+  stroke: rgba(120, 53, 15, 0.85);
+  stroke-width: 3.5px;
+}
+
+.locker-casino-wheel-svg__aura {
+  animation: locker-wheel-aura 1.4s ease-in-out infinite;
+}
+
+@keyframes locker-wheel-aura {
+  0%,
+  100% {
+    opacity: 0.35;
+    stroke-width: 6;
+  }
+  50% {
+    opacity: 0.95;
+    stroke-width: 10;
+  }
+}
+
+.locker-casino-wheel-wrap--panel {
+  width: min(72vw, 280px);
+  height: min(72vw, 280px);
+}
+
+.locker-casino-wheel-wrap--cinema {
+  width: min(88vw, 440px);
+  height: min(88vw, 440px);
+}
+
+.locker-casino-wheel-wrap--cinema .locker-casino-wheel-svg {
+  filter: drop-shadow(0 0 28px rgba(251, 191, 36, 0.35))
+    drop-shadow(0 12px 40px rgba(0, 0, 0, 0.55));
 }
 
 .locker-casino-wheel-wrap--spin .locker-casino-wheel--raster {
-  transition: transform 5s cubic-bezier(0.12, 0.8, 0.22, 1);
+  transition: transform 8.5s cubic-bezier(0.08, 0.82, 0.18, 1);
 }
 
 .locker-casino-wheel-wrap:not(.locker-casino-wheel-wrap--spin) .locker-casino-wheel--raster {
@@ -2405,6 +2452,101 @@ body {
   height: 100%;
   object-fit: contain;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+}
+
+.locker-case-roulette--cinema {
+  position: relative;
+  left: auto;
+  top: auto;
+  transform: none;
+  width: min(92vw, 540px);
+}
+
+.locker-case-roulette--cinema .locker-case-roulette__window {
+  height: 124px;
+  border-width: 3px;
+  box-shadow:
+    0 0 40px rgba(251, 191, 36, 0.35),
+    inset 0 0 24px rgba(251, 191, 36, 0.08);
+}
+
+.locker-case-roulette--cinema .locker-case-roulette__marker {
+  width: 4px;
+  box-shadow: 0 0 18px rgba(251, 191, 36, 0.95);
+}
+
+.locker-case-roulette--cinema .locker-case-roulette__track {
+  padding: 14px 200px;
+}
+
+/* Fullscreen cinema for wheel + case */
+.hypnotic-cinema-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.hypnotic-cinema-overlay__backdrop {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 40%, rgba(24, 16, 48, 0.92) 0%, rgba(0, 0, 0, 0.94) 70%);
+  backdrop-filter: blur(10px);
+  animation: hypnotic-cinema-fade 0.45s ease-out;
+}
+
+.hypnotic-cinema-overlay__content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  animation: hypnotic-cinema-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hypnotic-cinema-overlay__title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(250, 250, 250, 0.75);
+}
+
+.hypnotic-cinema-overlay__hint {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(228, 228, 231, 0.65);
+  letter-spacing: 0.06em;
+}
+
+.hypnotic-cinema-overlay__case {
+  transform: scale(1.15);
+}
+
+@keyframes hypnotic-cinema-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hypnotic-cinema-rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .locker-casino-wheel__label {
