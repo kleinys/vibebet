@@ -8,12 +8,9 @@ export type InstantBotKey =
   | "rps"
   | "high_card"
   | "dice"
-  | "trivia"
   | "liars_dice"
   | "lightning_duel"
-  | "coin_flip"
-  | "plinko"
-  | "lucky_slots";
+  | "coin_flip";
 
 export type SkillBotKey =
   | "chess"
@@ -96,19 +93,6 @@ export async function playInstantVsBot(
     };
   }
 
-  if (gameKey === "trivia") {
-    const { data, error } = await supabase.rpc("play_trivia_vs_bot", { p_stake: stake });
-    if (error) return { error: error.message };
-    const row = Array.isArray(data) ? data[0] : data;
-    if (!row) return { error: "No bot duel result." };
-    revalidatePath("/games/duels/trivia");
-    const won = user.id === row.winner_id;
-    return {
-      ok: `Trivia ${row.your_score}–${row.bot_score} vs ${row.bot_name}. ${won ? "You won" : "Bot won"} ${row.payout} VIBE.`,
-      won,
-    };
-  }
-
   if (gameKey === "liars_dice") {
     const { data, error } = await supabase.rpc("play_liars_dice_vs_bot", { p_stake: stake });
     if (error) return { error: error.message };
@@ -140,50 +124,25 @@ export async function playInstantVsBot(
     };
   }
 
-  if (gameKey === "plinko") {
-    const risks = ["low", "medium", "high"] as const;
-    const risk = risks[Math.floor(Math.random() * risks.length)];
-    const { data, error } = await supabase.rpc("play_plinko", {
+  if (gameKey === "coin_flip") {
+    const coinSide = Math.random() < 0.5 ? "heads" : "tails";
+    const { data, error } = await supabase.rpc("play_coin_flip", {
+      p_side: coinSide,
       p_stake: stake,
-      p_risk: risk,
     });
     if (error) return { error: error.message };
     const row = Array.isArray(data) ? data[0] : data;
     if (!row) return { error: "No result." };
     revalidatePath("/games/arcade");
     return {
-      ok: `Plinko (${risk}) · slot ${Number(row.slot_index) + 1} · ${row.multiplier}× → ${row.payout} VIBE (${Number(row.net) >= 0 ? "+" : ""}${row.net}).`,
-      won: Number(row.net) > 0,
+      ok: row.won
+        ? `Bot picked ${coinSide === "heads" ? "tails" : "heads"} — flip was ${row.flip_side}! You won ${row.payout} VIBE.`
+        : `Bot won the flip (${row.flip_side}). Lost ${stake} VIBE.`,
+      won: row.won,
     };
   }
 
-  if (gameKey === "lucky_slots") {
-    const { data, error } = await supabase.rpc("spin_lucky_slots", { p_stake: stake });
-    if (error) return { error: error.message };
-    const row = Array.isArray(data) ? data[0] : data;
-    if (!row) return { error: "No result." };
-    revalidatePath("/games/arcade");
-    return {
-      ok: `${row.reel1} | ${row.reel2} | ${row.reel3}${row.scratcher_won ? " — scratcher ticket won!" : row.line_payout ? ` → ${row.line_payout} VIBE` : ""}`,
-      won: Boolean(row.scratcher_won) || Number(row.line_payout) > 0,
-    };
-  }
-
-  const coinSide = Math.random() < 0.5 ? "heads" : "tails";
-  const { data, error } = await supabase.rpc("play_coin_flip", {
-    p_side: coinSide,
-    p_stake: stake,
-  });
-  if (error) return { error: error.message };
-  const row = Array.isArray(data) ? data[0] : data;
-  if (!row) return { error: "No result." };
-  revalidatePath("/games/arcade");
-  return {
-    ok: row.won
-      ? `Bot picked ${coinSide === "heads" ? "tails" : "heads"} — flip was ${row.flip_side}! You won ${row.payout} VIBE.`
-      : `Bot won the flip (${row.flip_side}). Lost ${stake} VIBE.`,
-    won: row.won,
-  };
+  return { error: "Unknown instant bot game." };
 }
 
 /** @deprecated use playInstantVsBot */
@@ -269,12 +228,9 @@ export async function playDuelVsBot(
     rps: "rps",
     high_card: "high_card",
     dice: "dice",
-    trivia: "trivia",
     liars_dice: "liars_dice",
     lightning_duel: "lightning_duel",
     coin_flip: "coin_flip",
-    plinko: "plinko",
-    lucky_slots: "lucky_slots",
   };
 
   const skillMap: Record<string, SkillBotKey> = {

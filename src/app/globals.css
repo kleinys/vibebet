@@ -2020,6 +2020,22 @@ body {
   }
 }
 
+@media (min-width: 1280px) {
+  .hypnotic-morph-floor__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.hypnotic-morph-panel--plinko {
+  border-color: rgba(217, 70, 239, 0.18);
+  background: linear-gradient(180deg, rgba(112, 26, 117, 0.12) 0%, rgba(0, 0, 0, 0.2) 100%);
+}
+
+.hypnotic-morph-panel--slots {
+  border-color: rgba(244, 63, 94, 0.18);
+  background: linear-gradient(180deg, rgba(136, 19, 55, 0.12) 0%, rgba(0, 0, 0, 0.2) 100%);
+}
+
 .hypnotic-morph-floor__grid--cinema-dim {
   opacity: 0.28;
   filter: blur(3px) saturate(0.6);

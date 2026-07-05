@@ -8,14 +8,13 @@ import { GAME_CATALOG, liveGames } from "@/lib/game-catalog";
 export const revalidate = 0;
 
 export default async function DuelsHubPage() {
-  const [layerOn, duelsOn, arcadeOn, paperOn, fastOn, triviaOn, connect4On, liarsOn, chessOn, checkersOn, goOn, shogiOn, pokerOn] =
+  const [layerOn, duelsOn, arcadeOn, paperOn, fastOn, connect4On, liarsOn, chessOn, checkersOn, goOn, shogiOn, pokerOn] =
     await Promise.all([
     isEnabled("game_layer_enabled"),
     isEnabled("duels_enabled"),
     isEnabled("arcade_games_enabled"),
     isEnabled("paper_trading_duels_enabled"),
     isEnabled("fast_markets_enabled"),
-    isEnabled("trivia_enabled"),
     isEnabled("connect4_enabled"),
     isEnabled("liars_dice_enabled"),
     isEnabled("chess_enabled"),
@@ -31,7 +30,6 @@ export default async function DuelsHubPage() {
     arcade_games_enabled: arcadeOn,
     paper_trading_duels_enabled: paperOn,
     fast_markets_enabled: fastOn,
-    trivia_enabled: triviaOn,
     connect4_enabled: connect4On,
     liars_dice_enabled: liarsOn,
     chess_enabled: chessOn,
@@ -141,7 +139,6 @@ export default async function DuelsHubPage() {
                   { key: "high_card", label: "High Card" },
                   { key: "connect4", label: "Connect Four" },
                   { key: "lightning", label: "Lightning Duel" },
-                  { key: "trivia", label: "Trivia Blitz" },
                 ] as const
               ).map(({ key, label }) =>
                 leaderboards[key]?.length ? (
