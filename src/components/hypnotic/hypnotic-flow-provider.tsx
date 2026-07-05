@@ -114,10 +114,10 @@ export function HypnoticFlowProvider({
     setMorphing(true);
     setModeState(next);
     window.setTimeout(() => setMorphing(false), 700);
-  }, []);
+  }, [setMorphing, setModeState]);
 
   const onWheelWin = useCallback(
-    (payout: number, sync: RpcMomentumSync) => {
+    (payout: number, sync: RpcMomentumSync, goToPlinko = false) => {
       setSession((prev) => ({
         ...applySync(prev, sync),
         recommendedStake: nearestCrateStake(payout),
@@ -134,7 +134,7 @@ export function HypnoticFlowProvider({
       window.setTimeout(() => {
         setVibeOrbs([]);
         setCinema("idle");
-        setMode("case");
+        setMode(goToPlinko ? "plinko" : "case");
       }, 2200);
     },
     [setMode],
@@ -150,7 +150,22 @@ export function HypnoticFlowProvider({
       setReaction(sync.superActive ? "super" : "approve");
       window.setTimeout(() => setCinema("idle"), 1600);
     }
-  }, []);
+  }, [setSession, setPayoutMultiplier, setAffinityLabel, setLastJackpot, setCinema, setReaction]);
+
+  const onPlinkoResult = useCallback((payout: number, sync: RpcMomentumSync) => {
+    setSession((prev) => applySync(prev, sync));
+    setPayoutMultiplier(sync.payoutMultiplier);
+    setAffinityLabel(sync.affinityLabel);
+    setLastJackpot(sync.isJackpot);
+    setCinema("confetti");
+    setReaction(sync.superActive ? "super" : "approve");
+    const orbId = Date.now();
+    setVibeOrbs([{ id: orbId, amount: payout }]);
+    window.setTimeout(() => {
+      setVibeOrbs([]);
+      setCinema("idle");
+    }, 2200);
+  }, [setSession, setPayoutMultiplier, setAffinityLabel, setLastJackpot, setCinema, setReaction, setVibeOrbs]);
 
   const clearRecommendedStake = useCallback(() => {
     setSession((prev) => ({ ...prev, recommendedStake: null }));

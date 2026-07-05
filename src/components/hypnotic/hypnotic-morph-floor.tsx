@@ -23,6 +23,7 @@ import {
 } from "@/components/locker-tier-case";
 import { LockerCaseRoulette } from "@/components/locker-case-roulette";
 import { HypnoticCinemaOverlay } from "@/components/hypnotic/hypnotic-cinema-overlay";
+import { HypnoticPlinkoGame } from "@/components/hypnotic/hypnotic-plinko-game";
 
 const BTN =
   "rounded-sm border px-4 py-2 text-[11px] font-semibold uppercase tracking-wider transition disabled:opacity-50";
@@ -288,6 +289,18 @@ export function HypnoticMorphFloor({
         >
           VIBE case
         </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === "plinko"}
+          className={`hypnotic-morph-floor__tab ${mode === "plinko" ? "hypnotic-morph-floor__tab--active" : ""}`}
+          onClick={() => {
+            setMode("plinko");
+            document.getElementById("vibe-plinko")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }}
+        >
+          Plinko
+        </button>
         <div className="ml-auto inline-flex items-center gap-1.5 rounded-sm border border-amber-500/30 bg-amber-950/40 px-2.5 py-1 text-xs text-amber-200">
           <CurrencyIconVibe className="h-4 w-4" />
           <span className="tabular-nums font-medium">{formatVibe(balance)} VIBE</span>
@@ -474,6 +487,19 @@ export function HypnoticMorphFloor({
                   ? "Free daily spin"
                   : `Spin · ${PAID_SPIN_COST} VIBE`}
             </button>
+          </div>
+        </section>
+
+        {/* Plinko Game */}
+        <section
+          className={`hypnotic-morph-panel hypnotic-morph-panel--plinko ${mode === "plinko" ? "hypnotic-morph-panel--focused" : ""}`}
+          id="vibe-plinko"
+        >
+          <p className="hypnotic-morph-panel__title text-[10px] font-semibold uppercase tracking-wider text-fuchsia-300/90">
+            PLINKO GAME
+          </p>
+          <div className="mt-4">
+            <HypnoticPlinkoGame />
           </div>
         </section>
       </div>

@@ -2051,12 +2051,21 @@ body {
   background: linear-gradient(180deg, rgba(76, 29, 149, 0.12) 0%, rgba(0, 0, 0, 0.2) 100%);
 }
 
+.hypnotic-morph-panel--plinko {
+  border-color: rgba(192, 132, 252, 0.18);
+  background: linear-gradient(180deg, rgba(124, 58, 237, 0.12) 0%, rgba(0, 0, 0, 0.2) 100%);
+}
+
 .hypnotic-morph-panel--focused {
   box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.25);
 }
 
 .hypnotic-morph-panel--wheel.hypnotic-morph-panel--focused {
   box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.35);
+}
+
+.hypnotic-morph-panel--plinko.hypnotic-morph-panel--focused {
+  box-shadow: 0 0 0 1px rgba(192, 132, 252, 0.35);
 }
 
 .hypnotic-morph-panel__title {
