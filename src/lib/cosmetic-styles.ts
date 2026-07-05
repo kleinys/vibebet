@@ -107,5 +107,7 @@ export function previewSlugForItem(
   if (kind === "skin") return { skinSlug: slug };
   if (kind === "badge") return { badgeSlug: slug };
   if (kind === "shield") return {};
+  const base = slug.replace(/--(animal|phenomenon)$/, "");
+  if (kind === "animal" || kind === "phenomenon") return { skinSlug: base };
   return { skinSlug: slug };
 }

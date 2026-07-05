@@ -124,6 +124,26 @@ export async function buyItem(
   return { ok: "Item added to your inventory." };
 }
 
+export async function buyVibeItem(
+  _prev: ShopState,
+  formData: FormData,
+): Promise<ShopState> {
+  const parsed = ItemSchema.safeParse({ itemId: formData.get("itemId") });
+  if (!parsed.success) return { error: "Invalid item." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("spend_vibe_for_item", {
+    p_item_id: parsed.data.itemId,
+  });
+  if (error) return { error: error.message };
+
+  revalidatePath("/shop");
+  revalidatePath("/account");
+  revalidatePath("/account/profile");
+  revalidatePath("/");
+  return { ok: "Item added to your inventory." };
+}
+
 /**
  * Equip / unequip a skin or badge. Only one item per kind can be equipped.
  */

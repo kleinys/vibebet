@@ -21,7 +21,7 @@ export type MarketStatus =
   | "resolved"
   | "voided";
 export type TradeSide = "yes" | "no";
-export type ItemKind = "skin" | "shield" | "badge";
+export type ItemKind = "skin" | "shield" | "badge" | "animal" | "phenomenon";
 export type Rarity = "common" | "rare" | "epic" | "legendary";
 export type NotificationKind =
   | "bet_won"
@@ -593,6 +593,7 @@ export interface Database {
           kind: ItemKind;
           rarity: Rarity;
           price_gems: number;
+          price_vibe: number;
           is_active: boolean;
           image_url: string | null;
           created_at: string;
@@ -965,6 +966,10 @@ export interface Database {
         }[];
       };
       spend_gems_for_item: {
+        Args: { p_item_id: string };
+        Returns: string;
+      };
+      spend_vibe_for_item: {
         Args: { p_item_id: string };
         Returns: string;
       };

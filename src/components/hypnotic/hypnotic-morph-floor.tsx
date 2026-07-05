@@ -13,7 +13,7 @@ import {
   PAID_SPIN_COST,
 } from "@/lib/hypnotic-flow";
 import { WHEEL_SEGMENTS } from "@/components/companion-locker-rewards";
-import { LockerCasinoWheel } from "@/components/locker-casino-wheel";
+import { LockerCasinoWheel, WHEEL_ART_POINTER_INDEX } from "@/components/locker-casino-wheel";
 import {
   LockerTierCase,
   resultLabelToTier,
@@ -199,8 +199,7 @@ export function HypnoticMorphFloor({
       const nextRotation =
         wheelRotation +
         spins * 360 +
-        (WHEEL_SEGMENTS.length - segmentIndex) * segmentAngle -
-        segmentAngle / 2;
+        (WHEEL_ART_POINTER_INDEX - segmentIndex) * segmentAngle;
 
       setWheelRotation(nextRotation);
 
@@ -239,7 +238,10 @@ export function HypnoticMorphFloor({
           role="tab"
           aria-selected={mode === "wheel"}
           className={`hypnotic-morph-floor__tab ${mode === "wheel" ? "hypnotic-morph-floor__tab--active" : ""}`}
-          onClick={() => setMode("wheel")}
+          onClick={() => {
+            setMode("wheel");
+            document.getElementById("vibe-wheel")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }}
         >
           Daily wheel
         </button>
@@ -248,7 +250,10 @@ export function HypnoticMorphFloor({
           role="tab"
           aria-selected={mode === "case"}
           className={`hypnotic-morph-floor__tab ${mode === "case" ? "hypnotic-morph-floor__tab--active" : ""}`}
-          onClick={() => setMode("case")}
+          onClick={() => {
+            setMode("case");
+            document.getElementById("vibe-case")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          }}
         >
           VIBE case
         </button>
@@ -273,12 +278,15 @@ export function HypnoticMorphFloor({
         </p>
       )}
 
-      <div
-        className={`hypnotic-morph-viewport hypnotic-morph-viewport--${mode} ${morphing ? "hypnotic-morph-viewport--morphing" : ""}`}
-        data-mode={mode}
-      >
-        {/* Case layer */}
-        <div className="hypnotic-morph-viewport__case" id="vibe-case">
+      <div className="hypnotic-morph-floor__grid">
+        {/* VIBE case — always visible beside wheel on md+ */}
+        <section
+          className={`hypnotic-morph-panel hypnotic-morph-panel--case ${mode === "case" ? "hypnotic-morph-panel--focused" : ""}`}
+          id="vibe-case"
+        >
+          <p className="hypnotic-morph-panel__title text-[10px] font-semibold uppercase tracking-wider text-amber-300/90">
+            VIBE case
+          </p>
           <LockerCaseRoulette
             active={crateOpen && caseRouletteTier != null && !crateResult}
             targetTier={caseRouletteTier ?? "common"}
@@ -291,14 +299,14 @@ export function HypnoticMorphFloor({
             shaking={crateOpen && !crateResult}
           />
 
-            {crateResult ? (
-              <div className="mt-4 text-center">
-                <p className="text-sm font-semibold text-amber-200">{crateResult.label}</p>
-                {superActive && (
-                  <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-amber-300">
-                    SUPER 2× applied
-                  </p>
-                )}
+          {crateResult ? (
+            <div className="mt-4 text-center">
+              <p className="text-sm font-semibold text-amber-200">{crateResult.label}</p>
+              {superActive && (
+                <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                  SUPER 2× applied
+                </p>
+              )}
               <p className="mt-1 text-xs text-zinc-400">
                 Payout{" "}
                 <span className="font-medium text-emerald-300">
@@ -377,10 +385,16 @@ export function HypnoticMorphFloor({
               </button>
             )}
           </div>
-        </div>
+        </section>
 
-        {/* Wheel layer */}
-        <div className="hypnotic-morph-viewport__wheel" id="vibe-wheel">
+        {/* Daily wheel */}
+        <section
+          className={`hypnotic-morph-panel hypnotic-morph-panel--wheel ${mode === "wheel" ? "hypnotic-morph-panel--focused" : ""}`}
+          id="vibe-wheel"
+        >
+          <p className="hypnotic-morph-panel__title text-[10px] font-semibold uppercase tracking-wider text-violet-300/90">
+            Daily wheel
+          </p>
           <LockerCasinoWheel
             rotation={wheelRotation}
             spinning={wheelSpinning}
@@ -388,13 +402,13 @@ export function HypnoticMorphFloor({
           />
 
           {wheelResult ? (
-              <div className="mt-4 text-center">
-                <p className="text-sm font-semibold text-violet-100">Won: {wheelResult.label}</p>
-                {superActive && (
-                  <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-violet-300">
-                    SUPER 2× jackpot
-                  </p>
-                )}
+            <div className="mt-4 text-center">
+              <p className="text-sm font-semibold text-violet-100">Won: {wheelResult.label}</p>
+              {superActive && (
+                <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-violet-300">
+                  SUPER 2× jackpot
+                </p>
+              )}
               <p className="mt-1 text-xs text-zinc-400">
                 {wheelResult.freeSpin ? "Free spin · " : `Cost ${formatVibe(wheelResult.cost)} VIBE · `}
                 Net{" "}
@@ -411,9 +425,9 @@ export function HypnoticMorphFloor({
           ) : (
             <p className="mt-4 text-center text-[11px] text-zinc-500">
               {wheelSpinning
-                ? "Wheel slowing… trainer watches"
+                ? "Wheel slowing…"
                 : freeSpinAvailable
-                  ? "1 tap — free daily spin, auto-cinema"
+                  ? "1 free spin today"
                   : `Extra spins · ${PAID_SPIN_COST} VIBE`}
             </p>
           )}
@@ -432,9 +446,7 @@ export function HypnoticMorphFloor({
                   : `Spin · ${PAID_SPIN_COST} VIBE`}
             </button>
           </div>
-        </div>
-
-        <div className="hypnotic-morph-viewport__sparks" aria-hidden />
+        </section>
       </div>
     </div>
   );

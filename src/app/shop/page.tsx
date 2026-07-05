@@ -145,11 +145,18 @@ export default async function ShopPage() {
 
       <section className="mt-10">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
-          Items
+          Trinity loadout (trainer · spirit · phenomenon)
         </h2>
+        <p className="mt-1 text-xs text-zinc-500">
+          Buy all three pieces of the same theme to unlock locker buffs (rank 7+). Prices scale exponentially.
+        </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {(items ?? []).map((it) => {
+          {(items ?? [])
+            .filter((it) => it.kind === "skin" || it.kind === "animal" || it.kind === "phenomenon")
+            .sort((a, b) => (a.price_vibe ?? 0) - (b.price_vibe ?? 0) || a.price_gems - b.price_gems)
+            .map((it) => {
             const inv = inventoryByItem.get(it.id);
+            const priceVibe = Number((it as { price_vibe?: number }).price_vibe ?? 0);
             return (
             <ShopItemCard
               key={it.id}
@@ -157,13 +164,49 @@ export default async function ShopPage() {
               slug={it.slug}
               name={it.name}
               description={it.description}
-              kind={it.kind}
+              kind={it.kind as import("@/lib/supabase/types").ItemKind}
               rarity={it.rarity}
               priceGems={it.price_gems}
+              priceVibe={priceVibe}
               owned={ownedItems.has(it.id)}
               inventoryId={inv?.id}
               isEquipped={inv?.is_equipped ?? false}
-              affordable={balances.gem >= it.price_gems}
+              affordableGems={balances.gem >= it.price_gems}
+              affordableVibe={balances.vibe >= priceVibe}
+              signedIn={!!user}
+              streakShields={streakInfo.streakShields}
+            />
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+          Badges &amp; shields
+        </h2>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {(items ?? [])
+            .filter((it) => it.kind === "badge" || it.kind === "shield")
+            .map((it) => {
+            const inv = inventoryByItem.get(it.id);
+            const priceVibe = Number((it as { price_vibe?: number }).price_vibe ?? 0);
+            return (
+            <ShopItemCard
+              key={it.id}
+              id={it.id}
+              slug={it.slug}
+              name={it.name}
+              description={it.description}
+              kind={it.kind as import("@/lib/supabase/types").ItemKind}
+              rarity={it.rarity}
+              priceGems={it.price_gems}
+              priceVibe={priceVibe}
+              owned={ownedItems.has(it.id)}
+              inventoryId={inv?.id}
+              isEquipped={inv?.is_equipped ?? false}
+              affordableGems={balances.gem >= it.price_gems}
+              affordableVibe={balances.vibe >= priceVibe}
               signedIn={!!user}
               streakShields={streakInfo.streakShields}
             />
