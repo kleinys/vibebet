@@ -44,8 +44,8 @@ export default async function LockerArenaPage() {
 
   return (
     <div className="min-h-screen bg-[#020617]">
-      <div className="border-b border-white/5 bg-zinc-950/95">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
+      <div className="sticky top-0 z-30 border-b border-white/10 bg-zinc-950/80 backdrop-blur-xl">
+        <div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <Link
             href="/account/profile#trainer"
             className="text-sm text-zinc-400 transition hover:text-zinc-200"
@@ -59,8 +59,8 @@ export default async function LockerArenaPage() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-5xl px-4 py-3 sm:px-6">
-        <div className="overflow-hidden rounded-sm border border-white/10 bg-gradient-to-b from-zinc-900/60 to-zinc-950 shadow-2xl shadow-black/50 ring-1 ring-violet-500/15">
+      <div className="px-2 py-2 sm:px-4 sm:py-3">
+        <div className="overflow-hidden rounded-lg border border-white/10 bg-gradient-to-b from-zinc-900/70 to-zinc-950 shadow-2xl shadow-black/60 ring-1 ring-violet-500/20">
           <HypnoticArenaExperience
             figureConfig={figureConfig}
             vibeBalance={balances.vibe}

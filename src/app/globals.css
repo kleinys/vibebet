@@ -1761,6 +1761,11 @@ body {
 .hypnotic-arena {
   position: relative;
   padding: 1rem 1rem 1.25rem;
+  min-height: calc(100vh - 56px);
+  background:
+    radial-gradient(1200px 540px at 50% -10%, rgba(251, 191, 36, 0.12), transparent 55%),
+    radial-gradient(900px 420px at 80% 15%, rgba(168, 85, 247, 0.12), transparent 60%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.96), rgba(1, 1, 9, 0.98));
 }
 
 .hypnotic-arena__layout {
@@ -1768,17 +1773,95 @@ body {
   z-index: 2;
   display: flex;
   gap: 1rem;
+  min-height: calc(100vh - 130px);
 }
 
 .hypnotic-arena__stage-wrap {
   margin-bottom: 0.75rem;
-  min-height: min(72vw, 480px);
-  height: min(78vw, 520px);
+  min-height: min(58vh, 620px);
+  height: min(64vh, 700px);
   max-height: none;
   overflow: visible;
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   background: #020617;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03), 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+@media (max-width: 900px) {
+  .hypnotic-arena {
+    min-height: auto;
+  }
+
+  .hypnotic-arena__layout {
+    min-height: auto;
+  }
+
+  .hypnotic-arena__stage-wrap {
+    min-height: min(72vw, 500px);
+    height: min(78vw, 560px);
+  }
+}
+
+.hypnotic-fullscreen-toggle {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 15;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(2, 6, 23, 0.66);
+  color: rgba(244, 244, 245, 0.88);
+  border-radius: 999px;
+  padding: 0.38rem 0.8rem;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.hypnotic-fullscreen-toggle:hover {
+  background: rgba(91, 33, 182, 0.34);
+  border-color: rgba(196, 181, 253, 0.45);
+  color: #f5f3ff;
+}
+
+.hypnotic-fullscreen-aura {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 35%, rgba(251, 191, 36, 0.08), transparent 52%);
+  animation: hypnotic-fullscreen-aura 1.8s ease-in-out infinite;
+}
+
+@keyframes hypnotic-fullscreen-aura {
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+#hypnotic-arena-root:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+  padding: 1rem 1rem 1.5rem;
+  background:
+    radial-gradient(1200px 560px at 50% -10%, rgba(251, 191, 36, 0.18), transparent 58%),
+    radial-gradient(900px 440px at 82% 10%, rgba(217, 70, 239, 0.16), transparent 62%),
+    linear-gradient(180deg, #020617 0%, #000 100%);
+}
+
+#hypnotic-arena-root:fullscreen .hypnotic-arena__layout {
+  min-height: calc(100vh - 90px);
+}
+
+#hypnotic-arena-root:fullscreen .hypnotic-arena__stage-wrap {
+  min-height: min(66vh, 760px);
+  height: min(72vh, 820px);
 }
 
 .hypnotic-arena__stage-wrap .companion-stage {
@@ -2426,6 +2509,39 @@ body {
   transform: translateX(-50%);
   background: linear-gradient(180deg, transparent, #fde047, transparent);
   box-shadow: 0 0 12px rgba(251, 191, 36, 0.8);
+}
+
+.hypnotic-morph-panel--case .locker-case-roulette__window {
+  border-color: rgba(251, 191, 36, 0.28);
+  box-shadow:
+    inset 0 0 18px rgba(245, 158, 11, 0.2),
+    0 0 30px rgba(245, 158, 11, 0.15);
+}
+
+.hypnotic-morph-panel--case .locker-case-roulette__marker {
+  box-shadow:
+    0 0 14px rgba(251, 191, 36, 0.95),
+    0 0 36px rgba(251, 191, 36, 0.45);
+}
+
+.hypnotic-morph-panel--case .locker-tier-case--shake {
+  animation: locker-case-jolt 0.22s linear infinite;
+}
+
+@keyframes locker-case-jolt {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate3d(2px, -1px, 0) rotate(0.7deg);
+  }
+  50% {
+    transform: translate3d(-2px, 1px, 0) rotate(-0.7deg);
+  }
+  75% {
+    transform: translate3d(1px, 2px, 0) rotate(0.3deg);
+  }
 }
 
 .locker-case-roulette__track {
