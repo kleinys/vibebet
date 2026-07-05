@@ -8,6 +8,7 @@ import { formatVibe } from "@/lib/utils";
 import { CurrencyIconVibe } from "@/components/fantasy-icons";
 import { resolveFigureConfig } from "@/lib/companion-figure";
 import { getAllBalances } from "@/lib/ledger";
+import { getLockerMomentum, lockerMomentumToSession } from "@/lib/locker-momentum-server";
 import { orbitModifierSummary } from "@/lib/orbit-affinity";
 
 export const revalidate = 0;
@@ -20,7 +21,7 @@ export default async function LockerArenaPage() {
   if (!user) redirect("/login?next=/account/profile/arena");
 
   const utcToday = new Date().toISOString().slice(0, 10);
-  const [equipped, companionInput, balances, wheelDaily] = await Promise.all([
+  const [equipped, companionInput, balances, wheelDaily, lockerMomentum] = await Promise.all([
     getEquippedCosmetics(user.id).catch(() => ({ skin: null, badge: null })),
     getCompanionInput(user.id).catch(() => ({
       currentStreak: 0,
@@ -35,11 +36,13 @@ export default async function LockerArenaPage() {
       .eq("spin_date", utcToday)
       .maybeSingle()
       .then((r) => r.data?.spins_used ?? 0),
+    getLockerMomentum(user.id),
   ]);
 
   const figureConfig = resolveFigureConfig(companionInput);
   const skinSlug = equipped.skin?.slug ?? figureConfig.skinSlug;
   const modifier = orbitModifierSummary(skinSlug);
+  const initialSession = lockerMomentumToSession(lockerMomentum);
 
   return (
     <div className="min-h-screen bg-[#020617]">
@@ -83,6 +86,8 @@ export default async function LockerArenaPage() {
             vibeBalance={balances.vibe}
             spinsUsedToday={wheelDaily}
             equippedSkinSlug={skinSlug}
+            initialSession={initialSession}
+            initialAffinityLabel={lockerMomentum.affinityLabel ?? modifier?.affinity.label ?? null}
           />
         </div>
       </div>

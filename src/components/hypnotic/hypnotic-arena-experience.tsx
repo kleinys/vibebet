@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { FigureConfig } from "@/lib/companion-figure";
 import { HypnoticFlowProvider } from "@/components/hypnotic/hypnotic-flow-provider";
+import type { HypnoticSession } from "@/lib/hypnotic-flow";
 import { HypnoticMomentumBar } from "@/components/hypnotic/hypnotic-momentum-bar";
 import { HypnoticParticleField } from "@/components/hypnotic/hypnotic-particle-field";
 import { HypnoticStageReactor } from "@/components/hypnotic/hypnotic-stage-reactor";
@@ -14,16 +15,23 @@ export function HypnoticArenaExperience({
   vibeBalance,
   spinsUsedToday,
   equippedSkinSlug,
+  initialSession,
+  initialAffinityLabel,
 }: {
   figureConfig: FigureConfig;
   vibeBalance: number;
   spinsUsedToday: number;
   equippedSkinSlug?: string | null;
+  initialSession?: HypnoticSession;
+  initialAffinityLabel?: string | null;
 }) {
   const freeSpinAvailable = spinsUsedToday === 0;
 
   return (
-    <HypnoticFlowProvider>
+    <HypnoticFlowProvider
+      initialSession={initialSession}
+      initialAffinityLabel={initialAffinityLabel}
+    >
       <HypnoticAfterglowBridge animal={figureConfig.animal} />
       <div className="hypnotic-arena relative">
         <HypnoticParticleField intensity={freeSpinAvailable ? 1.2 : 0.8} />

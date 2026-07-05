@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { formatVibe } from "@/lib/utils";
 import { CurrencyIconVibe } from "@/components/fantasy-icons";
 import { orbitModifierSummary } from "@/lib/orbit-affinity";
+import { parseMomentumFromRpc } from "@/lib/hypnotic-flow";
 import { useHypnoticFlow } from "@/components/hypnotic/hypnotic-flow-provider";
 import {
   CRATE_STAKES,
@@ -132,7 +133,7 @@ export function HypnoticMorphFloor({
         setBusy(false);
         setCinema("idle");
         setReaction("idle");
-        onCaseResult(result.net);
+        onCaseResult(result.net, parseMomentumFromRpc(row as Record<string, unknown>));
         router.refresh();
       }, 1100);
     } catch (e) {
@@ -195,8 +196,7 @@ export function HypnoticMorphFloor({
         setSpinsUsed((n) => n + 1);
         setWheelSpinning(false);
         setBusy(false);
-        setReaction("approve");
-        onWheelWin(result.payout);
+        onWheelWin(result.payout, parseMomentumFromRpc(row as Record<string, unknown>));
         router.refresh();
       }, WHEEL_SPIN_MS);
     } catch (e) {
@@ -276,9 +276,14 @@ export function HypnoticMorphFloor({
             {crateOpen && <div className="locker-case__burst" />}
           </div>
 
-          {crateResult ? (
-            <div className="mt-4 text-center">
-              <p className="text-sm font-semibold text-amber-200">{crateResult.label}</p>
+            {crateResult ? (
+              <div className="mt-4 text-center">
+                <p className="text-sm font-semibold text-amber-200">{crateResult.label}</p>
+                {superActive && (
+                  <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-amber-300">
+                    SUPER 2× applied
+                  </p>
+                )}
               <p className="mt-1 text-xs text-zinc-400">
                 Payout{" "}
                 <span className="font-medium text-emerald-300">
@@ -391,8 +396,13 @@ export function HypnoticMorphFloor({
           </div>
 
           {wheelResult ? (
-            <div className="mt-4 text-center">
-              <p className="text-sm font-semibold text-violet-100">Won: {wheelResult.label}</p>
+              <div className="mt-4 text-center">
+                <p className="text-sm font-semibold text-violet-100">Won: {wheelResult.label}</p>
+                {superActive && (
+                  <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-violet-300">
+                    SUPER 2× jackpot
+                  </p>
+                )}
               <p className="mt-1 text-xs text-zinc-400">
                 {wheelResult.freeSpin ? "Free spin · " : `Cost ${formatVibe(wheelResult.cost)} VIBE · `}
                 Net{" "}

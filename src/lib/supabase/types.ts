@@ -601,6 +601,19 @@ export interface Database {
         Update: never;
         Relationships: [];
       };
+      locker_momentum: {
+        Row: {
+          user_id: string;
+          momentum: number;
+          super_until: string | null;
+          case_chain: number;
+          wheel_chain: number;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       locker_wheel_daily: {
         Row: {
           user_id: string;
@@ -904,6 +917,18 @@ export interface Database {
         Args: Record<PropertyKey, never>;
         Returns: number;
       };
+      get_locker_momentum: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          momentum: number;
+          super_until: string | null;
+          super_active: boolean;
+          super_seconds_left: number;
+          case_chain: number;
+          wheel_chain: number;
+          affinity_label: string;
+        }[];
+      };
       open_locker_crate: {
         Args: { p_stake?: number };
         Returns: {
@@ -911,6 +936,13 @@ export interface Database {
           payout: number;
           net: number;
           new_balance: number;
+          momentum: number;
+          momentum_delta: number;
+          super_active: boolean;
+          super_seconds_left: number;
+          payout_multiplier: number;
+          affinity_label: string;
+          is_jackpot: boolean;
         }[];
       };
       spin_locker_wheel: {
@@ -923,6 +955,13 @@ export interface Database {
           net: number;
           new_balance: number;
           free_spin: boolean;
+          momentum: number;
+          momentum_delta: number;
+          super_active: boolean;
+          super_seconds_left: number;
+          payout_multiplier: number;
+          affinity_label: string;
+          is_jackpot: boolean;
         }[];
       };
       spend_gems_for_item: {

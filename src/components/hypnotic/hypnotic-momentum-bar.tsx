@@ -28,7 +28,7 @@ export function HypnoticMomentumBar() {
       {superActive && (
         <p className="hypnotic-momentum__super">
           SUPER · {superSecondsLeft}s
-          <span className="block text-[9px] font-normal text-amber-200/80">2× jackpot feel</span>
+          <span className="block text-[9px] font-normal text-amber-200/80">2× jackpot payouts</span>
         </p>
       )}
     </div>

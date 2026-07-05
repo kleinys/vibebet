@@ -10,17 +10,22 @@ import {
   type ReactNode,
 } from "react";
 import {
-  clampMomentum,
-  createSession,
-  isSuperActive,
-  momentumDelta,
   nearestCrateStake,
-  SUPER_MODE_MS,
   type HypnoticCinema,
   type HypnoticMode,
   type HypnoticReaction,
   type HypnoticSession,
 } from "@/lib/hypnotic-flow";
+
+export interface RpcMomentumSync {
+  momentum: number;
+  superActive: boolean;
+  superSecondsLeft: number;
+  superUntil: number | null;
+  payoutMultiplier: number;
+  affinityLabel: string | null;
+  isJackpot: boolean;
+}
 
 interface HypnoticFlowValue {
   mode: HypnoticMode;
@@ -30,12 +35,15 @@ interface HypnoticFlowValue {
   momentum: number;
   superActive: boolean;
   superSecondsLeft: number;
+  payoutMultiplier: number;
+  affinityLabel: string | null;
+  lastJackpot: boolean;
   recommendedStake: number | null;
   stakeDocked: boolean;
   setStakeDocked: (docked: boolean) => void;
   clearRecommendedStake: () => void;
-  onWheelWin: (payout: number) => void;
-  onCaseResult: (net: number) => void;
+  onWheelWin: (payout: number, sync: RpcMomentumSync) => void;
+  onCaseResult: (net: number, sync: RpcMomentumSync) => void;
   setCinema: (cinema: HypnoticCinema) => void;
   setReaction: (reaction: HypnoticReaction) => void;
   triggerAfterglow: (animal: string) => void;
@@ -56,17 +64,41 @@ export function useHypnoticFlowOptional() {
   return useContext(HypnoticFlowContext);
 }
 
-export function HypnoticFlowProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<HypnoticSession>(createSession);
+function applySync(
+  prev: HypnoticSession,
+  sync: RpcMomentumSync,
+): HypnoticSession {
+  return {
+    ...prev,
+    momentum: sync.momentum,
+    superUntil: sync.superActive
+      ? sync.superUntil ?? Date.now() + sync.superSecondsLeft * 1000
+      : null,
+  };
+}
+
+export function HypnoticFlowProvider({
+  children,
+  initialSession,
+  initialAffinityLabel = null,
+}: {
+  children: ReactNode;
+  initialSession?: HypnoticSession;
+  initialAffinityLabel?: string | null;
+}) {
+  const [session, setSession] = useState<HypnoticSession>(initialSession ?? { momentum: 0, superUntil: null, recommendedStake: null, lastWinAmount: null, lastAnimal: null });
   const [mode, setModeState] = useState<HypnoticMode>("wheel");
   const [reaction, setReaction] = useState<HypnoticReaction>("idle");
   const [cinema, setCinema] = useState<HypnoticCinema>("idle");
   const [stakeDocked, setStakeDocked] = useState(false);
   const [morphing, setMorphing] = useState(false);
   const [vibeOrbs, setVibeOrbs] = useState<{ id: number; amount: number }[]>([]);
-  const [tick, setTick] = useState(0);
+  const [payoutMultiplier, setPayoutMultiplier] = useState(1);
+  const [affinityLabel, setAffinityLabel] = useState<string | null>(initialAffinityLabel);
+  const [lastJackpot, setLastJackpot] = useState(false);
+  const [, setTick] = useState(0);
 
-  const superActive = isSuperActive(session.superUntil);
+  const superActive = session.superUntil !== null && session.superUntil > Date.now();
 
   useEffect(() => {
     if (!session.superUntil) return;
@@ -84,34 +116,19 @@ export function HypnoticFlowProvider({ children }: { children: ReactNode }) {
     window.setTimeout(() => setMorphing(false), 700);
   }, []);
 
-  const bumpMomentum = useCallback((delta: number) => {
-    setSession((prev) => {
-      const momentum = clampMomentum(prev.momentum + delta);
-      const hitSuper = momentum >= 100 && !isSuperActive(prev.superUntil);
-      return {
-        ...prev,
-        momentum,
-        superUntil: hitSuper ? Date.now() + SUPER_MODE_MS : prev.superUntil,
-      };
-    });
-    if (delta > 0) {
-      setReaction("approve");
-      window.setTimeout(() => setReaction((r) => (r === "approve" ? "idle" : r)), 1800);
-    }
-  }, []);
-
   const onWheelWin = useCallback(
-    (payout: number) => {
-      bumpMomentum(momentumDelta("wheel-win"));
-      const stake = nearestCrateStake(payout);
+    (payout: number, sync: RpcMomentumSync) => {
       setSession((prev) => ({
-        ...prev,
-        recommendedStake: stake,
+        ...applySync(prev, sync),
+        recommendedStake: nearestCrateStake(payout),
         lastWinAmount: payout,
       }));
+      setPayoutMultiplier(sync.payoutMultiplier);
+      setAffinityLabel(sync.affinityLabel);
+      setLastJackpot(sync.isJackpot);
       setStakeDocked(false);
       setCinema("vibe-absorb");
-      setReaction("approve");
+      setReaction(sync.superActive ? "super" : "approve");
       const orbId = Date.now();
       setVibeOrbs([{ id: orbId, amount: payout }]);
       window.setTimeout(() => {
@@ -120,19 +137,20 @@ export function HypnoticFlowProvider({ children }: { children: ReactNode }) {
         setMode("case");
       }, 2200);
     },
-    [bumpMomentum, setMode],
+    [setMode],
   );
 
-  const onCaseResult = useCallback(
-    (net: number) => {
-      bumpMomentum(momentumDelta(net >= 0 ? "case-win" : "case-lose"));
-      if (net >= 0) {
-        setCinema("confetti");
-        window.setTimeout(() => setCinema("idle"), 1600);
-      }
-    },
-    [bumpMomentum],
-  );
+  const onCaseResult = useCallback((net: number, sync: RpcMomentumSync) => {
+    setSession((prev) => applySync(prev, sync));
+    setPayoutMultiplier(sync.payoutMultiplier);
+    setAffinityLabel(sync.affinityLabel);
+    setLastJackpot(sync.isJackpot);
+    if (net >= 0) {
+      setCinema("confetti");
+      setReaction(sync.superActive ? "super" : "approve");
+      window.setTimeout(() => setCinema("idle"), 1600);
+    }
+  }, []);
 
   const clearRecommendedStake = useCallback(() => {
     setSession((prev) => ({ ...prev, recommendedStake: null }));
@@ -148,9 +166,12 @@ export function HypnoticFlowProvider({ children }: { children: ReactNode }) {
   const clearVibeOrbs = useCallback(() => setVibeOrbs([]), []);
 
   useEffect(() => {
-    if (superActive) setReaction("super");
-    else if (reaction === "super") setReaction("idle");
-  }, [superActive, reaction]);
+    if (superActive && reaction !== "afterglow" && cinema === "idle") {
+      setReaction("super");
+    } else if (!superActive && reaction === "super") {
+      setReaction("idle");
+    }
+  }, [superActive, reaction, cinema]);
 
   const value = useMemo<HypnoticFlowValue>(
     () => ({
@@ -161,6 +182,9 @@ export function HypnoticFlowProvider({ children }: { children: ReactNode }) {
       momentum: session.momentum,
       superActive,
       superSecondsLeft,
+      payoutMultiplier,
+      affinityLabel,
+      lastJackpot,
       recommendedStake: session.recommendedStake,
       stakeDocked,
       setStakeDocked,
@@ -183,6 +207,9 @@ export function HypnoticFlowProvider({ children }: { children: ReactNode }) {
       session.recommendedStake,
       superActive,
       superSecondsLeft,
+      payoutMultiplier,
+      affinityLabel,
+      lastJackpot,
       stakeDocked,
       clearRecommendedStake,
       onWheelWin,

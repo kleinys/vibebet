@@ -57,3 +57,28 @@ export function createSession(): HypnoticSession {
 export function isSuperActive(superUntil: number | null, now = Date.now()): boolean {
   return superUntil !== null && superUntil > now;
 }
+
+export function parseMomentumFromRpc(row: Record<string, unknown>): {
+  momentum: number;
+  momentumDelta: number;
+  superActive: boolean;
+  superSecondsLeft: number;
+  superUntil: number | null;
+  payoutMultiplier: number;
+  affinityLabel: string | null;
+  isJackpot: boolean;
+} {
+  const superActive = Boolean(row.super_active);
+  const superSecondsLeft = Number(row.super_seconds_left ?? 0);
+
+  return {
+    momentum: Number(row.momentum ?? 0),
+    momentumDelta: Number(row.momentum_delta ?? 0),
+    superActive,
+    superSecondsLeft,
+    superUntil: superActive ? Date.now() + superSecondsLeft * 1000 : null,
+    payoutMultiplier: Number(row.payout_multiplier ?? 1),
+    affinityLabel: (row.affinity_label as string) ?? null,
+    isJackpot: Boolean(row.is_jackpot),
+  };
+}
