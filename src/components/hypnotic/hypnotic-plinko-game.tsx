@@ -35,7 +35,7 @@ export function HypnoticPlinkoGame() {
   const [balls, setBalls] = useState<PlinkoBall[]>([]);
   const [ballIdCounter, setBallIdCounter] = useState<number>(0);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
-  const [lastWinSlot, setLastWinSlot] = useState<number | null>(null);
+  const [highlightedSlot, setHighlightedSlot] = useState<number | null>(null);
   const [winMessage, setWinMessage] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>(0);
@@ -76,13 +76,21 @@ export function HypnoticPlinkoGame() {
         const updatedBalls: PlinkoBall[] = prevBalls.map((ball: PlinkoBall) => {
           if (!ball.active) return ball;
 
-          // Apply gravity
-          let newVelY = ball.velocityY + 0.05 * (deltaTime / 16);
-          let newVelX = ball.velocityX;
+          // Apply gravity (increasing velocity over time)
+          const gravity = 0.001 * (deltaTime / 16);
+          let newVelY = ball.velocityY + gravity;
+          
+          // Limit maximum falling speed to prevent balls from falling too fast
+          const maxVelocity = 0.5;
+          newVelY = Math.min(newVelY, maxVelocity);
+          
+          // Apply some air resistance
+          const airResistance = 0.999;
+          let newVelX = ball.velocityX * airResistance;
           
           // Calculate new position
-          let newX = ball.x + newVelX * (deltaTime / 16);
-          let newY = ball.y + newVelY * (deltaTime / 16);
+          let newX = ball.x + newVelX * (deltaTime / 16) * 10;
+          let newY = ball.y + newVelY * (deltaTime / 16) * 10;
           
           // Boundary checks - keep ball within horizontal bounds
           if (newX < 2) {
@@ -93,33 +101,38 @@ export function HypnoticPlinkoGame() {
             newVelX = -Math.abs(newVelX) * 0.8;
           }
           
-          // Simulate peg collisions (simplified)
-          // We'll simulate pegs at fixed positions
-          const rowHeight = 8;
+          // Simulate peg collisions in pyramid pattern
           const pegRows = 8;
+          const rowSpacing = 8; // Percentage of height between rows
+          const startY = 15; // Starting Y percentage for first row
           
-          for (let row = 1; row <= pegRows; row++) {
-            const pegY = row * rowHeight + 10; // Pegs start at 18% down
+          for (let row = 0; row < pegRows; row++) {
+            const pegY = startY + (row * rowSpacing);
             if (Math.abs(newY - pegY) < 2 && Math.abs(ball.y - pegY) >= 2) { // Ball is near a peg row
-              // Determine if there's a peg at this X position
-              const rowIndex = row - 1;
-              const colsInRow = 10 - (rowIndex % 2); // Alternating rows
-              const offsetX = (rowIndex % 2) * (100 / (colsInRow * 2)); // Offset for alternating rows
+              // Calculate peg positions in pyramid pattern
+              // Each row has increasing number of pegs toward the center
+              const colsInRow = row + 3; // First row has 3 pegs, then 4, 5, etc.
+              const spacing = 100 / colsInRow;
               
               for (let col = 0; col < colsInRow; col++) {
-                const pegX = offsetX + (col * (100 / colsInRow));
+                // Center the pegs in the row
+                const offsetX = spacing / 2;
+                const pegX = offsetX + (col * spacing);
                 
-                if (Math.abs(newX - pegX) < 3) { // Ball hits a peg
+                if (Math.abs(newX - pegX) < 2.5) { // Ball hits a peg
                   // Add some randomness to the bounce
-                  newVelX += (Math.random() - 0.5) * 0.8;
-                  newVelY *= 0.9; // Energy loss
+                  newVelX += (Math.random() - 0.5) * 0.4;
+                  newVelY *= 0.85; // Energy loss
                   
                   // Move ball away from peg to prevent sticking
                   if (newX < pegX) {
-                    newX = pegX - 3;
+                    newX = pegX - 2.5;
                   } else {
-                    newX = pegX + 3;
+                    newX = pegX + 2.5;
                   }
+                  
+                  // Add extra bounce effect
+                  newVelY = Math.max(newVelY, 0.1);
                   
                   break;
                 }
@@ -163,20 +176,21 @@ export function HypnoticPlinkoGame() {
           };
         });
 
-        // Check if any balls are still animating
-        const anyStillAnimating = updatedBalls.some((ball: PlinkoBall) => ball.active);
-        
-        if (!anyStillAnimating && prevBalls.length > 0) {
-          // All balls have finished, find the last one that finished
-          const lastFinishedBall = prevBalls.find((ball: PlinkoBall) => !ball.active && ball.finalSlot !== undefined);
-          if (lastFinishedBall && lastFinishedBall.finalSlot !== undefined) {
-            setLastWinSlot(lastFinishedBall.finalSlot);
-            setWinMessage(`Won ${PLINKO_SLOTS[lastFinishedBall.finalSlot].multiplier}× multiplier!`);
-            setTimeout(() => {
-              setWinMessage(null);
-            }, 3000);
+        // If a ball has completed its animation
+        if (completedBallFinalSlot !== undefined) {
+          setHighlightedSlot(completedBallFinalSlot);
+          setWinMessage(`${PLINKO_SLOTS[completedBallFinalSlot].multiplier}× WINNER!`);
+          
+          // Clear win message after delay
+          setTimeout(() => {
+            setWinMessage(null);
+          }, 2000);
+          
+          // Reset animation state when all balls are done
+          const activeBalls = updatedBalls.filter(b => b.active);
+          if (activeBalls.length === 0) {
+            setIsAnimating(false);
           }
-          setIsAnimating(false);
         }
         
         return updatedBalls;
@@ -227,24 +241,30 @@ export function HypnoticPlinkoGame() {
         ref={containerRef}
         className="relative w-full h-80 bg-gradient-to-b from-zinc-900 to-zinc-950 rounded-xl border border-fuchsia-500/30 overflow-hidden"
       >
-        {/* Pegs */}
-        {Array.from({ length: 8 }).map((_, rowIndex: number) => (
-          <div key={rowIndex} className="absolute w-full" style={{ top: `${rowIndex * 8 + 10}%` }}>
-            {Array.from({ length: 10 - rowIndex % 2 }).map((_, colIndex: number) => {
-              const offsetX = (rowIndex % 2) * (100 / ((10 - rowIndex % 2) * 2));
-              return (
-                <div
-                  key={`${rowIndex}-${colIndex}`}
-                  className="absolute w-2 h-2 rounded-full bg-fuchsia-400/80"
-                  style={{
-                    left: `${offsetX + (colIndex * (100 / (10 - rowIndex % 2)))}%`,
-                    boxShadow: '0 0 8px rgba(192, 132, 252, 0.8)'
-                  }}
-                />
-              );
-            })}
-          </div>
-        ))}
+        {/* Pyramid Pegs */}
+        {Array.from({ length: 8 }).map((_, rowIndex) => {
+          // Create pyramid pattern: fewer pegs at top, more at bottom
+          const pegCount = rowIndex + 3; // Start with 3 pegs, increase each row
+          const spacing = 100 / pegCount;
+          
+          return (
+            <div key={rowIndex} className="absolute w-full" style={{ top: `${15 + rowIndex * 8}%` }}>
+              {Array.from({ length: pegCount }).map((_, colIndex) => {
+                const offsetX = spacing / 2;
+                return (
+                  <div
+                    key={`${rowIndex}-${colIndex}`}
+                    className="absolute w-2 h-2 rounded-full bg-fuchsia-400/80"
+                    style={{
+                      left: `${offsetX + (colIndex * spacing)}%`,
+                      boxShadow: '0 0 8px rgba(192, 132, 252, 0.8)'
+                    }}
+                  />
+                );
+              })}
+            </div>
+          );
+        })}
 
         {/* Balls */}
         {balls.map((ball: PlinkoBall) => (
@@ -268,7 +288,7 @@ export function HypnoticPlinkoGame() {
             <div
               key={index}
               className={`flex-1 flex flex-col items-center justify-end border-t-2 border-l border-white/20 p-1 text-[9px] transition-all duration-500 ${
-                lastWinSlot === index 
+                highlightedSlot === index 
                   ? `${slot.color} ${slot.glowColor} shadow-lg scale-105` 
                   : 'bg-zinc-800/80'
               }`}
