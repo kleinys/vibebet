@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatVibe } from "@/lib/utils";
@@ -18,7 +18,9 @@ import {
   LockerTierCase,
   resultLabelToTier,
   stakeToTier,
+  type CaseTier,
 } from "@/components/locker-tier-case";
+import { LockerCaseRoulette } from "@/components/locker-case-roulette";
 
 const BTN =
   "rounded-sm border px-4 py-2 text-[11px] font-semibold uppercase tracking-wider transition disabled:opacity-50";
@@ -41,8 +43,6 @@ type WheelResult = {
 };
 
 const WHEEL_SPIN_MS = 5000;
-/** Generated art has 1000 VIBE segment at 12 o'clock (index 7 in WHEEL_SEGMENTS). */
-const WHEEL_ART_POINTER_INDEX = 7;
 
 export function HypnoticMorphFloor({
   vibeBalance,
@@ -80,6 +80,9 @@ export function HypnoticMorphFloor({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [chipSliding, setChipSliding] = useState<number | null>(null);
+  const [caseRouletteTier, setCaseRouletteTier] = useState<CaseTier | null>(null);
+  const [pendingCrate, setPendingCrate] = useState<CrateResult | null>(null);
+  const crateSyncRef = useRef<Record<string, unknown> | null>(null);
 
   const segmentAngle = 360 / WHEEL_SEGMENTS.length;
   const freeSpinAvailable = spinsUsed === 0;
@@ -93,6 +96,25 @@ export function HypnoticMorphFloor({
       return String((err as { message: string }).message);
     }
     return "Something went wrong. Try again.";
+  }
+
+  function finishCrateOpen() {
+    setPendingCrate((pending) => {
+      if (!pending) return null;
+      setCrateResult(pending);
+      setBalance(pending.newBalance);
+      setCaseRouletteTier(null);
+      setBusy(false);
+      setCinema("idle");
+      setReaction("idle");
+      const sync = crateSyncRef.current;
+      if (sync) {
+        onCaseResult(pending.net, parseMomentumFromRpc(sync));
+      }
+      crateSyncRef.current = null;
+      router.refresh();
+      return null;
+    });
   }
 
   function selectStake(stake: (typeof CRATE_STAKES)[number]) {
@@ -124,21 +146,16 @@ export function HypnoticMorphFloor({
       const row = Array.isArray(data) ? data[0] : data;
       if (!row) throw new Error("No crate result returned");
 
-      window.setTimeout(() => {
-        const result: CrateResult = {
-          label: row.label as string,
-          payout: Number(row.payout),
-          net: Number(row.net),
-          newBalance: Number(row.new_balance),
-        };
-        setCrateResult(result);
-        setBalance(result.newBalance);
-        setBusy(false);
-        setCinema("idle");
-        setReaction("idle");
-        onCaseResult(result.net, parseMomentumFromRpc(row as Record<string, unknown>));
-        router.refresh();
-      }, 1100);
+      const result: CrateResult = {
+        label: row.label as string,
+        payout: Number(row.payout),
+        net: Number(row.net),
+        newBalance: Number(row.new_balance),
+      };
+      const tier = resultLabelToTier(result.label);
+      setPendingCrate(result);
+      setCaseRouletteTier(tier);
+      crateSyncRef.current = row as Record<string, unknown>;
     } catch (e) {
       setCrateOpen(false);
       setBusy(false);
@@ -151,6 +168,9 @@ export function HypnoticMorphFloor({
   function resetCrate() {
     setCrateOpen(false);
     setCrateResult(null);
+    setPendingCrate(null);
+    setCaseRouletteTier(null);
+    crateSyncRef.current = null;
     setError(null);
     setStakeDocked(false);
   }
@@ -179,7 +199,8 @@ export function HypnoticMorphFloor({
       const nextRotation =
         wheelRotation +
         spins * 360 +
-        (WHEEL_ART_POINTER_INDEX - segmentIndex) * segmentAngle;
+        (WHEEL_SEGMENTS.length - segmentIndex) * segmentAngle -
+        segmentAngle / 2;
 
       setWheelRotation(nextRotation);
 
@@ -258,6 +279,11 @@ export function HypnoticMorphFloor({
       >
         {/* Case layer */}
         <div className="hypnotic-morph-viewport__case" id="vibe-case">
+          <LockerCaseRoulette
+            active={crateOpen && caseRouletteTier != null && !crateResult}
+            targetTier={caseRouletteTier ?? "common"}
+            onDone={finishCrateOpen}
+          />
           <LockerTierCase
             tier={caseTier}
             open={crateOpen}
@@ -292,7 +318,13 @@ export function HypnoticMorphFloor({
             </div>
           ) : (
             <p className="mt-4 text-center text-[11px] text-zinc-500">
-              {crateOpen ? "Case vibrating…" : stakeDocked ? "Tap OPEN CASE" : "Pick stake — chip docks on crate"}
+              {caseRouletteTier
+                ? "Roulette spinning…"
+                : crateOpen
+                  ? "Case vibrating…"
+                  : stakeDocked
+                    ? "Tap OPEN CASE"
+                    : "Pick stake — chip docks on crate"}
             </p>
           )}
 

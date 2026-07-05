@@ -36,7 +36,7 @@ export default async function LiveHubPage() {
   const [events, duels, discovered] = await Promise.all([
     getLiveEvents(40),
     duelsOn && spectatorOn ? getActiveSpectatorDuels(12) : Promise.resolve([]),
-    fetchDiscoveredStreams({ twitchLimit: 10, youtubeLimit: 10 }),
+    fetchDiscoveredStreams({ youtubeLimit: 20 }),
   ]);
 
   const liveNow = events.filter((e) => e.status === "live");
@@ -145,14 +145,11 @@ export default async function LiveHubPage() {
       <section className="mt-10">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <h2 className="text-xs font-semibold uppercase tracking-wider text-sky-400">
-            Trending on Twitch &amp; YouTube
+            Live on YouTube
           </h2>
           {discoveryHint && (
             <p className="text-[11px] text-zinc-500">
-              Add <code className="font-mono">TWITCH_CLIENT_ID</code>,{" "}
-              <code className="font-mono">TWITCH_CLIENT_SECRET</code>, and{" "}
-              <code className="font-mono">YOUTUBE_API_KEY</code> to enable (see{" "}
-              <code className="font-mono">.env.local.example</code>).
+              Add <code className="font-mono">YOUTUBE_API_KEY</code> in Vercel env to enable.
             </p>
           )}
         </div>
@@ -194,9 +191,9 @@ export default async function LiveHubPage() {
           </ul>
         ) : (
           <div className="mt-4 rounded-xl border border-dashed border-white/10 bg-zinc-900/20 p-6 text-sm text-zinc-500">
-            External stream discovery uses the same pattern as Polymarket mirrors: server-side
-            API fetch on page load (or cron), no browser keys. Configure Twitch + YouTube API
-            credentials to show top live streams here.
+            External stream discovery uses the YouTube Data API (server-side fetch).
+            Add <code className="font-mono">YOUTUBE_API_KEY</code> to show top live streams here.
+            Twitch can be added later when your dev account has 2FA enabled.
           </div>
         )}
       </section>

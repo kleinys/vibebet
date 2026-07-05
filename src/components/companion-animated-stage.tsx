@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import type { FigureConfig } from "@/lib/companion-figure";
 import { animalImagePath, humanImagePath } from "@/lib/character-art";
 import { companionMotion, HUMAN_MOTION_CLASS } from "@/lib/companion-motion";
@@ -52,6 +52,8 @@ export function CompanionAnimatedStage({
   const motion = companionMotion(animal);
   const animalSrc = animalImagePath(animal);
   const humanSrc = showHuman ? humanImagePath(human, skinSlug) : null;
+  const [animalImgFailed, setAnimalImgFailed] = useState(false);
+  const showAnimalRaster = Boolean(animalSrc) && !animalImgFailed;
 
   const orbitStyle = {
     "--orbit-duration": `${motion.orbitDuration}s`,
@@ -70,12 +72,6 @@ export function CompanionAnimatedStage({
 
       {showHuman && layout === "flank" ? (
         <div className="companion-stage__focal companion-stage__focal--flank">
-          <div className="companion-flank companion-flank--phenomenon">
-            <div className={`companion-flank-phenomenon companion-flank-phenomenon--${morph}`}>
-              <SpiritElementBall morph={morph} />
-            </div>
-          </div>
-
           <div className="companion-figure-slot companion-figure-slot--human-center companion-figure-slot--flank-center">
             <div className={`companion-human-wrap ${HUMAN_MOTION_CLASS}`}>
               {humanSrc && <EyeGlow />}
@@ -108,14 +104,21 @@ export function CompanionAnimatedStage({
             </div>
           </div>
 
+          <div className="companion-flank companion-flank--phenomenon">
+            <div className={`companion-flank-phenomenon companion-flank-phenomenon--${morph}`}>
+              <SpiritElementBall morph={morph} />
+            </div>
+          </div>
+
           <div className="companion-flank companion-flank--animal">
             <div className={`companion-flank-animal companion-flank-animal--${animal} ${motion.animal}`}>
-              {animalSrc ? (
+              {showAnimalRaster ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={animalSrc}
+                  src={animalSrc!}
                   alt=""
                   draggable={false}
+                  onError={() => setAnimalImgFailed(true)}
                   className={`companion-figure-raster companion-figure-raster--flank companion-orbit-animal-img companion-orbit-animal-img--${animal}`}
                 />
               ) : (
@@ -125,7 +128,7 @@ export function CompanionAnimatedStage({
                   <AnimalSprite
                     kind={animal}
                     palette={palette}
-                    scale={animalScale * 0.85}
+                    scale={animalScale * 1.1}
                     x={0}
                     y={0}
                     preferRaster={false}

@@ -25,7 +25,7 @@ body {
 }
 
 @supports (padding: env(safe-area-inset-bottom)) {
-  body {
+body {
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
   }
@@ -1775,7 +1775,7 @@ body {
   min-height: min(72vw, 480px);
   height: min(78vw, 520px);
   max-height: none;
-  overflow: hidden;
+  overflow: visible;
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.06);
   background: #020617;
@@ -2226,7 +2226,7 @@ body {
   animation: hypnotic-trail-pulse 2s ease-in-out infinite;
 }
 
-/* ── Casino SVG wheel ── */
+/* ── Casino wheel: static frame, spinning inner disk ── */
 .locker-casino-wheel-wrap {
   position: relative;
   width: min(72vw, 280px);
@@ -2234,30 +2234,87 @@ body {
   margin: 0 auto;
 }
 
-.locker-casino-wheel-wrap--glow .locker-casino-wheel {
-  filter: drop-shadow(0 0 18px rgba(251, 191, 36, 0.55))
-    drop-shadow(0 0 36px rgba(168, 85, 247, 0.35));
+.locker-casino-wheel-frame {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  border-radius: 50%;
+  border: 6px solid #ca8a04;
+  box-shadow:
+    inset 0 0 0 3px rgba(253, 224, 71, 0.35),
+    0 0 24px rgba(251, 191, 36, 0.35),
+    0 8px 24px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
 }
 
-.locker-casino-wheel-wrap--spin .locker-casino-wheel {
+.locker-casino-wheel-wrap--glow .locker-casino-wheel-frame {
+  box-shadow:
+    inset 0 0 0 3px rgba(253, 224, 71, 0.5),
+    0 0 28px rgba(251, 191, 36, 0.65),
+    0 0 48px rgba(168, 85, 247, 0.35);
+}
+
+.locker-casino-wheel-disk {
+  position: absolute;
+  inset: 8%;
+  z-index: 1;
+  border-radius: 50%;
+  transform-origin: center center;
+}
+
+.locker-casino-wheel-wrap--spin .locker-casino-wheel-disk {
   transition: transform 5s cubic-bezier(0.12, 0.8, 0.22, 1);
 }
 
-.locker-casino-wheel-wrap:not(.locker-casino-wheel-wrap--spin) .locker-casino-wheel {
+.locker-casino-wheel-wrap:not(.locker-casino-wheel-wrap--spin) .locker-casino-wheel-disk {
   transition: transform 0.35s ease-out;
 }
 
-.locker-casino-wheel {
-  width: 100%;
-  height: 100%;
-  transform-origin: center center;
+.locker-casino-wheel-disk__gradient {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+}
+
+.locker-casino-wheel-disk__label {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3.5rem;
+  margin-left: -1.75rem;
+  text-align: center;
+  font-size: 7px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.locker-casino-wheel-hub {
+  position: absolute;
+  inset: 34%;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: radial-gradient(circle at 50% 35%, #3b0764 0%, #09090b 70%);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: #e9d5ff;
 }
 
 .locker-casino-wheel-pointer {
   position: absolute;
-  top: -6px;
+  top: -4px;
   left: 50%;
-  z-index: 5;
+  z-index: 6;
   transform: translateX(-50%);
   width: 0;
   height: 0;
@@ -2265,6 +2322,64 @@ body {
   border-right: 12px solid transparent;
   border-top: 20px solid #fde047;
   filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.9));
+}
+
+/* CS2-style case tier roulette */
+.locker-case-roulette {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  z-index: 20;
+  width: min(92vw, 320px);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.locker-case-roulette__window {
+  position: relative;
+  height: 88px;
+  overflow: hidden;
+  border-radius: 4px;
+  border: 2px solid rgba(251, 191, 36, 0.45);
+  background: rgba(0, 0, 0, 0.75);
+  box-shadow: 0 0 24px rgba(251, 191, 36, 0.25);
+}
+
+.locker-case-roulette__marker {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 3px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, transparent, #fde047, transparent);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.8);
+}
+
+.locker-case-roulette__track {
+  display: flex;
+  gap: 8px;
+  padding: 10px 140px;
+  transition: transform 2.4s cubic-bezier(0.12, 0.75, 0.18, 1);
+  will-change: transform;
+}
+
+.locker-case-roulette__card {
+  flex: 0 0 72px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 2px solid;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fafafa;
+  text-align: center;
+  padding: 4px;
 }
 
 .locker-casino-wheel__label {
@@ -2427,48 +2542,55 @@ body {
   animation: hypnotic-chip-glow 1.8s ease-in-out infinite;
 }
 
-/* ── Flank layout: phenomenon left, trainer center, animal right ── */
+/* ── Flank layout: phenomenon LEFT, trainer CENTER, animal RIGHT ── */
 .companion-stage--flank .companion-stage__focal--flank {
-  display: grid;
-  grid-template-columns: minmax(72px, 22%) minmax(160px, 1fr) minmax(72px, 22%);
-  align-items: center;
-  justify-items: center;
+  position: relative;
+  display: block;
   width: 100%;
   height: 100%;
-  padding: 2% 1% 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
 .companion-flank {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   pointer-events: none;
-  z-index: 3;
-  width: 100%;
-  height: 100%;
 }
 
 .companion-flank--phenomenon {
-  justify-self: center;
-  align-self: center;
-  padding: 0;
+  position: absolute;
+  left: 2%;
+  bottom: 14%;
+  z-index: 4;
+  width: min(26vw, 130px);
+  height: min(26vw, 130px);
 }
 
 .companion-flank--animal {
-  justify-self: center;
-  align-self: center;
-  padding: 0;
-  z-index: 4;
+  position: absolute;
+  right: 2%;
+  bottom: 14%;
+  left: auto;
+  z-index: 6;
+  width: min(36vw, 200px);
+  height: min(36vw, 200px);
 }
 
 .companion-figure-slot--flank-center {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
   z-index: 2;
-  justify-self: center;
-  align-self: flex-end;
-  width: 100%;
-  max-width: min(52vw, 320px);
-  height: 92%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: min(58vw, 340px);
+  height: 96%;
+  max-width: none;
+  padding-bottom: 1%;
 }
 
 .companion-flank-phenomenon {
@@ -2504,21 +2626,21 @@ body {
 }
 
 .companion-flank-animal {
-  width: min(34vw, 168px);
-  height: min(34vw, 168px);
+  width: 100%;
+  height: 100%;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   transform: none;
 }
 
 .companion-figure-raster--flank {
-  max-height: min(34vw, 168px);
+  max-height: min(36vw, 200px);
   max-width: 100%;
   width: auto;
   height: auto;
   object-fit: contain;
-  object-position: center center;
+  object-position: center bottom;
 }
 
 /* Flank: spirit animal stays visible (orbit morph animation fades to opacity 0) */
