@@ -23,7 +23,6 @@ import {
   type CaseTier,
 } from "@/components/locker-tier-case";
 import { LockerCaseRoulette } from "@/components/locker-case-roulette";
-import { HypnoticCinemaOverlay } from "@/components/hypnotic/hypnotic-cinema-overlay";
 
 const BTN =
   "rounded-sm border px-4 py-2 text-[11px] font-semibold uppercase tracking-wider transition disabled:opacity-50";
@@ -116,10 +115,7 @@ export function HypnoticMorphFloor({
         onCaseResult(pending.net, parseMomentumFromRpc(sync));
       }
       crateSyncRef.current = null;
-      if (autoFullscreenRef.current && document.fullscreenElement) {
-        void document.exitFullscreen();
-      }
-      autoFullscreenRef.current = false;
+      exitGamblingFullscreen();
       router.refresh();
       return null;
     });
@@ -135,15 +131,7 @@ export function HypnoticMorphFloor({
     }, 420);
   }
 
-  async function openCrate() {
-    if (crateOpen || busy) return;
-    setError(null);
-    setBusy(true);
-    setCrateOpen(true);
-    setCrateResult(null);
-    setCinema("case-open");
-    setReaction("watch-wheel");
-
+  async function enterGamblingFullscreen() {
     const arena = document.getElementById("hypnotic-arena-root");
     if (arena && !document.fullscreenElement) {
       try {
@@ -153,6 +141,24 @@ export function HypnoticMorphFloor({
         autoFullscreenRef.current = false;
       }
     }
+  }
+
+  function exitGamblingFullscreen() {
+    if (autoFullscreenRef.current && document.fullscreenElement) {
+      void document.exitFullscreen();
+    }
+    autoFullscreenRef.current = false;
+  }
+
+  async function openCrate() {
+    if (crateOpen || busy) return;
+    setError(null);
+    setBusy(true);
+    setCrateOpen(true);
+    setCrateResult(null);
+    setCinema("case-open");
+    setReaction("watch-wheel");
+    await enterGamblingFullscreen();
 
     try {
       const supabase = createClient();
@@ -179,10 +185,7 @@ export function HypnoticMorphFloor({
       setBusy(false);
       setCinema("idle");
       setReaction("idle");
-      if (autoFullscreenRef.current && document.fullscreenElement) {
-        void document.exitFullscreen();
-      }
-      autoFullscreenRef.current = false;
+      exitGamblingFullscreen();
       setError(parseError(e));
     }
   }
@@ -195,10 +198,7 @@ export function HypnoticMorphFloor({
     crateSyncRef.current = null;
     setError(null);
     setStakeDocked(false);
-    if (autoFullscreenRef.current && document.fullscreenElement) {
-      void document.exitFullscreen();
-    }
-    autoFullscreenRef.current = false;
+    exitGamblingFullscreen();
   }
 
   async function spinWheel() {
@@ -209,6 +209,7 @@ export function HypnoticMorphFloor({
     setWheelResult(null);
     setCinema("wheel-spin");
     setReaction("watch-wheel");
+    await enterGamblingFullscreen();
 
     try {
       const supabase = createClient();
@@ -242,6 +243,7 @@ export function HypnoticMorphFloor({
         setWheelSpinning(false);
         setBusy(false);
         onWheelWin(result.payout, parseMomentumFromRpc(row as Record<string, unknown>));
+        exitGamblingFullscreen();
         router.refresh();
       }, WHEEL_SPIN_MS);
     } catch (e) {
@@ -249,25 +251,13 @@ export function HypnoticMorphFloor({
       setBusy(false);
       setCinema("idle");
       setReaction("idle");
+      exitGamblingFullscreen();
       setError(parseError(e));
     }
   }
 
   return (
     <div className="hypnotic-morph-floor">
-      <HypnoticCinemaOverlay
-        visible={crateOpen && !crateResult}
-        mode="case"
-        wheelRotation={wheelRotation}
-        wheelSpinning={wheelSpinning}
-        superActive={superActive}
-        caseRouletteActive={crateOpen && !crateResult}
-        caseRouletteTier={caseRouletteTier ?? caseTier}
-        caseTier={caseRouletteTier ?? caseTier}
-        crateOpen={crateOpen}
-        onCaseRouletteDone={finishCrateOpen}
-      />
-
       <div className="hypnotic-morph-floor__tabs" role="tablist">
         <button
           type="button"
