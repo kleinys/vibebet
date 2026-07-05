@@ -255,9 +255,10 @@ async function fetchYoutubeStreams(limit: number): Promise<{ streams: Discovered
 
   for (const search of [{ q: undefined }, { q: "gaming live" }, { q: "esports live" }] as const) {
     if (merged.length >= limit) break;
+    const remaining = limit - merged.length;
     const { items, error } = await youtubeSearchLive(key, {
       q: search.q,
-      maxResults: Math.min(limit, 15),
+      maxResults: Math.min(remaining, 50),
     });
     if (error) lastError = error;
     for (const item of items) {
@@ -308,8 +309,8 @@ export async function fetchDiscoveredStreamsWithMeta(opts?: {
   youtubeLimit?: number;
   twitchLimit?: number;
 }): Promise<StreamDiscoveryResult> {
-  const youtubeLimit = opts?.youtubeLimit ?? 12;
-  const twitchLimit = opts?.twitchLimit ?? 12;
+  const youtubeLimit = opts?.youtubeLimit ?? 20;
+  const twitchLimit = opts?.twitchLimit ?? 20;
   const ytKey = youtubeApiKey();
   const twitch = twitchCredentials();
 

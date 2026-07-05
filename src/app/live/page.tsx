@@ -36,7 +36,7 @@ export default async function LiveHubPage() {
   const [events, duels, discovery] = await Promise.all([
     getLiveEvents(40),
     duelsOn && spectatorOn ? getActiveSpectatorDuels(12) : Promise.resolve([]),
-    fetchDiscoveredStreamsWithMeta({ youtubeLimit: 12, twitchLimit: 12 }),
+    fetchDiscoveredStreamsWithMeta({ youtubeLimit: 20, twitchLimit: 20 }),
   ]);
 
   const discovered = discovery.streams;
