@@ -16,18 +16,18 @@ declare
 begin
   select id into v_id
   from public.accounts
-  where kind = p_kind and currency = p_currency and code = p_code;
+  where kind = p_kind::account_kind and currency = p_currency::currency and code = p_code;
 
   if v_id is not null then return v_id; end if;
 
   begin
     insert into public.accounts (kind, currency, code)
-    values (p_kind, p_currency, p_code)
+    values (p_kind::account_kind, p_currency::currency, p_code)
     returning id into v_id;
   exception when unique_violation then
     select id into v_id
     from public.accounts
-    where kind = p_kind and currency = p_currency and code = p_code;
+    where kind = p_kind::account_kind and currency = p_currency::currency and code = p_code;
   end;
 
   return v_id;
