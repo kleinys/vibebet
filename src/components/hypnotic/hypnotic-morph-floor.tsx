@@ -41,6 +41,8 @@ type WheelResult = {
 };
 
 const WHEEL_SPIN_MS = 5000;
+/** Generated art has 1000 VIBE segment at 12 o'clock (index 7 in WHEEL_SEGMENTS). */
+const WHEEL_ART_POINTER_INDEX = 7;
 
 export function HypnoticMorphFloor({
   vibeBalance,
@@ -177,8 +179,7 @@ export function HypnoticMorphFloor({
       const nextRotation =
         wheelRotation +
         spins * 360 +
-        (WHEEL_SEGMENTS.length - segmentIndex) * segmentAngle -
-        segmentAngle / 2;
+        (WHEEL_ART_POINTER_INDEX - segmentIndex) * segmentAngle;
 
       setWheelRotation(nextRotation);
 

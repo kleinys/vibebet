@@ -1771,8 +1771,9 @@ body {
 }
 
 .hypnotic-arena__stage-wrap {
-  margin-bottom: 1rem;
-  max-height: min(52vw, 320px);
+  margin-bottom: 0.75rem;
+  max-height: min(68vw, 400px);
+  min-height: 280px;
   overflow: hidden;
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -1780,7 +1781,8 @@ body {
 }
 
 .hypnotic-arena__stage-wrap .companion-stage {
-  max-height: min(52vw, 320px);
+  max-height: min(68vw, 400px);
+  min-height: 280px;
 }
 
 /* Momentum bar */
@@ -2398,6 +2400,130 @@ body {
 
 .locker-tier-case--legendary .locker-tier-case__glow {
   animation: hypnotic-chip-glow 1.8s ease-in-out infinite;
+}
+
+/* ── Flank layout: phenomenon left, trainer center, animal right ── */
+.companion-stage--flank .companion-stage__focal--flank {
+  display: grid;
+  grid-template-columns: 1fr minmax(140px, 46%) 1fr;
+  align-items: end;
+  width: 100%;
+  height: 100%;
+  padding: 0 2%;
+}
+
+.companion-flank {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.companion-flank--phenomenon {
+  justify-content: flex-start;
+  padding-left: 2%;
+  padding-bottom: 8%;
+}
+
+.companion-flank--animal {
+  justify-content: flex-end;
+  padding-right: 0;
+  padding-bottom: 6%;
+  z-index: 3;
+}
+
+.companion-figure-slot--flank-center {
+  z-index: 1;
+  justify-self: center;
+  width: 100%;
+  max-width: 280px;
+}
+
+.companion-flank-phenomenon {
+  position: relative;
+  width: min(28vw, 110px);
+  height: min(28vw, 110px);
+  transform: translateX(-4%);
+}
+
+.companion-flank-phenomenon .companion-spirit-element {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  transform: none;
+  --element-size: min(28vw, 110px);
+  animation: companion-backdrop-breathe 3s ease-in-out infinite;
+}
+
+.companion-flank-animal {
+  width: min(34vw, 130px);
+  display: flex;
+  justify-content: flex-end;
+  transform: translateX(8%);
+}
+
+.companion-figure-raster--flank {
+  max-height: min(36vw, 150px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  object-position: bottom right;
+}
+
+.companion-stage--flank.companion-stage--react-watch-wheel .companion-flank-animal {
+  animation: companion-fox-idle 2.4s ease-in-out infinite;
+}
+
+.companion-stage--flank.companion-stage--react-watch-wheel .companion-flank-phenomenon .companion-spirit-element {
+  animation: hypnotic-momentum-super 1.2s ease-in-out infinite alternate;
+}
+
+.companion-stage--flank .companion-orbit-track {
+  display: none;
+}
+
+/* Raster wheel + cases */
+.locker-casino-wheel--raster {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform-origin: center center;
+}
+
+.locker-tier-case--raster {
+  position: relative;
+  width: min(52vw, 200px);
+  height: min(52vw, 200px);
+  margin: 0 auto;
+}
+
+.locker-tier-case--raster .locker-tier-case__img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 16px 28px rgba(0, 0, 0, 0.55));
+}
+
+.locker-tier-case--raster .locker-tier-case__badge {
+  top: 4%;
+}
+
+.locker-tier-case--raster .locker-tier-case__docked {
+  top: 54%;
+}
+
+.locker-tier-case--raster .locker-tier-case__glow-ring {
+  position: absolute;
+  inset: 5%;
+  border-radius: 12px;
+  box-shadow: 0 0 40px rgba(251, 191, 36, 0.45);
+  animation: locker-case-burst 1s ease-out infinite alternate;
+  pointer-events: none;
+}
+
+.locker-tier-case--shake .locker-tier-case__img {
+  animation: hypnotic-case-dock 0.35s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

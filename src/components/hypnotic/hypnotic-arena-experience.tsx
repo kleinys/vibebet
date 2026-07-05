@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import type { FigureConfig } from "@/lib/companion-figure";
 import { HypnoticFlowProvider } from "@/components/hypnotic/hypnotic-flow-provider";
 import type { HypnoticSession } from "@/lib/hypnotic-flow";
@@ -53,18 +52,10 @@ export function HypnoticArenaExperience({
         </div>
 
         {freeSpinAvailable && (
-          <p className="hypnotic-arena__hook mt-4 text-center text-[11px] text-amber-300/80">
-            Free spin ready — embers drift toward the wheel. One tap starts the show.
+          <p className="hypnotic-arena__hook mt-2 text-center text-[10px] text-amber-300/70">
+            Free spin ready
           </p>
         )}
-
-        <p className="mt-3 text-center text-[10px] text-zinc-600">
-          <Link href="/shop" className="text-violet-400/80 hover:text-violet-300">
-            Shop skins
-          </Link>
-          {" · "}
-          Momentum builds with wins — hit 100% for SUPER mode
-        </p>
       </div>
     </HypnoticFlowProvider>
   );

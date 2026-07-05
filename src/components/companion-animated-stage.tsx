@@ -41,9 +41,11 @@ function EyeGlow() {
 export function CompanionAnimatedStage({
   config,
   reaction = "idle",
+  layout = "orbit",
 }: {
   config: FigureConfig;
   reaction?: HypnoticReaction;
+  layout?: "orbit" | "flank";
 }) {
   const { animal, human, skinSlug, showHuman, palette, animalScale, humanScale, badge, morph } =
     config;
@@ -59,14 +61,81 @@ export function CompanionAnimatedStage({
 
   return (
     <div
-      className={`companion-stage ${showHuman ? "companion-stage--duo" : "companion-stage--solo"} companion-stage--react-${reaction}`}
+      className={`companion-stage ${showHuman ? "companion-stage--duo" : "companion-stage--solo"} companion-stage--react-${reaction} ${layout === "flank" ? "companion-stage--flank" : ""}`}
       style={stageStyle}
     >
       <div className={`companion-stage__backdrop ${motion.aura}`} aria-hidden />
       <div className="companion-stage__vignette" aria-hidden />
       <div className={`companion-stage__floor-glow ${motion.bond}`} aria-hidden />
 
-      {showHuman ? (
+      {showHuman && layout === "flank" ? (
+        <div className="companion-stage__focal companion-stage__focal--flank">
+          <div className="companion-flank companion-flank--phenomenon">
+            <div className={`companion-flank-phenomenon companion-flank-phenomenon--${morph}`}>
+              <SpiritElementBall morph={morph} />
+            </div>
+          </div>
+
+          <div className="companion-figure-slot companion-figure-slot--human-center companion-figure-slot--flank-center">
+            <div className={`companion-human-wrap ${HUMAN_MOTION_CLASS}`}>
+              {humanSrc && <EyeGlow />}
+              <BadgeOverlay badge={badge} />
+              {humanSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={humanSrc}
+                  alt=""
+                  draggable={false}
+                  className="companion-figure-raster companion-figure-raster--human-center"
+                  style={{ filter: FIGURE_SHADOW }}
+                />
+              ) : (
+                <svg viewBox="0 0 72 88" className="companion-figure-svg companion-figure-svg--human-center" aria-hidden>
+                  <FantasySvgDefs id="stage-human-flank" />
+                  <SpriteGlowDefs />
+                  <HumanSprite
+                    archetype={human}
+                    palette={palette}
+                    scale={humanScale * 1.55}
+                    x={0}
+                    y={0}
+                    badge={badge}
+                    skinSlug={skinSlug}
+                    preferRaster={false}
+                  />
+                </svg>
+              )}
+            </div>
+          </div>
+
+          <div className="companion-flank companion-flank--animal">
+            <div className={`companion-flank-animal companion-flank-animal--${animal} ${motion.animal}`}>
+              {animalSrc ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={animalSrc}
+                  alt=""
+                  draggable={false}
+                  className={`companion-figure-raster companion-figure-raster--flank companion-orbit-animal-img companion-orbit-animal-img--${animal}`}
+                />
+              ) : (
+                <svg viewBox="0 0 72 80" className="companion-figure-svg companion-figure-svg--flank" aria-hidden>
+                  <FantasySvgDefs id="stage-animal-flank" />
+                  <SpriteGlowDefs />
+                  <AnimalSprite
+                    kind={animal}
+                    palette={palette}
+                    scale={animalScale * 0.85}
+                    x={0}
+                    y={0}
+                    preferRaster={false}
+                  />
+                </svg>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : showHuman ? (
         <div className="companion-stage__focal">
           {/* Trainer centered (painted first, lower layer) */}
           <div className="companion-figure-slot companion-figure-slot--human-center">

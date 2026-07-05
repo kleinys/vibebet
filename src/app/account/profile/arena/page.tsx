@@ -9,7 +9,6 @@ import { CurrencyIconVibe } from "@/components/fantasy-icons";
 import { resolveFigureConfig } from "@/lib/companion-figure";
 import { getAllBalances } from "@/lib/ledger";
 import { getLockerMomentum, lockerMomentumToSession } from "@/lib/locker-momentum-server";
-import { orbitModifierSummary } from "@/lib/orbit-affinity";
 
 export const revalidate = 0;
 
@@ -41,7 +40,6 @@ export default async function LockerArenaPage() {
 
   const figureConfig = resolveFigureConfig(companionInput);
   const skinSlug = equipped.skin?.slug ?? figureConfig.skinSlug;
-  const modifier = orbitModifierSummary(skinSlug);
   const initialSession = lockerMomentumToSession(lockerMomentum);
 
   return (
@@ -61,33 +59,15 @@ export default async function LockerArenaPage() {
         </div>
       </div>
 
-      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
-        <header className="text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-amber-400/90">
-            VIBE arena
-          </p>
-          <h1 className="mt-2 text-2xl font-bold text-zinc-50 sm:text-3xl">
-            Hypnotic play floor
-          </h1>
-          <p className="mx-auto mt-2 max-w-lg text-sm text-zinc-400">
-            One tap to spin. Winnings flow into your spirit. Momentum builds — morph between
-            wheel and case without breaking the trance.
-          </p>
-          {modifier && (
-            <p className="mt-2 text-xs text-violet-300/80">
-              {modifier.affinity.icon} {modifier.morphLabel} orbit active
-            </p>
-          )}
-        </header>
-
-        <div className="mt-6 overflow-hidden rounded-sm border border-white/10 bg-gradient-to-b from-zinc-900/60 to-zinc-950 shadow-2xl shadow-black/50 ring-1 ring-violet-500/15">
+      <div className="mx-auto max-w-5xl px-4 py-3 sm:px-6">
+        <div className="overflow-hidden rounded-sm border border-white/10 bg-gradient-to-b from-zinc-900/60 to-zinc-950 shadow-2xl shadow-black/50 ring-1 ring-violet-500/15">
           <HypnoticArenaExperience
             figureConfig={figureConfig}
             vibeBalance={balances.vibe}
             spinsUsedToday={wheelDaily}
             equippedSkinSlug={skinSlug}
             initialSession={initialSession}
-            initialAffinityLabel={lockerMomentum.affinityLabel ?? modifier?.affinity.label ?? null}
+            initialAffinityLabel={lockerMomentum.affinityLabel ?? null}
           />
         </div>
       </div>

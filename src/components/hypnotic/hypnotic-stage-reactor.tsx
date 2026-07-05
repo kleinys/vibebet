@@ -22,7 +22,7 @@ export function HypnoticStageReactor({
         superActive ? "hypnotic-stage-reactor--super" : ""
       } hypnotic-stage-reactor--cinema-${cinema}`}
     >
-      <CompanionAnimatedStage config={config} reaction={reaction} />
+      <CompanionAnimatedStage config={config} reaction={reaction} layout="flank" />
       {flow?.vibeOrbs.map((orb) => (
         <span
           key={orb.id}
