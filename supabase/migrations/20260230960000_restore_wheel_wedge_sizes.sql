@@ -1,4 +1,5 @@
 -- Restore pre-tightening wheel wedge odds (500 / 1000 / 2500 slots wider again).
+-- If this fails with "locker_momentum does not exist", run 20260230970000 first (it includes this function).
 
 create or replace function public.spin_locker_wheel(p_paid_stake bigint default 100)
 returns table (
