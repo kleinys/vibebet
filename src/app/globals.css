@@ -2504,8 +2504,8 @@ body {
 }
 
 .companion-flank-animal {
-  width: min(28vw, 140px);
-  height: min(28vw, 140px);
+  width: min(34vw, 168px);
+  height: min(34vw, 168px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2513,7 +2513,7 @@ body {
 }
 
 .companion-figure-raster--flank {
-  max-height: min(28vw, 140px);
+  max-height: min(34vw, 168px);
   max-width: 100%;
   width: auto;
   height: auto;
@@ -2521,7 +2521,23 @@ body {
   object-position: center center;
 }
 
-.companion-stage--flank.companion-stage--react-watch-wheel .companion-flank-animal {
+/* Flank: spirit animal stays visible (orbit morph animation fades to opacity 0) */
+.companion-stage--flank .companion-orbit-animal-img {
+  animation: none;
+  opacity: 1;
+}
+
+.companion-figure-raster--flank.companion-orbit-animal-img--fox {
+  filter: brightness(1.08) saturate(1.18) contrast(1.06)
+    drop-shadow(0 10px 22px rgba(0, 0, 0, 0.45))
+    drop-shadow(0 0 24px rgba(255, 120, 40, 0.55));
+}
+
+.companion-stage--flank .companion-flank-animal--fox {
+  animation: companion-fox-idle 2.4s ease-in-out infinite;
+}
+
+.companion-stage--flank.companion-stage--react-watch-wheel .companion-flank-animal--fox {
   animation: companion-fox-idle 2.4s ease-in-out infinite;
 }
 

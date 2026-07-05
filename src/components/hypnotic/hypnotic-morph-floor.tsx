@@ -309,16 +309,16 @@ export function HypnoticMorphFloor({
                   className={`hypnotic-stake-chip rounded-sm border px-3 py-1.5 text-[11px] font-semibold tabular-nums transition ${
                     chipSliding === stake ? "hypnotic-stake-chip--slide" : ""
                   } ${
-                    isRec
-                      ? "hypnotic-stake-chip--recommended border-amber-300/70 bg-amber-500/25 text-amber-50"
-                      : isActive
-                        ? "border-amber-400/50 bg-amber-500/20 text-amber-100"
+                    isActive
+                      ? "hypnotic-stake-chip--recommended border-amber-400/60 bg-amber-500/25 text-amber-50"
+                      : isRec
+                        ? "border-amber-300/35 bg-amber-500/10 text-amber-100/90"
                         : "border-white/10 bg-zinc-900/60 text-zinc-400 hover:border-amber-400/30"
                   }`}
                 >
                   {formatVibe(stake)}
-                  {isRec && !stakeDocked && (
-                    <span className="ml-1 text-[9px] text-amber-200/90">use winnings</span>
+                  {isRec && !isActive && !stakeDocked && (
+                    <span className="ml-1 text-[9px] text-amber-200/80">use winnings</span>
                   )}
                 </button>
               );
