@@ -9,26 +9,42 @@ type PlinkoSlot = {
 };
 
 const PLINKO_SLOTS: PlinkoSlot[] = [
-  { multiplier: 0.2, color: "bg-rose-700", glowColor: "shadow-rose-500/40" },
-  { multiplier: 0.5, color: "bg-orange-600", glowColor: "shadow-orange-500/40" },
-  { multiplier: 1, color: "bg-amber-600", glowColor: "shadow-amber-500/40" },
-  { multiplier: 1.5, color: "bg-lime-600", glowColor: "shadow-lime-500/40" },
-  { multiplier: 3, color: "bg-emerald-500", glowColor: "shadow-emerald-500/40" },
-  { multiplier: 1.5, color: "bg-lime-600", glowColor: "shadow-lime-500/40" },
-  { multiplier: 1, color: "bg-amber-600", glowColor: "shadow-amber-500/40" },
-  { multiplier: 0.5, color: "bg-orange-600", glowColor: "shadow-orange-500/40" },
-  { multiplier: 0.2, color: "bg-rose-700", glowColor: "shadow-rose-500/40" },
+  { multiplier: 0.2, color: "bg-blue-500", glowColor: "shadow-blue-500/50" },
+  { multiplier: 0.5, color: "bg-green-500", glowColor: "shadow-green-500/50" },
+  { multiplier: 1, color: "bg-yellow-500", glowColor: "shadow-yellow-500/50" },
+  { multiplier: 1.5, color: "bg-red-500", glowColor: "shadow-red-500/50" },
+  { multiplier: 3, color: "bg-orange-500", glowColor: "shadow-orange-500/50" },
+  { multiplier: 1.5, color: "bg-red-500", glowColor: "shadow-red-500/50" },
+  { multiplier: 1, color: "bg-yellow-500", glowColor: "shadow-yellow-500/50" },
+  { multiplier: 0.5, color: "bg-green-500", glowColor: "shadow-green-500/50" },
+  { multiplier: 0.2, color: "bg-blue-500", glowColor: "shadow-blue-500/50" },
 ];
 
 type PlinkoBall = {
   id: number;
   x: number;
   y: number;
-  velocityX: number;
-  velocityY: number;
+  vx: number;
+  vy: number;
+  radius: number;
   active: boolean;
+  age: number;
+  trail: Array<{ x: number; y: number; life: number }>;
   finalSlot?: number;
-  hasHitPeg?: boolean;
+};
+
+type Peg = {
+  x: number;
+  y: number;
+  globalIndex: number;
+  rowIndex: number;
+  colIndex: number;
+};
+
+type PegFlashTimer = {
+  pegGlobalIndex: number;
+  timer: number;
+  peg: Peg;
 };
 
 export function HypnoticPlinkoGame() {
@@ -39,165 +55,279 @@ export function HypnoticPlinkoGame() {
   const [winMessage, setWinMessage] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>(0);
-  const lastTimeRef = useRef<number | null>(null);
+  const lastTimeRef = useRef<number>(0);
+  const pegFlashTimersRef = useRef<PegFlashTimer[]>([]);
+  const landedBallsRef = useRef<Array<{
+    x: number;
+    y: number;
+    timer: number;
+    opacity: number;
+  }>>([]);
+  
+  // Constants for physics and layout
+  const CANVAS_WIDTH = 650;
+  const CANVAS_HEIGHT = 640;
+  const LEFT_WALL = 48;
+  const RIGHT_WALL = 602;
+  const PEG_AREA_TOP = 78;
+  const PEG_AREA_BOTTOM = 475;
+  const SLOT_DIVIDER_TOP = 482;
+  const SLOT_DIVIDER_BOTTOM = 548;
+  const SLOT_BOTTOM_Y = 555;
+  const NUM_ROWS = 12;
+  const NUM_SLOTS = 9; // Using 9 slots to match our PLINKO_SLOTS array
+  const PEG_RADIUS = 8;
+  const BALL_RADIUS = 7;
+  const ROW_SPACING = (PEG_AREA_BOTTOM - PEG_AREA_TOP) / (NUM_ROWS - 1);
+  const CENTER_DROP_X = (LEFT_WALL + RIGHT_WALL) / 2; // Center drop position
+  
+  // Calculate slot boundaries
+  const slotWidth = (RIGHT_WALL - LEFT_WALL) / NUM_SLOTS;
+  const slotBoundaries = Array.from({ length: NUM_SLOTS + 1 }, (_, i) => LEFT_WALL + i * slotWidth);
+  const slotCenters = Array.from({ length: NUM_SLOTS }, (_, i) => LEFT_WALL + slotWidth * i + slotWidth / 2);
+
+  // Generate peg positions in pyramid pattern
+  const pegPositions = useRef<Peg[]>([]);
+  
+  useEffect(() => {
+    // Build peg positions (alternating rows)
+    const newPegPositions: Peg[] = [];
+    let globalIndex = 0;
+    
+    for (let row = 0; row < NUM_ROWS; row++) {
+      const y = PEG_AREA_TOP + row * ROW_SPACING;
+      if (row % 2 === 0) {
+        // Even rows: pegs at slot centers
+        for (let col = 0; col < NUM_SLOTS; col++) {
+          newPegPositions.push({ x: slotCenters[col], y, globalIndex, rowIndex: row, colIndex: col });
+          globalIndex++;
+        }
+      } else {
+        // Odd rows: pegs at slot boundaries (except first and last)
+        for (let col = 0; col < NUM_SLOTS - 1; col++) {
+          newPegPositions.push({ x: slotBoundaries[col + 1], y, globalIndex, rowIndex: row, colIndex: col });
+          globalIndex++;
+        }
+      }
+    }
+    
+    pegPositions.current = newPegPositions;
+  }, []);
+
+  const GRAVITY = 0.35;
+  const DAMPING = 0.65;
+  const WALL_DAMPING = 0.55;
+  const DROP_COOLDOWN_MAX = 12;
+  const [dropCooldown, setDropCooldown] = useState<number>(0);
+
+  const createBall = (x: number, y: number): PlinkoBall => {
+    return {
+      id: ballIdCounter,
+      x,
+      y,
+      vx: (Math.random() - 0.5) * 1.2, // Small initial horizontal velocity
+      vy: 1.5 + Math.random() * 1.5, // Initial downward velocity
+      radius: BALL_RADIUS,
+      active: true,
+      age: 0,
+      trail: [],
+    };
+  };
+
+  const resolveCircleCollision = (ball: PlinkoBall, pegX: number, pegY: number, pegRadius: number): boolean => {
+    const dx = ball.x - pegX;
+    const dy = ball.y - pegY;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const minDist = ball.radius + pegRadius;
+
+    if (dist < minDist && dist > 0.001) {
+      const nx = dx / dist;
+      const ny = dy / dist;
+      const overlap = minDist - dist;
+      ball.x += nx * overlap;
+      ball.y += ny * overlap;
+
+      const dot = ball.vx * nx + ball.vy * ny;
+      ball.vx -= 2 * dot * nx;
+      ball.vy -= 2 * dot * ny;
+
+      ball.vx *= DAMPING;
+      ball.vy *= DAMPING;
+      ball.vx += (Math.random() - 0.5) * 0.6;
+      ball.vy += (Math.random() - 0.5) * 0.3;
+      return true;
+    }
+    return false;
+  };
+
+  const updateBall = (ball: PlinkoBall) => {
+    if (!ball.active) return ball;
+
+    ball.age++;
+    ball.vy += GRAVITY;
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+
+    // Limit max speed to prevent balls from going too fast
+    const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+    const maxSpeed = 16;
+    if (speed > maxSpeed) {
+      const scale = maxSpeed / speed;
+      ball.vx *= scale;
+      ball.vy *= scale;
+    }
+
+    // Update trail
+    ball.trail.push({ x: ball.x, y: ball.y, life: 6 });
+    if (ball.trail.length > 8) ball.trail.shift();
+    ball.trail.forEach(t => t.life--);
+    ball.trail = ball.trail.filter(t => t.life > 0);
+
+    // Wall collisions
+    if (ball.x - ball.radius < LEFT_WALL) {
+      ball.x = LEFT_WALL + ball.radius;
+      ball.vx = Math.abs(ball.vx) * WALL_DAMPING;
+    }
+    if (ball.x + ball.radius > RIGHT_WALL) {
+      ball.x = RIGHT_WALL - ball.radius;
+      ball.vx = -Math.abs(ball.vx) * WALL_DAMPING;
+    }
+
+    // Peg collisions
+    for (const peg of pegPositions.current) {
+      if (resolveCircleCollision(ball, peg.x, peg.y, PEG_RADIUS)) {
+        // Add visual feedback for peg collision
+        const existing = pegFlashTimersRef.current.find(f => f.pegGlobalIndex === peg.globalIndex);
+        if (existing) {
+          existing.timer = 8;
+        } else {
+          pegFlashTimersRef.current.push({ pegGlobalIndex: peg.globalIndex, timer: 8, peg });
+        }
+      }
+    }
+
+    // Slot dividers collision
+    if (ball.y > SLOT_DIVIDER_TOP - ball.radius && ball.y < SLOT_DIVIDER_BOTTOM + ball.radius) {
+      for (let i = 1; i < NUM_SLOTS; i++) {
+        const dividerX = slotBoundaries[i];
+        const dx = Math.abs(ball.x - dividerX);
+        if (dx < ball.radius && ball.y > SLOT_DIVIDER_TOP - ball.radius && ball.y < SLOT_DIVIDER_BOTTOM + ball.radius) {
+          if (ball.x < dividerX) {
+            ball.x = dividerX - ball.radius;
+            ball.vx = -Math.abs(ball.vx) * WALL_DAMPING;
+          } else {
+            ball.x = dividerX + ball.radius;
+            ball.vx = Math.abs(ball.vx) * WALL_DAMPING;
+          }
+        }
+      }
+    }
+
+    // Check if ball has landed in a slot
+    if (ball.y >= SLOT_BOTTOM_Y) {
+      // Determine which slot the ball landed in
+      let slotIndex = 0;
+      for (let i = 1; i < NUM_SLOTS; i++) {
+        if (ball.x < slotBoundaries[i]) { 
+          slotIndex = i - 1; 
+          break; 
+        }
+        if (i === NUM_SLOTS - 1 && ball.x >= slotBoundaries[i]) slotIndex = i;
+      }
+      if (ball.x <= slotBoundaries[0]) slotIndex = 0;
+      if (ball.x >= slotBoundaries[NUM_SLOTS]) slotIndex = NUM_SLOTS - 1;
+
+      // Mark ball as inactive and store the slot it landed in
+      ball.active = false;
+      
+      // Add a stationary ball that slowly fades
+      landedBallsRef.current.push({
+        x: slotCenters[slotIndex],
+        y: SLOT_BOTTOM_Y + 12,
+        timer: 140,
+        opacity: 1,
+      });
+
+      // Highlight the winning slot and show message
+      setHighlightedSlot(slotIndex);
+      setWinMessage(`${PLINKO_SLOTS[slotIndex].multiplier}× WINNER!`);
+
+      // Clear win message after delay
+      setTimeout(() => {
+        setWinMessage(null);
+      }, 2000);
+    }
+
+    // Failsafe: remove very old balls
+    if (ball.age > 1100) {
+      ball.vy += 1.5;
+      if (ball.age > 1400) {
+        ball.active = false;
+      }
+    }
+
+    return ball;
+  };
 
   const dropBall = () => {
-    if (isAnimating) return;
+    if (dropCooldown > 0 || isAnimating) return;
     
     setIsAnimating(true);
-    setLastWinSlot(null);
+    setHighlightedSlot(null);
     setWinMessage(null);
     
-    const newBall: PlinkoBall = {
-      id: ballIdCounter,
-      x: 50, // Start from middle (percentage)
-      y: 5,
-      velocityX: (Math.random() - 0.5) * 0.5, // Small initial horizontal velocity
-      velocityY: 0.5, // Initial downward velocity
-      active: true,
-    };
-
-    setBalls((prev: PlinkoBall[]) => [...prev, newBall]);
-    setBallIdCounter((prev: number) => prev + 1);
+    const newBall = createBall(CENTER_DROP_X, PEG_AREA_TOP - 30);
+    
+    setBalls(prev => [...prev, newBall]);
+    setBallIdCounter(prev => prev + 1);
+    setDropCooldown(DROP_COOLDOWN_MAX);
   };
 
   // Physics simulation loop
   useEffect(() => {
-    const animate = (currentTime: number) => {
-      if (!lastTimeRef.current) {
-        lastTimeRef.current = currentTime;
-      }
+    const animate = (timestamp: number) => {
+      const deltaTime = timestamp - lastTimeRef.current;
+      lastTimeRef.current = timestamp;
       
-      const deltaTime = currentTime - lastTimeRef.current;
-      lastTimeRef.current = currentTime;
-      
-      setBalls((prevBalls: PlinkoBall[]) => {
-        let stillAnimating = false;
-        const updatedBalls: PlinkoBall[] = prevBalls.map((ball: PlinkoBall) => {
-          if (!ball.active) return ball;
-
-          // Apply gravity (increasing velocity over time)
-          const gravity = 0.001 * (deltaTime / 16);
-          let newVelY = ball.velocityY + gravity;
-          
-          // Limit maximum falling speed to prevent balls from falling too fast
-          const maxVelocity = 0.5;
-          newVelY = Math.min(newVelY, maxVelocity);
-          
-          // Apply some air resistance
-          const airResistance = 0.999;
-          let newVelX = ball.velocityX * airResistance;
-          
-          // Calculate new position
-          let newX = ball.x + newVelX * (deltaTime / 16) * 10;
-          let newY = ball.y + newVelY * (deltaTime / 16) * 10;
-          
-          // Boundary checks - keep ball within horizontal bounds
-          if (newX < 2) {
-            newX = 2;
-            newVelX = Math.abs(newVelX) * 0.8; // Bounce with energy loss
-          } else if (newX > 98) {
-            newX = 98;
-            newVelX = -Math.abs(newVelX) * 0.8;
-          }
-          
-          // Simulate peg collisions in pyramid pattern
-          const pegRows = 8;
-          const rowSpacing = 8; // Percentage of height between rows
-          const startY = 15; // Starting Y percentage for first row
-          
-          for (let row = 0; row < pegRows; row++) {
-            const pegY = startY + (row * rowSpacing);
-            if (Math.abs(newY - pegY) < 2 && Math.abs(ball.y - pegY) >= 2) { // Ball is near a peg row
-              // Calculate peg positions in pyramid pattern
-              // Each row has increasing number of pegs toward the center
-              const colsInRow = row + 3; // First row has 3 pegs, then 4, 5, etc.
-              const spacing = 100 / colsInRow;
-              
-              for (let col = 0; col < colsInRow; col++) {
-                // Center the pegs in the row
-                const offsetX = spacing / 2;
-                const pegX = offsetX + (col * spacing);
-                
-                if (Math.abs(newX - pegX) < 2.5) { // Ball hits a peg
-                  // Add some randomness to the bounce
-                  newVelX += (Math.random() - 0.5) * 0.4;
-                  newVelY *= 0.85; // Energy loss
-                  
-                  // Move ball away from peg to prevent sticking
-                  if (newX < pegX) {
-                    newX = pegX - 2.5;
-                  } else {
-                    newX = pegX + 2.5;
-                  }
-                  
-                  // Add extra bounce effect
-                  newVelY = Math.max(newVelY, 0.1);
-                  
-                  break;
-                }
-              }
-            }
-          }
-          
-          // Check if ball reached the bottom (slots area)
-          if (newY >= 80) {
-            newY = 80; // Lock at bottom
-            newVelY = 0;
-            newVelX = 0;
-            
-            // Determine which slot it landed in
-            const slotWidth = 100 / PLINKO_SLOTS.length;
-            const slotIndex = Math.min(
-              PLINKO_SLOTS.length - 1, 
-              Math.max(0, Math.floor(newX / slotWidth))
-            );
-            
-            // Return completed ball
-            stillAnimating = true; // Keep checking other balls
-            return {
-              ...ball,
-              x: newX,
-              y: newY,
-              velocityX: newVelX,
-              velocityY: newVelY,
-              active: false,
-              finalSlot: slotIndex
-            };
-          }
-          
-          stillAnimating = true;
-          return {
-            ...ball,
-            x: newX,
-            y: newY,
-            velocityX: newVelX,
-            velocityY: newVelY
-          };
-        });
-
-        // If a ball has completed its animation
-        if (completedBallFinalSlot !== undefined) {
-          setHighlightedSlot(completedBallFinalSlot);
-          setWinMessage(`${PLINKO_SLOTS[completedBallFinalSlot].multiplier}× WINNER!`);
-          
-          // Clear win message after delay
-          setTimeout(() => {
-            setWinMessage(null);
-          }, 2000);
-          
-          // Reset animation state when all balls are done
-          const activeBalls = updatedBalls.filter(b => b.active);
-          if (activeBalls.length === 0) {
-            setIsAnimating(false);
-          }
+      setBalls(prevBalls => {
+        let updatedBalls = [...prevBalls];
+        
+        // Update all active balls
+        updatedBalls = updatedBalls.map(updateBall);
+        
+        // Update landed balls
+        landedBallsRef.current = landedBallsRef.current.map(lb => ({
+          ...lb,
+          timer: lb.timer - 1,
+          opacity: Math.max(0, lb.timer / 140)
+        })).filter(lb => lb.timer > 0);
+        
+        // Update peg flash timers
+        pegFlashTimersRef.current = pegFlashTimersRef.current.map(f => ({
+          ...f,
+          timer: f.timer - 1
+        })).filter(f => f.timer > 0);
+        
+        // Update cooldown
+        if (dropCooldown > 0) {
+          setDropCooldown(prev => prev - 1);
+        }
+        
+        // Check if any balls are still active
+        const activeBalls = updatedBalls.filter(b => b.active);
+        if (activeBalls.length === 0) {
+          setIsAnimating(false);
         }
         
         return updatedBalls;
       });
       
+      // Continue animation if any balls are still active
       if (balls.some((ball: PlinkoBall) => ball.active)) {
         animationRef.current = requestAnimationFrame(animate);
+      } else {
+        // All balls have finished, stop animation
+        setIsAnimating(false);
       }
       
       return () => {
@@ -208,6 +338,7 @@ export function HypnoticPlinkoGame() {
     };
     
     if (balls.some((ball: PlinkoBall) => ball.active)) {
+      lastTimeRef.current = performance.now();
       animationRef.current = requestAnimationFrame(animate);
     }
     
@@ -216,104 +347,225 @@ export function HypnoticPlinkoGame() {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [balls]);
+  }, [balls, dropCooldown]);
 
-  // Clean up completed balls after animation
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setBalls((prev: PlinkoBall[]) => prev.filter((ball: PlinkoBall) => ball.active || 
-        (ball.finalSlot !== undefined)));
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, []);
+  const clearBoard = () => {
+    setBalls([]);
+    setWinMessage(null);
+    setHighlightedSlot(null);
+    landedBallsRef.current = [];
+    pegFlashTimersRef.current = [];
+    setDropCooldown(0);
+  };
 
   return (
     <div className="hypnotic-plinko-game w-full max-w-2xl mx-auto">
       <div className="text-center mb-6">
         <h2 className="font-[family-name:var(--font-gothic)] text-xl text-fuchsia-100 mb-2">Hypnotic Plinko</h2>
         <p className="text-xs text-zinc-400">
-          Drop a chip — watch it bounce to a random slot
+          Drop a chip from the center — watch it bounce to a random slot
         </p>
       </div>
       
       <div 
         ref={containerRef}
-        className="relative w-full h-80 bg-gradient-to-b from-zinc-900 to-zinc-950 rounded-xl border border-fuchsia-500/30 overflow-hidden"
+        className="relative w-full h-96 bg-gradient-to-b from-zinc-900 to-zinc-950 rounded-xl border border-fuchsia-500/30 overflow-hidden mx-auto"
+        style={{ maxWidth: '650px', aspectRatio: '650/640' }}
       >
-        {/* Pyramid Pegs */}
-        {Array.from({ length: 8 }).map((_, rowIndex) => {
-          // Create pyramid pattern: fewer pegs at top, more at bottom
-          const pegCount = rowIndex + 3; // Start with 3 pegs, increase each row
-          const spacing = 100 / pegCount;
+        {/* Center drop indicator */}
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 text-xs text-zinc-400 font-medium">
+          ⚫ CENTER DROP ⚫
+        </div>
+        
+        {/* Canvas-like visualization of the Plinko board */}
+        <div className="absolute inset-0 overflow-hidden">
+          {/* Background gradient */}
+          <div className="absolute inset-0 bg-gradient-radial from-indigo-900/20 via-purple-900/10 to-zinc-900"></div>
           
-          return (
-            <div key={rowIndex} className="absolute w-full" style={{ top: `${15 + rowIndex * 8}%` }}>
-              {Array.from({ length: pegCount }).map((_, colIndex) => {
-                const offsetX = spacing / 2;
-                return (
-                  <div
-                    key={`${rowIndex}-${colIndex}`}
-                    className="absolute w-2 h-2 rounded-full bg-fuchsia-400/80"
+          {/* Side walls */}
+          <div 
+            className="absolute top-10 left-3 w-2 h-80 bg-gradient-to-r from-gray-400/50 to-transparent"
+            style={{ width: '3%', height: '80%' }}
+          ></div>
+          <div 
+            className="absolute top-10 right-3 w-2 h-80 bg-gradient-to-l from-gray-400/50 to-transparent"
+            style={{ width: '3%', height: '80%' }}
+          ></div>
+          
+          {/* Pegs */}
+          {pegPositions.current.map((peg, index) => {
+            const isFlashing = pegFlashTimersRef.current.some(f => 
+              f.pegGlobalIndex === peg.globalIndex && f.timer > 0
+            );
+            
+            return (
+              <div
+                key={index}
+                className={`absolute rounded-full bg-gradient-to-br from-white to-amber-300 ${
+                  isFlashing ? 'animate-pulse' : ''
+                }`}
+                style={{
+                  left: `${(peg.x / CANVAS_WIDTH) * 100}%`,
+                  top: `${(peg.y / CANVAS_HEIGHT) * 100}%`,
+                  width: '16px',
+                  height: '16px',
+                  transform: 'translate(-50%, -50%)',
+                  boxShadow: isFlashing 
+                    ? '0 0 12px rgba(255, 255, 200, 0.9), 0 0 20px rgba(255, 220, 100, 0.4)' 
+                    : '0 0 4px rgba(255, 255, 255, 0.6)',
+                  zIndex: 5
+                }}
+              >
+                {isFlashing && (
+                  <div 
+                    className="absolute rounded-full bg-yellow-300/40"
                     style={{
-                      left: `${offsetX + (colIndex * spacing)}%`,
-                      boxShadow: '0 0 8px rgba(192, 132, 252, 0.8)'
+                      width: '40px',
+                      height: '40px',
+                      left: '-12px',
+                      top: '-12px',
+                      transform: 'translate(-50%, -50%)',
+                      animation: 'pulse 0.5s ease-out'
                     }}
-                  />
-                );
-              })}
-            </div>
-          );
-        })}
-
-        {/* Balls */}
-        {balls.map((ball: PlinkoBall) => (
-          <div
-            key={ball.id}
-            className={`absolute w-4 h-4 rounded-full bg-gradient-to-br from-amber-300 to-orange-500 shadow-lg ${
-              ball.active ? 'animate-pulse' : ''
-            }`}
-            style={{
-              left: `${ball.x}%`,
-              top: `${ball.y}%`,
-              transform: 'translate(-50%, -50%)',
-              zIndex: 10
-            }}
-          />
-        ))}
-
-        {/* Slots at the bottom */}
-        <div className="absolute bottom-0 left-0 right-0 flex h-16">
-          {PLINKO_SLOTS.map((slot: PlinkoSlot, index: number) => (
+                  ></div>
+                )}
+              </div>
+            );
+          })}
+          
+          {/* Balls */}
+          {balls.map((ball) => (
             <div
-              key={index}
-              className={`flex-1 flex flex-col items-center justify-end border-t-2 border-l border-white/20 p-1 text-[9px] transition-all duration-500 ${
-                highlightedSlot === index 
-                  ? `${slot.color} ${slot.glowColor} shadow-lg scale-105` 
-                  : 'bg-zinc-800/80'
-              }`}
+              key={ball.id}
+              className="absolute rounded-full bg-gradient-to-br from-orange-300 to-red-500 shadow-lg"
+              style={{
+                left: `${(ball.x / CANVAS_WIDTH) * 100}%`,
+                top: `${(ball.y / CANVAS_HEIGHT) * 100}%`,
+                width: '14px',
+                height: '14px',
+                transform: 'translate(-50%, -50%)',
+                boxShadow: '0 0 8px rgba(255, 100, 40, 0.7)',
+                zIndex: 10,
+                transition: 'none'
+              }}
             >
-              <span className="font-bold text-white">{slot.multiplier}×</span>
+              {/* Ball highlight */}
+              <div 
+                className="absolute rounded-full bg-white/45"
+                style={{
+                  width: '4px',
+                  height: '4px',
+                  left: '2px',
+                  top: '2px'
+                }}
+              ></div>
+              
+              {/* Ball trail */}
+              {ball.trail.map((trailPoint, idx) => (
+                <div
+                  key={idx}
+                  className="absolute rounded-full bg-orange-400/40"
+                  style={{
+                    left: `${((trailPoint.x - ball.x) / CANVAS_WIDTH) * 100}%`,
+                    top: `${((trailPoint.y - ball.y) / CANVAS_HEIGHT) * 100}%`,
+                    width: '8px',
+                    height: '8px',
+                    transform: 'translate(-50%, -50%)',
+                    opacity: trailPoint.life / 6 * 0.4
+                  }}
+                ></div>
+              ))}
             </div>
+          ))}
+          
+          {/* Landmarks balls in slots */}
+          {landedBallsRef.current.map((landedBall, idx) => (
+            <div
+              key={idx}
+              className="absolute rounded-full bg-gradient-to-br from-amber-300 to-orange-500 shadow-lg"
+              style={{
+                left: `${(landedBall.x / CANVAS_WIDTH) * 100}%`,
+                top: `${(landedBall.y / CANVAS_HEIGHT) * 100}%`,
+                width: '12px',
+                height: '12px',
+                transform: 'translate(-50%, -50%)',
+                opacity: landedBall.opacity,
+                boxShadow: '0 0 8px rgba(255, 100, 40, 0.7)',
+                zIndex: 10
+              }}
+            >
+              <div 
+                className="absolute rounded-full bg-white/45"
+                style={{
+                  width: '3px',
+                  height: '3px',
+                  left: '1.5px',
+                  top: '1.5px'
+                }}
+              ></div>
+            </div>
+          ))}
+          
+          {/* Slots at the bottom */}
+          <div 
+            className="absolute bottom-0 left-0 right-0 flex h-16"
+            style={{ 
+              top: `${(SLOT_DIVIDER_TOP / CANVAS_HEIGHT) * 100}%`,
+              height: `${((SLOT_BOTTOM_Y + 35 - SLOT_DIVIDER_TOP) / CANVAS_HEIGHT) * 100}%`
+            }}
+          >
+            {PLINKO_SLOTS.map((slot: PlinkoSlot, index: number) => (
+              <div
+                key={index}
+                className={`flex-1 flex flex-col items-center justify-end border-t-2 border-l border-white/20 p-1 text-[9px] transition-all duration-500 ${
+                  highlightedSlot === index 
+                    ? `${slot.color} ${slot.glowColor} shadow-lg scale-105` 
+                    : 'bg-zinc-800/80'
+                }`}
+              >
+                <span className="font-bold text-white">{slot.multiplier}×</span>
+              </div>
+            ))}
+          </div>
+          
+          {/* Slot dividers */}
+          {Array.from({ length: NUM_SLOTS - 1 }).map((_, index) => (
+            <div
+              key={`divider-${index}`}
+              className="absolute top-[75%] w-0.5 h-12 bg-white/50"
+              style={{
+                left: `${((slotBoundaries[index + 1]) / CANVAS_WIDTH) * 100}%`,
+                top: `${(SLOT_DIVIDER_TOP / CANVAS_HEIGHT) * 100}%`,
+                height: `${((SLOT_DIVIDER_BOTTOM - SLOT_DIVIDER_TOP) / CANVAS_HEIGHT) * 100}%`
+              }}
+            ></div>
           ))}
         </div>
 
         {/* Winner indicator */}
         {winMessage && (
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 text-emerald-400 font-bold text-lg px-4 py-2 bg-black/50 rounded-lg animate-pulse">
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-xl font-bold text-emerald-400 px-4 py-2 bg-black/50 rounded-lg animate-pulse z-20">
             {winMessage}
           </div>
         )}
       </div>
 
-      <div className="mt-6 flex justify-center">
+      <div className="mt-6 flex justify-center gap-4">
         <button
           type="button"
-          disabled={isAnimating}
+          disabled={dropCooldown > 0}
           onClick={dropBall}
           className="hypnotic-plinko-drop-btn rounded-lg bg-gradient-to-r from-fuchsia-600 to-purple-600 px-6 py-3 font-medium text-white hover:from-fuchsia-500 hover:to-purple-500 disabled:opacity-50 transition-all duration-300 shadow-lg shadow-fuchsia-500/20 hover:shadow-fuchsia-500/30"
         >
-          {isAnimating ? "Dropping..." : "Drop Chip"}
+          {dropCooldown > 0 ? `Dropping... (${dropCooldown})` : "Drop Chip"}
+        </button>
+        
+        <button
+          type="button"
+          onClick={clearBoard}
+          className="hypnotic-plinko-clear-btn rounded-lg bg-zinc-700 px-6 py-3 font-medium text-zinc-200 hover:bg-zinc-600 border border-zinc-600 transition-all duration-300"
+        >
+          Clear Board
         </button>
       </div>
     </div>
