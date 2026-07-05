@@ -91,7 +91,8 @@ export default async function DuelsHubPage() {
       </Link>
       <h1 className="mt-3 text-2xl font-semibold">Duel Games</h1>
       <p className="mt-1 max-w-2xl text-sm text-zinc-400">
-        Head-to-head play-money duels with open challenges, online matchmaking, and ELO
+        Head-to-head play-money duels with open challenges, online matchmaking, instant{" "}
+        <strong className="font-normal text-emerald-300">Play vs Bot</strong> on luck games, and ELO
         ratings. Post a stake — someone takes the other side. Challenge a friend by their
         player code, or tick <strong className="font-normal text-zinc-300">Friendly match</strong> to
         skip ELO changes.

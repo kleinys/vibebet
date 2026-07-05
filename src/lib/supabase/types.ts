@@ -1508,6 +1508,16 @@ export interface Database {
           payout: number;
         }[];
       };
+      play_dice_vs_bot: {
+        Args: { p_stake: number };
+        Returns: {
+          creator_roll: number;
+          opponent_roll: number;
+          winner_id: string;
+          payout: number;
+          bot_name: string;
+        }[];
+      };
       cancel_dice_duel: {
         Args: { p_duel_id: string };
         Returns: undefined;
@@ -1539,6 +1549,16 @@ export interface Database {
           opponent_move: string;
           winner_id: string | null;
           payout: number;
+        }[];
+      };
+      play_rps_vs_bot: {
+        Args: { p_stake: number; p_move: string };
+        Returns: {
+          creator_move: string;
+          opponent_move: string;
+          winner_id: string | null;
+          payout: number;
+          bot_name: string;
         }[];
       };
       cancel_rps_duel: {
@@ -1573,6 +1593,16 @@ export interface Database {
           opponent_card: number;
           winner_id: string;
           payout: number;
+        }[];
+      };
+      play_high_card_vs_bot: {
+        Args: { p_stake: number };
+        Returns: {
+          creator_card: number;
+          opponent_card: number;
+          winner_id: string;
+          payout: number;
+          bot_name: string;
         }[];
       };
       cancel_high_card_duel: {

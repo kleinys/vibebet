@@ -14,7 +14,7 @@ import {
   WHEEL_SPIN_MS,
 } from "@/lib/hypnotic-flow";
 import { HypnoticCinemaOverlay } from "@/components/hypnotic/hypnotic-cinema-overlay";
-import { WHEEL_SEGMENTS } from "@/components/companion-locker-rewards";
+import { wheelRotationToSegment } from "@/lib/wheel-segments";
 import { LockerCasinoWheel } from "@/components/locker-casino-wheel";
 import {
   LockerTierCase,
@@ -84,7 +84,6 @@ export function HypnoticMorphFloor({
   const [pendingCrate, setPendingCrate] = useState<CrateResult | null>(null);
   const crateSyncRef = useRef<Record<string, unknown> | null>(null);
 
-  const segmentAngle = 360 / WHEEL_SEGMENTS.length;
   const freeSpinAvailable = spinsUsed === 0;
 
   const caseTier = crateResult
@@ -204,11 +203,7 @@ export function HypnoticMorphFloor({
 
       const segmentIndex = Number(row.segment_index);
       const spins = 5 + Math.floor(Math.random() * 2);
-      const nextRotation =
-        wheelRotation +
-        spins * 360 +
-        (WHEEL_SEGMENTS.length - segmentIndex) * segmentAngle -
-        segmentAngle / 2;
+      const nextRotation = wheelRotationToSegment(segmentIndex, wheelRotation, spins);
 
       setWheelRotation(nextRotation);
 

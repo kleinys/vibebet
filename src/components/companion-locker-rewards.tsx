@@ -7,21 +7,9 @@ import { formatVibe } from "@/lib/utils";
 import { CurrencyIconVibe } from "@/components/fantasy-icons";
 import { orbitModifierSummary } from "@/lib/orbit-affinity";
 
-/** Must match `spin_locker_wheel` segment order in migration 202602306. */
-export const WHEEL_SEGMENTS = [
-  { label: "25 VIBE", color: "#6366f1", text: "#e0e7ff" },
-  { label: "100 VIBE", color: "#ec4899", text: "#fce7f3" },
-  { label: "50 VIBE", color: "#14b8a6", text: "#ccfbf1" },
-  { label: "500 VIBE", color: "#f59e0b", text: "#fef3c7" },
-  { label: "10 VIBE", color: "#8b5cf6", text: "#ede9fe" },
-  { label: "250 VIBE", color: "#06b6d4", text: "#cffafe" },
-  { label: "75 VIBE", color: "#22c55e", text: "#dcfce7" },
-  { label: "1000 VIBE", color: "#ef4444", text: "#fee2e2" },
-  { label: "15 VIBE", color: "#a855f7", text: "#f3e8ff" },
-  { label: "200 VIBE", color: "#3b82f6", text: "#dbeafe" },
-  { label: "30 VIBE", color: "#10b981", text: "#d1fae5" },
-  { label: "2500 JACKPOT", color: "#fbbf24", text: "#451a03" },
-] as const;
+import { WHEEL_SEGMENTS, wheelConicGradient, wheelRotationToSegment, wheelSegmentLayout } from "@/lib/wheel-segments";
+
+export { WHEEL_SEGMENTS } from "@/lib/wheel-segments";
 
 const CRATE_STAKES = [100, 250, 500, 1000] as const;
 const PAID_SPIN_COST = 100;
@@ -70,17 +58,9 @@ export function CompanionLockerRewards({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const segmentAngle = 360 / WHEEL_SEGMENTS.length;
   const freeSpinAvailable = spinsUsed === 0;
 
-  const wheelGradient = useMemo(
-    () =>
-      `conic-gradient(${WHEEL_SEGMENTS.map(
-        (seg, i) =>
-          `${seg.color} ${i * segmentAngle}deg ${(i + 1) * segmentAngle}deg`,
-      ).join(", ")})`,
-    [segmentAngle],
-  );
+  const wheelGradient = useMemo(() => wheelConicGradient(), []);
 
   function parseError(err: unknown): string {
     if (err && typeof err === "object" && "message" in err) {
@@ -150,11 +130,7 @@ export function CompanionLockerRewards({
 
       const segmentIndex = Number(row.segment_index);
       const spins = 5 + Math.floor(Math.random() * 2);
-      const nextRotation =
-        wheelRotation +
-        spins * 360 +
-        (WHEEL_SEGMENTS.length - segmentIndex) * segmentAngle -
-        segmentAngle / 2;
+      const nextRotation = wheelRotationToSegment(segmentIndex, wheelRotation, spins);
 
       setWheelRotation(nextRotation);
 
@@ -362,22 +338,20 @@ export function CompanionLockerRewards({
                   transform: `rotate(${wheelRotation}deg)`,
                 }}
               >
-                {WHEEL_SEGMENTS.map((seg, i) => {
-                  const angle = i * segmentAngle + segmentAngle / 2;
-                  return (
+                {wheelSegmentLayout().map((seg) => (
                     <span
                       key={seg.label}
                       className="locker-wheel__label pointer-events-none absolute left-1/2 top-1/2 w-14 -translate-x-1/2 text-center text-[7px] font-bold uppercase leading-tight tracking-wide"
                       style={{
                         color: seg.text,
-                        transform: `rotate(${angle}deg) translateY(-88px)`,
+                        transform: `rotate(${seg.mid}deg) translateY(-88px)`,
                         transformOrigin: "50% 88px",
+                        fontSize: seg.label.includes("2500") ? 6 : seg.sweep < 14 ? 6.5 : 7,
                       }}
                     >
-                      {seg.label.replace(" VIBE", "").replace(" JACKPOT", " JP")}
+                      {seg.label.replace(" VIBE", "").replace(" JACKPOT", "")}
                     </span>
-                  );
-                })}
+                  ))}
                 <div className="absolute inset-[22%] rounded-full border-2 border-white/15 bg-zinc-950/95 shadow-inner">
                   <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold uppercase tracking-wider text-violet-200">
                     Spin

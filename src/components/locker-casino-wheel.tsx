@@ -1,6 +1,12 @@
 "use client";
 
-import { WHEEL_SEGMENTS } from "@/components/companion-locker-rewards";
+import {
+  WHEEL_SEGMENTS,
+  wheelRotationToSegment,
+  wheelLabelFontSize,
+  isJackpotSegment,
+  wheelSegmentLayout,
+} from "@/lib/wheel-segments";
 
 export const WHEEL_POINTER_INDEX = 0;
 
@@ -32,11 +38,8 @@ function wedgePath(startDeg: number, endDeg: number) {
 }
 
 function labelForSegment(label: string) {
-  return label.replace(" VIBE", "").replace(" JACKPOT", " JP");
-}
-
-function isJackpot(label: string) {
-  return label.includes("2500") || label.includes("JACKPOT");
+  if (label.includes("2500") || label.includes("JACKPOT")) return "2500";
+  return label.replace(" VIBE", "");
 }
 
 export function LockerCasinoWheel({
@@ -50,7 +53,7 @@ export function LockerCasinoWheel({
   glowing?: boolean;
   size?: "panel" | "cinema";
 }) {
-  const segmentAngle = 360 / WHEEL_SEGMENTS.length;
+  const layout = wheelSegmentLayout();
   const uid = size === "cinema" ? "wheel-cinema" : "wheel-panel";
 
   return (
@@ -131,24 +134,18 @@ export function LockerCasinoWheel({
             transformBox: "view-box",
           }}
         >
-          {WHEEL_SEGMENTS.map((seg, i) => {
-            const start = i * segmentAngle;
-            const end = (i + 1) * segmentAngle;
-            const mid = start + segmentAngle / 2;
-            const labelPos = polar(R_OUTER * 0.72, mid);
-            const jackpot = isJackpot(seg.label);
-            const fontSize = jackpot
-              ? size === "cinema"
-                ? 17
-                : 15
-              : size === "cinema"
-                ? 19
-                : 16;
+          {layout.map((seg) => {
+            const start = seg.start;
+            const end = seg.end;
+            const mid = seg.mid;
+            const labelPos = polar(R_OUTER * (seg.sweep < 14 ? 0.68 : 0.72), mid);
+            const jackpot = isJackpotSegment(seg.label);
+            const fontSize = wheelLabelFontSize(seg.label, size);
             return (
               <g key={seg.label}>
                 <path
                   d={wedgePath(start, end)}
-                  fill={`url(#${uid}-wedge-${i})`}
+                  fill={`url(#${uid}-wedge-${seg.index})`}
                   stroke="#0c0a09"
                   strokeWidth={1.8}
                 />

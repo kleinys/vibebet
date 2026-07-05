@@ -3,6 +3,7 @@
 import { useActionState, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { MatchmakingButton } from "@/components/matchmaking-button";
+import { PlayVsBotButton } from "@/components/play-vs-bot-button";
 import { WinSharePanel } from "@/components/win-share-panel";
 import type { ShareProfile } from "@/lib/share-profile";
 import {
@@ -105,6 +106,12 @@ export function DiceDuelPanel({
             Post open duel
           </button>
           <MatchmakingButton gameKey="dice" stakeInputId="dice-stake" defaultStake={100} />
+          <PlayVsBotButton
+            gameKey="dice"
+            stakeInputId="dice-stake"
+            defaultStake={100}
+            onWin={() => setShowWinShare(true)}
+          />
         </div>
         {createState?.error && (
           <p className="mt-2 text-xs text-rose-300">{createState.error}</p>

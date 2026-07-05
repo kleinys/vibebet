@@ -3,6 +3,7 @@
 import { useActionState, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { MatchmakingButton } from "@/components/matchmaking-button";
+import { PlayVsBotButton } from "@/components/play-vs-bot-button";
 import { FriendChallengeFields } from "@/components/friend-challenge-fields";
 import { WinSharePanel } from "@/components/win-share-panel";
 import type { ShareProfile } from "@/lib/share-profile";
@@ -134,6 +135,7 @@ export function RpsDuelPanel({
             </label>
           ))}
           <input
+            id="rps-stake"
             name="stake"
             type="number"
             min={10}
@@ -148,6 +150,13 @@ export function RpsDuelPanel({
           >
             {createPending ? "Posting…" : "Post duel"}
           </button>
+          <PlayVsBotButton
+            gameKey="rps"
+            stakeInputId="rps-stake"
+            move={move}
+            defaultStake={50}
+            onWin={() => setShowWinShare(true)}
+          />
         </div>
         <FriendChallengeFields stakeInputName="stake" />
         {createState?.error && <p className="mt-2 text-xs text-rose-300">{createState.error}</p>}
@@ -230,6 +239,12 @@ export function HighCardDuelPanel({
             Post open duel
           </button>
           <MatchmakingButton gameKey="high_card" stakeInputId="hc-stake" defaultStake={100} />
+          <PlayVsBotButton
+            gameKey="high_card"
+            stakeInputId="hc-stake"
+            defaultStake={100}
+            onWin={() => setShowWinShare(true)}
+          />
         </div>
         <FriendChallengeFields stakeInputName="stake" />
         {createState?.error && <p className="mt-2 text-xs text-rose-300">{createState.error}</p>}
