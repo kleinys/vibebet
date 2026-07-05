@@ -1,8 +1,10 @@
 import "server-only";
 
+export type StreamProvider = "youtube" | "twitch";
+
 export interface DiscoveredStream {
   id: string;
-  provider: "youtube";
+  provider: StreamProvider;
   title: string;
   channel: string;
   viewerCount: number;
@@ -13,17 +15,134 @@ export interface DiscoveredStream {
 
 export interface StreamDiscoveryResult {
   streams: DiscoveredStream[];
+  youtubeConfigured: boolean;
+  twitchConfigured: boolean;
   configured: boolean;
   error: string | null;
+  youtubeError: string | null;
+  twitchError: string | null;
 }
 
-function apiKey(): string | null {
+function youtubeApiKey(): string | null {
   const key = process.env.YOUTUBE_API_KEY?.trim();
   return key && key.length > 10 ? key : null;
 }
 
+function twitchCredentials(): { clientId: string; clientSecret: string } | null {
+  const clientId = process.env.TWITCH_CLIENT_ID?.trim();
+  const clientSecret = process.env.TWITCH_CLIENT_SECRET?.trim();
+  if (!clientId || !clientSecret || clientId.length < 10 || clientSecret.length < 10) return null;
+  return { clientId, clientSecret };
+}
+
 export function streamDiscoveryConfigured(): boolean {
-  return apiKey() != null;
+  return youtubeApiKey() != null || twitchCredentials() != null;
+}
+
+let twitchTokenCache: { token: string; expiresAt: number } | null = null;
+
+async function twitchAppToken(clientId: string, clientSecret: string): Promise<string | null> {
+  if (twitchTokenCache && Date.now() < twitchTokenCache.expiresAt - 60_000) {
+    return twitchTokenCache.token;
+  }
+
+  const params = new URLSearchParams({
+    client_id: clientId,
+    client_secret: clientSecret,
+    grant_type: "client_credentials",
+  });
+
+  const res = await fetch(`https://id.twitch.tv/oauth2/token?${params}`, {
+    method: "POST",
+    cache: "no-store",
+  });
+
+  if (!res.ok) return null;
+
+  const json = (await res.json()) as { access_token?: string; expires_in?: number };
+  if (!json.access_token) return null;
+
+  twitchTokenCache = {
+    token: json.access_token,
+    expiresAt: Date.now() + (json.expires_in ?? 3600) * 1000,
+  };
+  return json.access_token;
+}
+
+async function fetchTwitchLiveStreams(
+  clientId: string,
+  clientSecret: string,
+  limit: number,
+): Promise<{ streams: DiscoveredStream[]; error: string | null }> {
+  const token = await twitchAppToken(clientId, clientSecret);
+  if (!token) {
+    return { streams: [], error: "Twitch auth failed — check TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET." };
+  }
+
+  const headers = {
+    "Client-Id": clientId,
+    Authorization: `Bearer ${token}`,
+  };
+
+  const params = new URLSearchParams({
+    first: String(Math.min(limit, 100)),
+  });
+
+  const res = await fetch(`https://api.twitch.tv/helix/streams?${params}`, {
+    headers,
+    cache: "no-store",
+  });
+
+  const json = (await res.json()) as {
+    error?: string;
+    message?: string;
+    data?: Array<{
+      id?: string;
+      user_id?: string;
+      user_login?: string;
+      user_name?: string;
+      game_name?: string;
+      title?: string;
+      viewer_count?: number;
+      thumbnail_url?: string;
+    }>;
+  };
+
+  if (!res.ok) {
+    return {
+      streams: [],
+      error: `Twitch API ${res.status}: ${json.message ?? json.error ?? res.statusText}`,
+    };
+  }
+
+  const streams: DiscoveredStream[] = (json.data ?? [])
+    .filter((row) => row.user_login)
+    .slice(0, limit)
+    .map((row) => {
+      const login = row.user_login!;
+      const thumb = row.thumbnail_url
+        ? row.thumbnail_url.replace("{width}", "440").replace("{height}", "248")
+        : `https://static-cdn.jtvnw.net/previews-ttv/live_user_${login}-440x248.jpg`;
+
+      return {
+        id: `twitch-${login}`,
+        provider: "twitch" as const,
+        title: row.title ?? "Live on Twitch",
+        channel: row.user_name ?? login,
+        viewerCount: row.viewer_count ?? 0,
+        thumbnailUrl: thumb,
+        watchUrl: `https://www.twitch.tv/${login}`,
+        gameOrCategory: row.game_name ?? null,
+      };
+    });
+
+  streams.sort((a, b) => b.viewerCount - a.viewerCount);
+
+  if (streams.length === 0) {
+    return { streams: [], error: "No live Twitch streams returned right now." };
+  }
+
+  return { streams, error: null };
 }
 
 async function youtubeSearchLive(
@@ -52,7 +171,6 @@ async function youtubeSearchLive(
         title?: string;
         channelTitle?: string;
         thumbnails?: { high?: { url?: string }; medium?: { url?: string } };
-        liveBroadcastContent?: string;
       };
     }>;
   };
@@ -85,7 +203,7 @@ async function youtubeSearchLive(
   return { items, error: null };
 }
 
-async function enrichViewerCounts(
+async function enrichYoutubeViewerCounts(
   key: string,
   videoIds: string[],
 ): Promise<Map<string, number>> {
@@ -120,40 +238,27 @@ async function enrichViewerCounts(
       if (!item.id) continue;
       const live = item.liveStreamingDetails?.concurrentViewers;
       const views = item.statistics?.viewCount;
-      counts.set(
-        item.id,
-        live ? Number(live) : views ? Number(views) : 0,
-      );
+      counts.set(item.id, live ? Number(live) : views ? Number(views) : 0);
     }
   }
 
   return counts;
 }
 
-export async function fetchDiscoveredStreamsWithMeta(opts?: {
-  youtubeLimit?: number;
-}): Promise<StreamDiscoveryResult> {
-  const key = apiKey();
-  if (!key) {
-    return { streams: [], configured: false, error: null };
-  }
+async function fetchYoutubeStreams(limit: number): Promise<{ streams: DiscoveredStream[]; error: string | null }> {
+  const key = youtubeApiKey();
+  if (!key) return { streams: [], error: null };
 
-  const limit = opts?.youtubeLimit ?? 20;
   const seen = new Set<string>();
   const merged: Array<{ videoId: string; title: string; channel: string; thumb: string | null }> = [];
   let lastError: string | null = null;
 
-  const searches = [
-    { q: undefined },
-    { q: "gaming live" },
-    { q: "esports live" },
-  ] as const;
-
-  for (const search of searches) {
+  for (const search of [{ q: undefined }, { q: "gaming live" }, { q: "esports live" }] as const) {
     if (merged.length >= limit) break;
+    const remaining = limit - merged.length;
     const { items, error } = await youtubeSearchLive(key, {
       q: search.q,
-      maxResults: Math.min(limit, 15),
+      maxResults: Math.min(remaining, 50),
     });
     if (error) lastError = error;
     for (const item of items) {
@@ -165,14 +270,14 @@ export async function fetchDiscoveredStreamsWithMeta(opts?: {
     if (items.length > 0 && !error) lastError = null;
   }
 
-  const viewerMap = await enrichViewerCounts(
+  const viewerMap = await enrichYoutubeViewerCounts(
     key,
     merged.map((m) => m.videoId),
   );
 
   const streams: DiscoveredStream[] = merged.slice(0, limit).map((item) => ({
     id: `youtube-${item.videoId}`,
-    provider: "youtube" as const,
+    provider: "youtube",
     title: item.title,
     channel: item.channel,
     viewerCount: viewerMap.get(item.videoId) ?? 0,
@@ -184,15 +289,65 @@ export async function fetchDiscoveredStreamsWithMeta(opts?: {
   streams.sort((a, b) => b.viewerCount - a.viewerCount);
 
   if (streams.length === 0 && !lastError) {
-    lastError = "No live YouTube streams returned right now. Try again in a few minutes.";
+    lastError = "No live YouTube streams returned right now.";
   }
 
-  return { streams, configured: true, error: streams.length === 0 ? lastError : null };
+  return { streams, error: streams.length === 0 ? lastError : null };
+}
+
+export function streamWatchId(stream: DiscoveredStream): string {
+  const prefix = `${stream.provider}-`;
+  return stream.id.startsWith(prefix) ? stream.id.slice(prefix.length) : stream.id;
+}
+
+export function streamWatchHref(stream: DiscoveredStream): string {
+  const id = streamWatchId(stream);
+  return `/live/watch?provider=${stream.provider}&id=${encodeURIComponent(id)}&title=${encodeURIComponent(stream.title)}&channel=${encodeURIComponent(stream.channel)}`;
+}
+
+export async function fetchDiscoveredStreamsWithMeta(opts?: {
+  youtubeLimit?: number;
+  twitchLimit?: number;
+}): Promise<StreamDiscoveryResult> {
+  const youtubeLimit = opts?.youtubeLimit ?? 20;
+  const twitchLimit = opts?.twitchLimit ?? 20;
+  const ytKey = youtubeApiKey();
+  const twitch = twitchCredentials();
+
+  const [youtubeResult, twitchResult] = await Promise.all([
+    ytKey ? fetchYoutubeStreams(youtubeLimit) : Promise.resolve({ streams: [], error: null }),
+    twitch
+      ? fetchTwitchLiveStreams(twitch.clientId, twitch.clientSecret, twitchLimit)
+      : Promise.resolve({ streams: [], error: null }),
+  ]);
+
+  const streams = [...youtubeResult.streams, ...twitchResult.streams].sort(
+    (a, b) => b.viewerCount - a.viewerCount,
+  );
+
+  const youtubeConfigured = ytKey != null;
+  const twitchConfigured = twitch != null;
+
+  let error: string | null = null;
+  if (streams.length === 0) {
+    error = youtubeResult.error ?? twitchResult.error ?? "No live streams found right now.";
+  }
+
+  return {
+    streams,
+    youtubeConfigured,
+    twitchConfigured,
+    configured: youtubeConfigured || twitchConfigured,
+    error: streams.length === 0 ? error : null,
+    youtubeError: youtubeResult.error,
+    twitchError: twitchResult.error,
+  };
 }
 
 /** @deprecated use fetchDiscoveredStreamsWithMeta */
 export async function fetchDiscoveredStreams(opts?: {
   youtubeLimit?: number;
+  twitchLimit?: number;
 }): Promise<DiscoveredStream[]> {
   const result = await fetchDiscoveredStreamsWithMeta(opts);
   return result.streams;
