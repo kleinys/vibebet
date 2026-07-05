@@ -7,15 +7,15 @@ import { parseFriendDuelFields } from "@/lib/parse-friend-duel";
 
 const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-export async function startChessVsBot(friendly = true, stake = 100) {
+export async function startChessVsBot() {
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("start_chess_vs_bot", {
-    p_friendly: friendly,
-    p_stake: stake,
+    p_friendly: true,
+    p_stake: 0,
   });
   if (error) return { error: error.message };
   revalidatePath("/games/duels/chess");
-  return { ok: "Bot match started!", gameId: String(data) };
+  return { ok: "Friendly bot match started!", gameId: String(data) };
 }
 
 export async function playChessBotMove(gameId: string) {

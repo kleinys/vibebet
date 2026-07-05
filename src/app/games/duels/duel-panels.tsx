@@ -152,9 +152,7 @@ export function RpsDuelPanel({
           </button>
           <PlayVsBotButton
             gameKey="rps"
-            stakeInputId="rps-stake"
             move={move}
-            defaultStake={50}
             onWin={() => setShowWinShare(true)}
           />
         </div>
@@ -241,8 +239,6 @@ export function HighCardDuelPanel({
           <MatchmakingButton gameKey="high_card" stakeInputId="hc-stake" defaultStake={100} />
           <PlayVsBotButton
             gameKey="high_card"
-            stakeInputId="hc-stake"
-            defaultStake={100}
             onWin={() => setShowWinShare(true)}
           />
         </div>

@@ -5,15 +5,7 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { startChessVsBot } from "@/app/games/duels/chess-actions";
 
-export function PlayChessVsBotButton({
-  friendly = true,
-  stake = 100,
-  className = "",
-}: {
-  friendly?: boolean;
-  stake?: number;
-  className?: string;
-}) {
+export function PlayChessVsBotButton({ className = "" }: { className?: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
 
@@ -23,7 +15,7 @@ export function PlayChessVsBotButton({
       disabled={pending}
       onClick={() =>
         startTransition(async () => {
-          const result = await startChessVsBot(friendly, stake);
+          const result = await startChessVsBot();
           if (result.error) {
             toast.error(result.error);
             return;
@@ -38,7 +30,7 @@ export function PlayChessVsBotButton({
         "rounded-md border border-emerald-500/40 bg-emerald-500/10 px-4 py-1.5 text-sm font-medium text-emerald-100 hover:bg-emerald-500/20 disabled:opacity-50"
       }
     >
-      {pending ? "Starting bot…" : "Play vs Bot"}
+      {pending ? "Starting bot…" : "Play vs Bot (free)"}
     </button>
   );
 }

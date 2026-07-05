@@ -1495,6 +1495,10 @@ export interface Database {
         Args: { p_side: string; p_stake: number };
         Returns: { won: boolean; payout: number; flip_side: string }[];
       };
+      play_coin_flip_vs_bot: {
+        Args: { p_side: string };
+        Returns: { won: boolean; payout: number; flip_side: string; bot_side: string }[];
+      };
       create_dice_duel: {
         Args: { p_stake: number };
         Returns: string;
