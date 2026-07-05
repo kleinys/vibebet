@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatVibe } from "@/lib/utils";
 import { CurrencyIconVibe } from "@/components/fantasy-icons";
-import { orbitModifierSummary } from "@/lib/orbit-affinity";
 import { parseMomentumFromRpc } from "@/lib/hypnotic-flow";
 import { useHypnoticFlow } from "@/components/hypnotic/hypnotic-flow-provider";
 import {
@@ -13,8 +12,8 @@ import {
   PAID_SPIN_COST,
   WHEEL_SPIN_MS,
 } from "@/lib/hypnotic-flow";
-import { HypnoticCinemaOverlay } from "@/components/hypnotic/hypnotic-cinema-overlay";
 import { wheelRotationToSegment } from "@/lib/wheel-segments";
+import { HypnoticModifierBanner } from "@/components/hypnotic/hypnotic-modifier-banner";
 import { LockerCasinoWheel } from "@/components/locker-casino-wheel";
 import {
   LockerTierCase,
@@ -54,7 +53,6 @@ export function HypnoticMorphFloor({
   equippedSkinSlug?: string | null;
 }) {
   const router = useRouter();
-  const modifier = orbitModifierSummary(equippedSkinSlug ?? null);
   const {
     mode,
     setMode,
@@ -89,14 +87,6 @@ export function HypnoticMorphFloor({
   const caseTier = crateResult
     ? resultLabelToTier(crateResult.label)
     : stakeToTier(crateStake);
-
-  const cinemaActive =
-    wheelSpinning || (caseRouletteTier != null && !crateResult);
-  const cinemaMode: "wheel" | "case" | null = wheelSpinning
-    ? "wheel"
-    : caseRouletteTier != null && !crateResult
-      ? "case"
-      : null;
 
   function parseError(err: unknown): string {
     if (err && typeof err === "object" && "message" in err) {
@@ -236,19 +226,6 @@ export function HypnoticMorphFloor({
 
   return (
     <div className="hypnotic-morph-floor">
-      <HypnoticCinemaOverlay
-        visible={cinemaActive}
-        mode={cinemaMode}
-        wheelRotation={wheelRotation}
-        wheelSpinning={wheelSpinning}
-        superActive={superActive}
-        caseRouletteActive={caseRouletteTier != null && !crateResult}
-        caseRouletteTier={caseRouletteTier ?? "common"}
-        caseTier={caseTier}
-        crateOpen={crateOpen}
-        onCaseRouletteDone={finishCrateOpen}
-      />
-
       <div className="hypnotic-morph-floor__tabs" role="tablist">
         <button
           type="button"
@@ -280,12 +257,10 @@ export function HypnoticMorphFloor({
         </div>
       </div>
 
-      {modifier && (
-        <p className="hypnotic-morph-floor__modifier text-center text-[10px] text-zinc-500">
-          {modifier.affinity.icon} {modifier.morphLabel} — {modifier.affinity.crateEffect}
-          {superActive && (
-            <span className="ml-2 text-amber-300">· SUPER mode — chase the jackpot</span>
-          )}
+      <HypnoticModifierBanner equippedSkinSlug={equippedSkinSlug} />
+      {superActive && (
+        <p className="mx-4 mt-2 text-center text-xs font-semibold text-amber-300">
+          SUPER mode — chase the jackpot
         </p>
       )}
 
@@ -295,9 +270,7 @@ export function HypnoticMorphFloor({
         </p>
       )}
 
-      <div
-        className={`hypnotic-morph-floor__grid ${cinemaActive ? "hypnotic-morph-floor__grid--cinema-dim" : ""}`}
-      >
+      <div className="hypnotic-morph-floor__grid">
         {/* VIBE case — always visible beside wheel on md+ */}
         <section
           className={`hypnotic-morph-panel hypnotic-morph-panel--case ${mode === "case" ? "hypnotic-morph-panel--focused" : ""}`}
@@ -306,16 +279,11 @@ export function HypnoticMorphFloor({
           <p className="hypnotic-morph-panel__title text-[10px] font-semibold uppercase tracking-wider text-amber-300/90">
             VIBE case
           </p>
-          {!cinemaActive && (
-            <LockerCaseRoulette
-              active={crateOpen && caseRouletteTier != null && !crateResult}
-              targetTier={caseRouletteTier ?? "common"}
-              onDone={finishCrateOpen}
-            />
-          )}
-          {cinemaActive && cinemaMode === "case" && (
-            <p className="mb-2 text-center text-[10px] text-amber-200/70">Fullscreen roll…</p>
-          )}
+          <LockerCaseRoulette
+            active={crateOpen && caseRouletteTier != null && !crateResult}
+            targetTier={caseRouletteTier ?? "common"}
+            onDone={finishCrateOpen}
+          />
           <LockerTierCase
             tier={caseTier}
             open={crateOpen}
@@ -360,7 +328,7 @@ export function HypnoticMorphFloor({
             </p>
           )}
 
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
+          <div className="mt-4 flex flex-wrap justify-center gap-3">
             {CRATE_STAKES.map((stake) => {
               const isRec = recommendedStake === stake;
               const isActive = crateStake === stake;
@@ -370,14 +338,14 @@ export function HypnoticMorphFloor({
                   type="button"
                   disabled={busy || crateOpen}
                   onClick={() => selectStake(stake)}
-                  className={`hypnotic-stake-chip rounded-sm border px-3 py-1.5 text-[11px] font-semibold tabular-nums transition ${
+                  className={`hypnotic-stake-chip min-w-[4.5rem] rounded-lg border px-4 py-2.5 text-sm font-bold tabular-nums transition ${
                     chipSliding === stake ? "hypnotic-stake-chip--slide" : ""
                   } ${
                     isActive
-                      ? "hypnotic-stake-chip--recommended border-amber-400/60 bg-amber-500/25 text-amber-50"
+                      ? "hypnotic-stake-chip--recommended border-amber-400/70 bg-amber-500/30 text-amber-50 shadow-[0_0_16px_rgba(251,191,36,0.35)]"
                       : isRec
-                        ? "border-amber-300/35 bg-amber-500/10 text-amber-100/90"
-                        : "border-white/10 bg-zinc-900/60 text-zinc-400 hover:border-amber-400/30"
+                        ? "border-amber-300/40 bg-amber-500/15 text-amber-100"
+                        : "border-white/15 bg-zinc-900/70 text-zinc-200 hover:border-amber-400/35 hover:bg-zinc-800"
                   }`}
                 >
                   {formatVibe(stake)}
@@ -419,21 +387,13 @@ export function HypnoticMorphFloor({
           <p className="hypnotic-morph-panel__title text-[10px] font-semibold uppercase tracking-wider text-violet-300/90">
             Daily wheel
           </p>
-          {!cinemaActive && (
-            <LockerCasinoWheel
-              rotation={wheelRotation}
-              spinning={wheelSpinning}
-              glowing={wheelSpinning || superActive}
-            />
-          )}
-          {cinemaActive && cinemaMode === "wheel" && (
-            <div className="flex min-h-[280px] flex-col items-center justify-center gap-2 text-violet-200/70">
-              <span className="text-3xl animate-pulse">🎡</span>
-              <p className="text-[11px]">Fullscreen spin…</p>
-            </div>
-          )}
-          {!cinemaActive &&
-            (wheelResult ? (
+          <LockerCasinoWheel
+            rotation={wheelRotation}
+            spinning={wheelSpinning}
+            glowing={wheelSpinning || superActive}
+          />
+
+          {wheelResult ? (
               <div className="mt-4 text-center">
                 <p className="text-sm font-semibold text-violet-100">Won: {wheelResult.label}</p>
                 {superActive && (
@@ -462,7 +422,7 @@ export function HypnoticMorphFloor({
                     ? "1 free spin today"
                     : `Extra spins · ${PAID_SPIN_COST} VIBE`}
               </p>
-            ))}
+            )}
 
           <div className="mt-4 flex justify-center">
             <button
