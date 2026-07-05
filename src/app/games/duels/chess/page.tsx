@@ -39,10 +39,9 @@ export default async function ChessPage() {
         ← Duel hub
       </Link>
       <h1 className="mt-3 text-2xl font-semibold">♟️ Chess</h1>
-      <p className="mt-1 text-sm text-zinc-400">Rated chess duels — challenge friends by player code.</p>
-      <div className="mt-6">
-        <PlayerCodeCard />
-      </div>
+      <p className="mt-1 text-sm text-zinc-400">
+        Rated chess duels — or hit <span className="text-emerald-300">Play vs Bot</span> for an instant friendly match.
+      </p>
       <div className="mt-6">
         <SkillGameLobby
           gameKey="chess"
@@ -97,6 +96,10 @@ export default async function ChessPage() {
           </p>
         </section>
       )}
+
+      <div className="mt-10">
+        <PlayerCodeCard />
+      </div>
     </div>
   );
 }

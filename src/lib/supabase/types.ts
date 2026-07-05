@@ -1605,6 +1605,25 @@ export interface Database {
           bot_name: string;
         }[];
       };
+      get_platform_bot_id: {
+        Args: Record<string, never>;
+        Returns: string;
+      };
+      start_chess_vs_bot: {
+        Args: { p_friendly?: boolean; p_stake?: number };
+        Returns: string;
+      };
+      apply_chess_state_for_bot: {
+        Args: {
+          p_game_id: string;
+          p_fen: string;
+          p_next_turn_id: string | null;
+          p_status: string;
+          p_winner_id: string | null;
+          p_result?: string | null;
+        };
+        Returns: undefined;
+      };
       cancel_high_card_duel: {
         Args: { p_duel_id: string };
         Returns: undefined;

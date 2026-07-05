@@ -1,13 +1,14 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
   acceptChessDraw,
   declineChessDraw,
   leaveChessGame,
   offerChessDraw,
+  playChessBotMove,
   playChessMove,
   resignChessGame,
 } from "./chess-actions";
@@ -49,6 +50,8 @@ export function ChessBoard({
   moveCount = 0,
   drawOfferedBy,
   isSpectator = false,
+  botUserId = null,
+  opponentId = null,
 }: {
   gameId: string;
   fen: string;
@@ -60,6 +63,8 @@ export function ChessBoard({
   moveCount?: number;
   drawOfferedBy?: string | null;
   isSpectator?: boolean;
+  botUserId?: string | null;
+  opponentId?: string | null;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -67,11 +72,29 @@ export function ChessBoard({
   const inPlay = status === "active" || status === "matched";
   const isLocked = status === "active";
   const isMyTurn = inPlay && !isSpectator && currentTurnId === userId;
+  const isBotTurn =
+    inPlay &&
+    !isSpectator &&
+    !!botUserId &&
+    currentTurnId === botUserId &&
+    (opponentId === botUserId || creatorId === botUserId);
   const board = parseFenBoard(fen);
   const files = "abcdefgh";
   const myColor = userId === creatorId ? "White" : "Black";
   const drawPending = drawOfferedBy && drawOfferedBy !== userId;
   const iOfferedDraw = drawOfferedBy === userId;
+
+  useEffect(() => {
+    if (!isBotTurn || pending) return;
+    const timer = window.setTimeout(() => {
+      startTransition(async () => {
+        const result = await playChessBotMove(gameId);
+        if (result.error) toast.error(result.error);
+        router.refresh();
+      });
+    }, 700);
+    return () => window.clearTimeout(timer);
+  }, [isBotTurn, gameId, fen, pending, router]);
 
   const clickSquare = (file: number, rank: number) => {
     if (isSpectator || !isMyTurn || pending) return;

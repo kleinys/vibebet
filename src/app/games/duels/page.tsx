@@ -2,16 +2,10 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { PlayerCodeCard } from "@/components/player-code-card";
+import { DuelGameCard } from "@/components/duel-game-card";
 import { GAME_CATALOG, liveGames } from "@/lib/game-catalog";
 
 export const revalidate = 0;
-
-const KIND_LABELS = {
-  luck: "Luck",
-  skill: "Skill",
-  prediction: "Prediction",
-  oracle: "Auto-settled",
-} as const;
 
 export default async function DuelsHubPage() {
   const [layerOn, duelsOn, arcadeOn, paperOn, fastOn, triviaOn, connect4On, liarsOn, chessOn, checkersOn, goOn, shogiOn, pokerOn] =
@@ -98,12 +92,6 @@ export default async function DuelsHubPage() {
         skip ELO changes.
       </p>
 
-      {layerOn && (
-        <div className="mt-6">
-          <PlayerCodeCard />
-        </div>
-      )}
-
       {!layerOn && (
         <p className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
           Enable <code className="font-mono">game_layer_enabled</code> in Admin to unlock
@@ -132,30 +120,10 @@ export default async function DuelsHubPage() {
       )}
 
       <section className="mt-8">
-        <h2 className="text-sm font-semibold text-emerald-400">Play now</h2>
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+        <h2 className="text-sm font-semibold tracking-wide text-emerald-400">Play now</h2>
+        <ul className="mt-5 grid gap-4 sm:grid-cols-2">
           {playable.map((g) => (
-            <li
-              key={g.key}
-              className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <span className="text-2xl">{g.emoji}</span>
-                <span className="rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] uppercase text-zinc-400">
-                  {KIND_LABELS[g.kind]}
-                </span>
-              </div>
-              <p className="mt-2 font-medium text-zinc-100">{g.name}</p>
-              <p className="mt-1 text-xs leading-relaxed text-zinc-500">{g.description}</p>
-              {g.href && (
-                <Link
-                  href={g.href}
-                  className="mt-3 inline-block text-sm font-medium text-emerald-400 hover:underline"
-                >
-                  Play →
-                </Link>
-              )}
-            </li>
+            <DuelGameCard key={g.key} game={g} />
           ))}
         </ul>
       </section>
@@ -220,19 +188,27 @@ export default async function DuelsHubPage() {
 
       <section className="mt-10">
         <h2 className="text-sm font-semibold text-zinc-400">Coming soon</h2>
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {comingSoon.map((g) => (
             <li
               key={g.key}
-              className="rounded-xl border border-white/5 bg-zinc-900/30 p-4 opacity-80"
+              className="rounded-2xl border border-white/5 bg-zinc-900/30 p-4 opacity-80"
             >
-              <span className="text-2xl">{g.emoji}</span>
-              <p className="mt-2 font-medium text-zinc-300">{g.name}</p>
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-black/30 text-2xl">
+                {g.emoji}
+              </div>
+              <p className="mt-3 font-medium text-zinc-300">{g.name}</p>
               <p className="mt-1 text-xs text-zinc-600">{g.description}</p>
             </li>
           ))}
         </ul>
       </section>
+
+      {layerOn && (
+        <div className="mt-12 border-t border-white/5 pt-10">
+          <PlayerCodeCard />
+        </div>
+      )}
     </div>
   );
 }

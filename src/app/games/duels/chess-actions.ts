@@ -7,6 +7,68 @@ import { parseFriendDuelFields } from "@/lib/parse-friend-duel";
 
 const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
+export async function startChessVsBot(friendly = true, stake = 100) {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("start_chess_vs_bot", {
+    p_friendly: friendly,
+    p_stake: stake,
+  });
+  if (error) return { error: error.message };
+  revalidatePath("/games/duels/chess");
+  return { ok: "Bot match started!", gameId: String(data) };
+}
+
+export async function playChessBotMove(gameId: string) {
+  const supabase = await createClient();
+  const { data: botData } = await supabase.rpc("get_platform_bot_id");
+  const botId = botData as string | null;
+  if (!botId) return { error: "Platform bot not configured." };
+
+  const { data: rows } = await supabase.rpc("get_chess_game", { p_game_id: gameId });
+  const game = Array.isArray(rows) ? rows[0] : null;
+  if (!game || (game.status !== "active" && game.status !== "matched")) {
+    return { error: "Game not in play." };
+  }
+  if (game.current_turn_id !== botId) return { error: "Not bot turn." };
+
+  const chess = new Chess(game.fen ?? START_FEN);
+  const moves = chess.moves({ verbose: true });
+  if (moves.length === 0) return { error: "Bot has no legal moves." };
+
+  const pick = moves[Math.floor(Math.random() * moves.length)];
+  chess.move({ from: pick.from, to: pick.to, promotion: pick.promotion ?? "q" });
+
+  const creatorId = game.creator_id as string;
+  const opponentId = game.opponent_id as string;
+  const nextTurn = chess.turn() === "w" ? creatorId : opponentId;
+
+  let status = "active";
+  let winnerId: string | null = null;
+  let result: string | null = null;
+
+  if (chess.isCheckmate()) {
+    status = "settled";
+    winnerId = chess.turn() === "w" ? opponentId : creatorId;
+    result = "checkmate";
+  } else if (chess.isStalemate() || chess.isDraw()) {
+    status = "draw";
+    result = chess.isStalemate() ? "stalemate" : "draw";
+  }
+
+  const { error } = await supabase.rpc("apply_chess_state_for_bot", {
+    p_game_id: gameId,
+    p_fen: chess.fen(),
+    p_next_turn_id: status === "active" ? nextTurn : null,
+    p_status: status,
+    p_winner_id: winnerId,
+    p_result: result,
+  });
+  if (error) return { error: error.message };
+
+  revalidatePath(`/games/duels/chess/${gameId}`);
+  return { ok: status === "active" ? "Bot moved." : "Game over!" };
+}
+
 export async function createChessGame(
   _prev: { error?: string; ok?: string; gameId?: string } | null,
   formData: FormData,

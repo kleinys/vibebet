@@ -27,6 +27,9 @@ export default async function ChessGamePage({ params }: { params: Promise<{ id: 
   const game = Array.isArray(data) ? data[0] : null;
   if (!game) notFound();
 
+  const { data: botId } = await supabase.rpc("get_platform_bot_id");
+  const botUserId = botId ? String(botId) : null;
+
   const isParticipant = game.creator_id === user.id || game.opponent_id === user.id;
   const isSpectator =
     !isParticipant && ["matched", "active", "settled", "draw"].includes(game.status);
@@ -138,11 +141,13 @@ export default async function ChessGamePage({ params }: { params: Promise<{ id: 
             currentTurnId={game.current_turn_id}
             userId={user.id}
             creatorId={game.creator_id}
+            opponentId={game.opponent_id}
             status={game.status}
             winnerId={game.winner_id}
             moveCount={game.move_count ?? 0}
             drawOfferedBy={game.draw_offered_by}
             isSpectator={isSpectator}
+            botUserId={botUserId}
           />
           {userWon && (
             <WinSharePanel
