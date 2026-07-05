@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatVibe } from "@/lib/utils";
@@ -13,6 +13,12 @@ import {
   PAID_SPIN_COST,
 } from "@/lib/hypnotic-flow";
 import { WHEEL_SEGMENTS } from "@/components/companion-locker-rewards";
+import { LockerCasinoWheel } from "@/components/locker-casino-wheel";
+import {
+  LockerTierCase,
+  resultLabelToTier,
+  stakeToTier,
+} from "@/components/locker-tier-case";
 
 const BTN =
   "rounded-sm border px-4 py-2 text-[11px] font-semibold uppercase tracking-wider transition disabled:opacity-50";
@@ -76,14 +82,9 @@ export function HypnoticMorphFloor({
   const segmentAngle = 360 / WHEEL_SEGMENTS.length;
   const freeSpinAvailable = spinsUsed === 0;
 
-  const wheelGradient = useMemo(
-    () =>
-      `conic-gradient(${WHEEL_SEGMENTS.map(
-        (seg, i) =>
-          `${seg.color} ${i * segmentAngle}deg ${(i + 1) * segmentAngle}deg`,
-      ).join(", ")})`,
-    [segmentAngle],
-  );
+  const caseTier = crateResult
+    ? resultLabelToTier(crateResult.label)
+    : stakeToTier(crateStake);
 
   function parseError(err: unknown): string {
     if (err && typeof err === "object" && "message" in err) {
@@ -256,25 +257,12 @@ export function HypnoticMorphFloor({
       >
         {/* Case layer */}
         <div className="hypnotic-morph-viewport__case" id="vibe-case">
-          <div
-            className={`locker-case relative mx-auto h-44 w-36 ${crateOpen ? "locker-case--open" : ""} ${stakeDocked ? "locker-case--docked" : ""}`}
-            aria-hidden
-          >
-            <div className="locker-case__glow" />
-            <div className="locker-case__body">
-              <div className="locker-case__stripe locker-case__stripe--1" />
-              <div className="locker-case__stripe locker-case__stripe--2" />
-              <div className="locker-case__stripe locker-case__stripe--3" />
-              <div className="locker-case__lock" />
-              {stakeDocked && (
-                <span className="locker-case__docked-chip tabular-nums">{formatVibe(crateStake)}</span>
-              )}
-            </div>
-            <div className="locker-case__lid">
-              <div className="locker-case__lid-inner" />
-            </div>
-            {crateOpen && <div className="locker-case__burst" />}
-          </div>
+          <LockerTierCase
+            tier={caseTier}
+            open={crateOpen}
+            dockedStake={stakeDocked ? crateStake : null}
+            shaking={crateOpen && !crateResult}
+          />
 
             {crateResult ? (
               <div className="mt-4 text-center">
@@ -360,40 +348,11 @@ export function HypnoticMorphFloor({
 
         {/* Wheel layer */}
         <div className="hypnotic-morph-viewport__wheel" id="vibe-wheel">
-          <div className="relative mx-auto w-fit">
-            <div className="absolute -top-3 left-1/2 z-20 h-0 w-0 -translate-x-1/2 border-x-[10px] border-x-transparent border-t-[16px] border-t-amber-300 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
-            <div
-              className={`locker-wheel relative h-56 w-56 rounded-full border-[3px] border-white/20 shadow-[0_0_40px_rgba(139,92,246,0.45)] transition-transform ease-out ${
-                wheelSpinning ? "duration-[5000ms]" : "duration-300"
-              } ${wheelSpinning ? "hypnotic-wheel--spin-blur" : ""}`}
-              style={{
-                background: wheelGradient,
-                transform: `rotate(${wheelRotation}deg)`,
-              }}
-            >
-              {WHEEL_SEGMENTS.map((seg, i) => {
-                const angle = i * segmentAngle + segmentAngle / 2;
-                return (
-                  <span
-                    key={seg.label}
-                    className="locker-wheel__label pointer-events-none absolute left-1/2 top-1/2 w-14 -translate-x-1/2 text-center text-[7px] font-bold uppercase leading-tight tracking-wide"
-                    style={{
-                      color: seg.text,
-                      transform: `rotate(${angle}deg) translateY(-88px)`,
-                      transformOrigin: "50% 88px",
-                    }}
-                  >
-                    {seg.label.replace(" VIBE", "").replace(" JACKPOT", " JP")}
-                  </span>
-                );
-              })}
-              <div className="absolute inset-[22%] rounded-full border-2 border-white/15 bg-zinc-950/95 shadow-inner">
-                <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold uppercase tracking-wider text-violet-200">
-                  {wheelSpinning ? "…" : "Spin"}
-                </div>
-              </div>
-            </div>
-          </div>
+          <LockerCasinoWheel
+            rotation={wheelRotation}
+            spinning={wheelSpinning}
+            glowing={wheelSpinning || superActive}
+          />
 
           {wheelResult ? (
               <div className="mt-4 text-center">

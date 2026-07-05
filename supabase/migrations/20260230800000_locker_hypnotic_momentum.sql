@@ -185,6 +185,10 @@ $$;
 revoke all on function public.get_locker_momentum() from public;
 grant execute on function public.get_locker_momentum() to authenticated;
 
+-- Must drop old signatures before changing OUT parameter return types
+drop function if exists public.open_locker_crate(bigint);
+drop function if exists public.spin_locker_wheel(bigint);
+
 -- ── Mystery crate with affinity + SUPER + momentum ────────────────────────────
 create or replace function public.open_locker_crate(p_stake bigint default 250)
 returns table (

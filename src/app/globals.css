@@ -2042,7 +2042,19 @@ body {
 }
 
 .companion-stage--react-watch-wheel .companion-orbit-carrier {
-  animation-play-state: paused !important;
+  animation: companion-orbit-spin 6s linear infinite !important;
+}
+
+.companion-stage--react-watch-wheel .companion-orbit-spirit {
+  animation: companion-orbit-counter 6s linear infinite !important;
+}
+
+.companion-stage--react-watch-wheel .companion-orbit-animal-img {
+  animation: none !important;
+  transform: scale(1) !important;
+  opacity: 1 !important;
+  filter: drop-shadow(0 10px 22px rgba(0, 0, 0, 0.45))
+    drop-shadow(0 0 24px rgba(255, 120, 40, 0.65)) !important;
 }
 
 .companion-stage--react-approve .companion-human-wrap {
@@ -2185,6 +2197,207 @@ body {
   background: linear-gradient(to top, rgba(251, 191, 36, 0.5), transparent);
   z-index: 3;
   animation: hypnotic-trail-pulse 2s ease-in-out infinite;
+}
+
+/* ── Casino SVG wheel ── */
+.locker-casino-wheel-wrap {
+  position: relative;
+  width: min(72vw, 280px);
+  height: min(72vw, 280px);
+  margin: 0 auto;
+}
+
+.locker-casino-wheel-wrap--glow .locker-casino-wheel {
+  filter: drop-shadow(0 0 18px rgba(251, 191, 36, 0.55))
+    drop-shadow(0 0 36px rgba(168, 85, 247, 0.35));
+}
+
+.locker-casino-wheel-wrap--spin .locker-casino-wheel {
+  transition: transform 5s cubic-bezier(0.12, 0.8, 0.22, 1);
+}
+
+.locker-casino-wheel-wrap:not(.locker-casino-wheel-wrap--spin) .locker-casino-wheel {
+  transition: transform 0.35s ease-out;
+}
+
+.locker-casino-wheel {
+  width: 100%;
+  height: 100%;
+  transform-origin: center center;
+}
+
+.locker-casino-wheel-pointer {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  z-index: 5;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-top: 20px solid #fde047;
+  filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.9));
+}
+
+.locker-casino-wheel__label {
+  paint-order: stroke fill;
+  stroke: rgba(0, 0, 0, 0.65);
+  stroke-width: 2px;
+  stroke-linejoin: round;
+  letter-spacing: 0.02em;
+}
+
+.locker-casino-wheel__hub {
+  paint-order: stroke fill;
+  stroke: rgba(0, 0, 0, 0.5);
+  stroke-width: 1px;
+}
+
+/* ── Tier cases (common → legendary) ── */
+.locker-tier-case {
+  position: relative;
+  width: 148px;
+  height: 168px;
+  margin: 0 auto;
+  perspective: 420px;
+}
+
+.locker-tier-case__glow {
+  position: absolute;
+  inset: -14%;
+  border-radius: 6px;
+  background: radial-gradient(ellipse at 50% 70%, var(--case-glow) 0%, transparent 72%);
+  filter: blur(10px);
+  animation: locker-case-pulse 2.4s ease-in-out infinite;
+}
+
+.locker-tier-case__badge {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  z-index: 6;
+  transform: translateX(-50%);
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.65);
+  padding: 2px 8px;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #fafafa;
+}
+
+.locker-tier-case__body {
+  position: absolute;
+  inset: 18% 8% 0;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.12),
+    0 12px 28px rgba(0, 0, 0, 0.65);
+}
+
+.locker-tier-case__stripe {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  top: 24%;
+  opacity: 0.9;
+}
+
+.locker-tier-case__stripe--2 {
+  top: 52%;
+  height: 3px;
+  opacity: 0.7;
+}
+
+.locker-tier-case__lock {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  width: 14px;
+  height: 18px;
+  transform: translateX(-50%);
+  border: 2px solid;
+  border-radius: 2px;
+  background: #18181b;
+}
+
+.locker-tier-case__lock::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -9px;
+  width: 12px;
+  height: 10px;
+  transform: translateX(-50%);
+  border: 2px solid inherit;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+}
+
+.locker-tier-case__docked {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  font-weight: 800;
+  color: #fef3c7;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
+}
+
+.locker-tier-case__lid {
+  position: absolute;
+  inset: 0 4% auto;
+  height: 28%;
+  transform-origin: bottom center;
+  transition: transform 0.85s ease, opacity 0.85s ease;
+}
+
+.locker-tier-case__lid-inner {
+  height: 100%;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px 4px 1px 1px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+}
+
+.locker-tier-case--open .locker-tier-case__lid {
+  transform: translateY(-36px) rotateX(58deg);
+  opacity: 0.45;
+}
+
+.locker-tier-case__burst {
+  position: absolute;
+  inset: 10%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--case-glow) 0%, transparent 68%);
+  animation: locker-case-burst 0.9s ease-out forwards;
+  pointer-events: none;
+}
+
+.locker-tier-case__loot-beam {
+  position: absolute;
+  left: 50%;
+  bottom: 20%;
+  width: 60%;
+  height: 40%;
+  transform: translateX(-50%);
+  background: linear-gradient(to top, var(--case-glow), transparent);
+  filter: blur(4px);
+  animation: locker-case-burst 1.2s ease-out infinite alternate;
+}
+
+.locker-tier-case--shake {
+  animation: hypnotic-case-dock 0.35s ease-in-out infinite;
+}
+
+.locker-tier-case--legendary .locker-tier-case__glow {
+  animation: hypnotic-chip-glow 1.8s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
