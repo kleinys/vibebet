@@ -87,7 +87,7 @@ export default async function NotificationsPage({ searchParams }: PageProps) {
           {notifications.map((n) => (
             <li key={n.id} className={n.is_read ? "bg-zinc-950/40" : "bg-zinc-900/40"}>
               <Link
-                href={notificationHref(n)}
+                href={notificationHref(n) as any}  // Type assertion to fix TS error
                 className="block px-4 py-3 transition hover:bg-zinc-900"
               >
                 <div className="flex items-start gap-3">
