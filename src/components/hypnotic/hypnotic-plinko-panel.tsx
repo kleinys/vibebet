@@ -63,7 +63,13 @@ function PlinkoBoard({
       {balls.map((ball) => (
         <div
           key={ball.id}
-          className={`hypnotic-plinko-panel__ball ${ball.active ? "hypnotic-plinko-panel__ball--active" : ""}`}
+          className={`hypnotic-plinko-panel__ball ${
+            ball.active
+              ? "hypnotic-plinko-panel__ball--active"
+              : ball.landedAt
+                ? "hypnotic-plinko-panel__ball--landed"
+                : ""
+          }`}
           style={{ left: `${ball.x}%`, top: `${ball.y}%` }}
         />
       ))}
@@ -234,7 +240,13 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
       let changed = false;
       const next = ballsRef.current
         .map((ball) => {
-          if (!ball.active) return (ball.landedAt && now - ball.landedAt > PLINKO_BALL_TTL_MS) ? null : ball;
+          if (!ball.active) {
+            if (ball.landedAt && now - ball.landedAt > PLINKO_BALL_TTL_MS) {
+              changed = true;
+              return null;
+            }
+            return ball;
+          }
           const landed = stepPlinkoPhysicsBall(ball);
           changed = true;
           if (landed && ball.message) {
@@ -245,7 +257,7 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
           return ball;
         })
         .filter((b): b is PlinkoPhysicsBall => b != null);
-      if (changed) syncBalls(next);
+      if (changed || next.length !== ballsRef.current.length) syncBalls(next);
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
@@ -283,12 +295,18 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
     const id = ballIdRef.current++;
     inFlightRef.current += 1;
     setPendingCount(c => c + 1);
-    void playPlinko(clampedStake, risk).then(result => {
-      inFlightRef.current -= 1;
-      setPendingCount(c => c - 1);
-      if (result.error) toast.error(result.error);
-      else enqueueBall({ id, slot: result.slot ?? 6, message: result.ok ?? "Dropped!" });
-    });
+    void playPlinko(clampedStake, risk)
+      .then((result) => {
+        inFlightRef.current -= 1;
+        setPendingCount((c) => c - 1);
+        if (result.error) toast.error(result.error);
+        else enqueueBall({ id, slot: result.slot ?? 6, message: result.ok ?? "Dropped!" });
+      })
+      .catch(() => {
+        inFlightRef.current -= 1;
+        setPendingCount((c) => c - 1);
+        toast.error("Plinko drop failed.");
+      });
   }, [clampedStake, risk, enqueueBall]);
 
   const gameBody = (

@@ -122,7 +122,7 @@ function buildWaypoints(
     });
   }
 
-  points.push({ x: slotCenterX(targetSlot), y: 84 });
+  points.push({ x: slotCenterX(targetSlot), y: 79 });
   return points;
 }
 
