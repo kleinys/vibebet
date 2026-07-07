@@ -125,7 +125,7 @@ function FilterTab({
 }) {
   return (
     <Link
-      href={href}
+      href={href as any}  // Type assertion to fix TS error
       className={
         active
           ? "rounded-md bg-zinc-800 px-2.5 py-1 text-zinc-100"
