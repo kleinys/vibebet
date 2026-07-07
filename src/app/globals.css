@@ -2122,7 +2122,7 @@ body {
   box-shadow:
     0 0 6px rgba(255, 255, 255, 0.75),
     0 1px 2px rgba(0, 0, 0, 0.45);
-  z-index: 2;
+  z-index: 5;
 }
 
 .hypnotic-plinko-panel__ball {
@@ -2135,7 +2135,7 @@ body {
   box-shadow:
     0 0 10px rgba(74, 222, 128, 0.85),
     0 2px 4px rgba(0, 0, 0, 0.35);
-  z-index: 10;
+  z-index: 3;
   pointer-events: none;
 }
 
@@ -2176,6 +2176,83 @@ body {
 .hypnotic-plinko-panel__slot--hit {
   transform: scale(1.08) translateY(-2px);
   z-index: 4;
+}
+
+.hypnotic-plinko-panel__board--cinema {
+  height: min(72vh, 640px);
+  min-height: 480px;
+}
+
+.hypnotic-plinko-cinema {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.hypnotic-plinko-cinema__backdrop {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 35%, rgba(15, 23, 42, 0.97), rgba(0, 0, 0, 0.98));
+  backdrop-filter: blur(12px);
+}
+
+.hypnotic-plinko-cinema__shell {
+  position: relative;
+  z-index: 1;
+  width: min(1100px, 100%);
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.hypnotic-plinko-cinema__exit {
+  align-self: flex-end;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.55);
+  padding: 0.5rem 1rem;
+  font-size: 12px;
+  font-weight: 600;
+  color: #f4f4f5;
+  transition: background 0.2s ease;
+}
+
+.hypnotic-plinko-cinema__exit:hover {
+  background: rgba(244, 63, 94, 0.25);
+  border-color: rgba(244, 63, 94, 0.45);
+}
+
+.hypnotic-plinko-cinema__title {
+  margin: 0;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(244, 114, 182, 0.9);
+}
+
+.hypnotic-plinko-cinema__game {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 900px) {
+  .hypnotic-plinko-cinema__game {
+    grid-template-columns: 1.35fr 0.65fr;
+    align-items: start;
+  }
+}
+
+.hypnotic-plinko-cinema__board-col,
+.hypnotic-plinko-cinema__controls-col {
+  min-width: 0;
 }
 
 .hypnotic-plinko-panel__controls {

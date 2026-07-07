@@ -48,9 +48,13 @@ export type PlinkoPeg = { row: number; col: number; x: number; y: number };
 
 export type PlinkoPoint = { x: number; y: number };
 
+export const PLINKO_PEGS = buildPlinkoPegs();
+
 const SLOT_WIDTH = 100 / PLINKO_SLOT_COUNT;
-const PEG_RADIUS = 1.55;
-const BALL_RADIUS = 1.05;
+export const PEG_RADIUS = 1.75;
+export const BALL_RADIUS = 1.1;
+const GRAVITY = 0.022;
+const MAX_BALL_SPEED = 0.85;
 
 export function slotCenterX(slot: number): number {
   return (slot + 0.5) * SLOT_WIDTH;
@@ -88,72 +92,152 @@ function shuffleMoves(moves: ("L" | "R")[]): ("L" | "R")[] {
   return next;
 }
 
-/** Build a zig-zag path that bounces off peg surfaces (not through centers). */
-export function buildPlinkoDropPath(targetSlot: number): PlinkoPoint[] {
-  const clamped = Math.max(0, Math.min(PLINKO_SLOT_COUNT - 1, targetSlot));
-  const rights = clamped;
-  const lefts = PLINKO_ROWS - rights;
-  const moves = shuffleMoves([
-    ...Array.from({ length: rights }, () => "R" as const),
-    ...Array.from({ length: lefts }, () => "L" as const),
-  ]);
-
-  const touch = PEG_RADIUS + BALL_RADIUS * 0.45;
-  const points: PlinkoPoint[] = [{ x: 50, y: 2.5 }];
+function colAtRow(moves: ("L" | "R")[], row: number): number {
   let col = 0;
+  for (let i = 0; i < row; i++) {
+    if (moves[i] === "R") col++;
+  }
+  return col;
+}
 
+function buildMoves(targetSlot: number): ("L" | "R")[] {
+  const clamped = Math.max(0, Math.min(PLINKO_SLOT_COUNT - 1, targetSlot));
+  return shuffleMoves([
+    ...Array.from({ length: clamped }, () => "R" as const),
+    ...Array.from({ length: PLINKO_ROWS - clamped }, () => "L" as const),
+  ]);
+}
+
+export type PlinkoPhysicsBall = {
+  id: number;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  active: boolean;
+  targetSlot: number;
+  moves: ("L" | "R")[];
+  rowHit: boolean[];
+  landedAt: number | null;
+  message: string | null;
+};
+
+export function createPlinkoPhysicsBall(id: number, targetSlot: number): PlinkoPhysicsBall {
+  return {
+    id,
+    x: 50 + (Math.random() - 0.5) * 0.6,
+    y: 2.5,
+    vx: (Math.random() - 0.5) * 0.04,
+    vy: 0.1,
+    active: true,
+    targetSlot: Math.max(0, Math.min(PLINKO_SLOT_COUNT - 1, targetSlot)),
+    moves: buildMoves(targetSlot),
+    rowHit: Array.from({ length: PLINKO_ROWS }, () => false),
+    landedAt: null,
+    message: null,
+  };
+}
+
+function clampSpeed(ball: PlinkoPhysicsBall) {
+  const speed = Math.hypot(ball.vx, ball.vy);
+  if (speed > MAX_BALL_SPEED) {
+    ball.vx = (ball.vx / speed) * MAX_BALL_SPEED;
+    ball.vy = (ball.vy / speed) * MAX_BALL_SPEED;
+  }
+}
+
+function bounceOffPeg(ball: PlinkoPhysicsBall, peg: PlinkoPoint) {
+  const dx = ball.x - peg.x;
+  const dy = ball.y - peg.y;
+  const dist = Math.hypot(dx, dy);
+  const minDist = PEG_RADIUS + BALL_RADIUS;
+  if (dist >= minDist || dist < 0.0001) return false;
+
+  const nx = dx / dist;
+  const ny = dy / dist;
+  ball.x = peg.x + nx * minDist;
+  ball.y = peg.y + ny * minDist;
+
+  const vn = ball.vx * nx + ball.vy * ny;
+  if (vn < 0) {
+    const restitution = 0.72;
+    ball.vx -= (1 + restitution) * vn * nx;
+    ball.vy -= (1 + restitution) * vn * ny;
+  }
+
+  ball.vx *= 0.92;
+  ball.vy *= 0.88;
+  return true;
+}
+
+function guidedRowBounce(ball: PlinkoPhysicsBall): boolean {
   for (let row = 0; row < PLINKO_ROWS; row++) {
+    if (ball.rowHit[row]) continue;
+
+    const col = colAtRow(ball.moves, row);
     const peg = pegPosition(row, col);
-    const move = moves[row];
+    const move = ball.moves[row];
+    const nearX = Math.abs(ball.x - peg.x) < SLOT_WIDTH * 0.42;
+    const nearY = ball.y >= peg.y - 1.4 && ball.y <= peg.y + 2.6;
+    const passed = ball.y > peg.y + 2.2;
 
-    points.push({ x: peg.x, y: peg.y - touch - 2.8 });
+    if (!nearY && !passed) continue;
+    if (!nearX && !passed) continue;
 
-    const contactX =
-      move === "R" ? peg.x - PEG_RADIUS * 0.72 : peg.x + PEG_RADIUS * 0.72;
-    const contactY = peg.y - PEG_RADIUS * 0.92;
-    points.push({ x: contactX, y: contactY });
+    ball.x = peg.x + (move === "R" ? PEG_RADIUS * 0.55 : -PEG_RADIUS * 0.55);
+    ball.y = peg.y + PEG_RADIUS + BALL_RADIUS + 0.15;
+    ball.vx = move === "R" ? 0.2 + Math.random() * 0.05 : -0.2 - Math.random() * 0.05;
+    ball.vy = Math.max(ball.vy, 0.06);
+    ball.rowHit[row] = true;
+    return true;
+  }
+  return false;
+}
 
-    const exitX =
-      move === "R"
-        ? peg.x + SLOT_WIDTH * 0.2 + PEG_RADIUS * 0.35
-        : peg.x - SLOT_WIDTH * 0.2 - PEG_RADIUS * 0.35;
-    const exitY = peg.y + PEG_RADIUS * 1.15;
-    points.push({ x: exitX, y: exitY });
+/** Advance one physics frame. Returns true when the ball just landed. */
+export function stepPlinkoPhysicsBall(ball: PlinkoPhysicsBall, pegs: PlinkoPeg[]): boolean {
+  if (!ball.active) return false;
 
-    col = move === "R" ? col + 1 : col;
+  ball.vy += GRAVITY;
+  ball.x += ball.vx;
+  ball.y += ball.vy;
 
-    if (row < PLINKO_ROWS - 1) {
-      const nextPeg = pegPosition(row + 1, col);
-      points.push({
-        x: exitX * 0.35 + nextPeg.x * 0.65,
-        y: exitY * 0.4 + (nextPeg.y - touch - 2) * 0.6,
-      });
-      points.push({ x: nextPeg.x, y: nextPeg.y - touch - 2 });
+  if (ball.x < 4.5) {
+    ball.x = 4.5;
+    ball.vx = Math.abs(ball.vx) * 0.75;
+  } else if (ball.x > 95.5) {
+    ball.x = 95.5;
+    ball.vx = -Math.abs(ball.vx) * 0.75;
+  }
+
+  guidedRowBounce(ball);
+
+  for (const peg of pegs) {
+    bounceOffPeg(ball, peg);
+  }
+
+  clampSpeed(ball);
+
+  const allRowsHit = ball.rowHit.every(Boolean);
+  if (allRowsHit) {
+    const targetX = slotCenterX(ball.targetSlot);
+    ball.x += (targetX - ball.x) * 0.12;
+    if (ball.y < 83.5) {
+      ball.vy = Math.max(ball.vy, 0.14);
+    }
+
+    if (ball.y >= 83.5) {
+      ball.x = targetX;
+      ball.y = 84;
+      ball.vx = 0;
+      ball.vy = 0;
+      ball.active = false;
+      ball.landedAt = performance.now();
+      return true;
     }
   }
 
-  points.push({ x: slotCenterX(clamped), y: 70 });
-  points.push({ x: slotCenterX(clamped), y: 84 });
-  return points;
+  return false;
 }
 
-export function easeInOutQuad(t: number): number {
-  return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-}
-
-export function samplePlinkoPath(
-  points: PlinkoPoint[],
-  progress: number,
-): PlinkoPoint {
-  if (points.length <= 1) return points[0] ?? { x: 50, y: 2.5 };
-  const t = Math.max(0, Math.min(1, progress));
-  const scaled = t * (points.length - 1);
-  const index = Math.min(Math.floor(scaled), points.length - 2);
-  const local = easeInOutQuad(scaled - index);
-  const a = points[index];
-  const b = points[index + 1];
-  return {
-    x: a.x + (b.x - a.x) * local,
-    y: a.y + (b.y - a.y) * local,
-  };
-}
+export const PLINKO_BALL_TTL_MS = 4500;
