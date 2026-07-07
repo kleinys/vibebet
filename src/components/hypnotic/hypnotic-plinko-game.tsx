@@ -90,24 +90,31 @@ export function HypnoticPlinkoGame() {
   const pegPositions = useRef<Peg[]>([]);
   
   useEffect(() => {
-    // Build peg positions (alternating rows)
+    // Build peg positions in a pyramid/triangle shape
     const newPegPositions: Peg[] = [];
     let globalIndex = 0;
     
     for (let row = 0; row < NUM_ROWS; row++) {
       const y = PEG_AREA_TOP + row * ROW_SPACING;
-      if (row % 2 === 0) {
-        // Even rows: pegs at slot centers
-        for (let col = 0; col < NUM_SLOTS; col++) {
-          newPegPositions.push({ x: slotCenters[col], y, globalIndex, rowIndex: row, colIndex: col });
-          globalIndex++;
-        }
-      } else {
-        // Odd rows: pegs at slot boundaries (except first and last)
-        for (let col = 0; col < NUM_SLOTS - 1; col++) {
-          newPegPositions.push({ x: slotBoundaries[col + 1], y, globalIndex, rowIndex: row, colIndex: col });
-          globalIndex++;
-        }
+      
+      // Calculate how many pegs are in this row
+      // First row has 1 peg, second has 2, etc.
+      const numPegsInRow = row + 1;
+      
+      // Calculate the horizontal spacing between pegs
+      const startX = LEFT_WALL + (slotWidth * (NUM_SLOTS - numPegsInRow) / 2);
+      const spacing = slotWidth * (numPegsInRow > 1 ? 1 : 0);
+      
+      for (let col = 0; col < numPegsInRow; col++) {
+        const x = startX + col * spacing;
+        newPegPositions.push({ 
+          x, 
+          y, 
+          globalIndex, 
+          rowIndex: row, 
+          colIndex: col 
+        });
+        globalIndex++;
       }
     }
     

@@ -110,12 +110,24 @@ export function HypnoticPlinkoPanel() {
         const targetX = slotCenterX(ball.targetSlot);
         vx += (targetX - x) * steerStrength;
 
+        // Update peg collision detection to handle pyramid pattern
         for (let row = 1; row <= 8; row++) {
           const pegY = row * 8 + 12;
           if (Math.abs(y - pegY) < 2.4) {
-            vx += (Math.random() - 0.5) * 0.42;
-            vy *= 0.9;
-            y = pegY + 0.5;
+            // Calculate expected peg positions based on pyramid pattern
+            const numPegs = row;
+            const pegSpacing = 100 / (numPegs - 1);
+            const startX = (100 - (numPegs - 1) * pegSpacing) / 2;
+            
+            for (let i = 0; i < numPegs; i++) {
+              const pegX = startX + i * pegSpacing;
+              if (Math.abs(x - pegX) < 2.4) {
+                vx += (Math.random() - 0.5) * 0.42;
+                vy *= 0.9;
+                y = pegY + 0.5;
+                break;
+              }
+            }
           }
         }
 
