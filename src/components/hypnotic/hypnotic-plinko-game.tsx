@@ -44,7 +44,6 @@ type Peg = {
 type PegFlashTimer = {
   pegGlobalIndex: number;
   timer: number;
-  peg: Peg;
 };
 
 export function HypnoticPlinkoGame() {
@@ -56,7 +55,7 @@ export function HypnoticPlinkoGame() {
   const containerRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<number>(0);
   const lastTimeRef = useRef<number>(0);
-  const pegFlashTimersRef = useRef<PegFlashTimer[]>([]);
+  const pegFlashTimersRef = useRef<PegFlashTimer[]>([]); // This will now be empty since we removed pegs
   const landedBallsRef = useRef<Array<{
     x: number;
     y: number;
@@ -74,11 +73,8 @@ export function HypnoticPlinkoGame() {
   const SLOT_DIVIDER_TOP = 482;
   const SLOT_DIVIDER_BOTTOM = 548;
   const SLOT_BOTTOM_Y = 555;
-  const NUM_ROWS = 12;
   const NUM_SLOTS = 9; // Using 9 slots to match our PLINKO_SLOTS array
-  const PEG_RADIUS = 8;
   const BALL_RADIUS = 7;
-  const ROW_SPACING = (PEG_AREA_BOTTOM - PEG_AREA_TOP) / (NUM_ROWS - 1);
   const CENTER_DROP_X = (LEFT_WALL + RIGHT_WALL) / 2; // Center drop position
   
   // Calculate slot boundaries
@@ -86,45 +82,18 @@ export function HypnoticPlinkoGame() {
   const slotBoundaries = Array.from({ length: NUM_SLOTS + 1 }, (_, i) => LEFT_WALL + i * slotWidth);
   const slotCenters = Array.from({ length: NUM_SLOTS }, (_, i) => LEFT_WALL + slotWidth * i + slotWidth / 2);
 
-  // Generate peg positions in pyramid pattern
-  const pegPositions = useRef<Peg[]>([]);
+  // No more pegs needed
+  const pegPositions = useRef<any[]>([]);
   
   useEffect(() => {
-    // Build peg positions in a pyramid/triangle shape
-    const newPegPositions: Peg[] = [];
-    let globalIndex = 0;
-    
-    for (let row = 0; row < NUM_ROWS; row++) {
-      const y = PEG_AREA_TOP + row * ROW_SPACING;
-      
-      // Calculate how many pegs are in this row
-      // First row has 1 peg, second has 2, etc.
-      const numPegsInRow = row + 1;
-      
-      // Calculate the horizontal spacing between pegs
-      const startX = LEFT_WALL + (slotWidth * (NUM_SLOTS - numPegsInRow) / 2);
-      const spacing = slotWidth * (numPegsInRow > 1 ? 1 : 0);
-      
-      for (let col = 0; col < numPegsInRow; col++) {
-        const x = startX + col * spacing;
-        newPegPositions.push({ 
-          x, 
-          y, 
-          globalIndex, 
-          rowIndex: row, 
-          colIndex: col 
-        });
-        globalIndex++;
-      }
-    }
-    
-    pegPositions.current = newPegPositions;
+    // No more pegs - empty array
+    pegPositions.current = [];
   }, []);
 
   const GRAVITY = 0.25; // Reduced gravity for more realistic falling
   const DAMPING = 0.75; // Increased damping for more realistic energy loss
   const WALL_DAMPING = 0.7; // Wall damping factor
-  const PEG_RESTITUTION = 0.6; // Coefficient of restitution for peg collisions
+  const PEG_RESTITUTION = 0.6; // Coefficient of restitution (kept for potential future use)
   const DROP_COOLDOWN_MAX = 12;
   const [dropCooldown, setDropCooldown] = useState<number>(0);
 
@@ -142,51 +111,6 @@ export function HypnoticPlinkoGame() {
     };
   };
 
-  const resolveCircleCollision = (ball: PlinkoBall, pegX: number, pegY: number, pegRadius: number): boolean => {
-    const dx = ball.x - pegX;
-    const dy = ball.y - pegY;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const minDist = ball.radius + pegRadius;
-
-    if (dist < minDist && dist > 0.001) {
-      // Normalize collision vector
-      const nx = dx / dist;
-      const ny = dy / dist;
-      
-      // Separate ball and peg to prevent sticking
-      const overlap = minDist - dist;
-      ball.x += nx * overlap;
-      ball.y += ny * overlap;
-
-      // Calculate relative velocity in collision direction
-      const relVelX = ball.vx;
-      const relVelY = ball.vy;
-      const velAlongNormal = relVelX * nx + relVelY * ny;
-
-      // Don't resolve if velocities are separating (already collided)
-      if (velAlongNormal > 0) return false;
-
-      // Calculate impulse scalar
-      const j = -(1 + PEG_RESTITUTION) * velAlongNormal;
-      const impulseX = j * nx;
-      const impulseY = j * ny;
-
-      // Apply impulse to ball (we assume peg is immovable)
-      ball.vx += impulseX;
-      ball.vy += impulseY;
-
-      // Apply additional damping to simulate friction and energy loss
-      ball.vx *= DAMPING;
-      ball.vy *= DAMPING;
-      
-      // Add slight randomness to make it less predictable
-      ball.vx += (Math.random() - 0.5) * 0.3;
-      ball.vy += (Math.random() - 0.5) * 0.1;
-      
-      return true;
-    }
-    return false;
-  };
 
   const updateBall = (ball: PlinkoBall) => {
     if (!ball.active) return ball;
@@ -225,18 +149,7 @@ export function HypnoticPlinkoGame() {
       ball.vx = -Math.abs(ball.vx) * WALL_DAMPING; // Reflect and dampen
     }
 
-    // Peg collisions
-    for (const peg of pegPositions.current) {
-      if (resolveCircleCollision(ball, peg.x, peg.y, PEG_RADIUS)) {
-        // Add visual feedback for peg collision
-        const existing = pegFlashTimersRef.current.find(f => f.pegGlobalIndex === peg.globalIndex);
-        if (existing) {
-          existing.timer = 8;
-        } else {
-          pegFlashTimersRef.current.push({ pegGlobalIndex: peg.globalIndex, timer: 8, peg });
-        }
-      }
-    }
+    // No more peg collisions since there are no pegs
 
     // Slot dividers collision
     if (ball.y > SLOT_DIVIDER_TOP - ball.radius && ball.y < SLOT_DIVIDER_BOTTOM + ball.radius) {
@@ -371,18 +284,7 @@ export function HypnoticPlinkoGame() {
             ball.vx = -Math.abs(ball.vx) * WALL_DAMPING; // Reflect and dampen
           }
 
-          // Peg collisions
-          for (const peg of pegPositions.current) {
-            if (resolveCircleCollision(ball, peg.x, peg.y, PEG_RADIUS)) {
-              // Add visual feedback for peg collision
-              const existing = pegFlashTimersRef.current.find(f => f.pegGlobalIndex === peg.globalIndex);
-              if (existing) {
-                existing.timer = 8;
-              } else {
-                pegFlashTimersRef.current.push({ pegGlobalIndex: peg.globalIndex, timer: 8, peg });
-              }
-            }
-          }
+          // No peg collisions since there are no pegs
 
           // Slot dividers collision
           if (ball.y > SLOT_DIVIDER_TOP - ball.radius && ball.y < SLOT_DIVIDER_BOTTOM + ball.radius) {
@@ -454,11 +356,8 @@ export function HypnoticPlinkoGame() {
           opacity: Math.max(0, lb.timer / 140)
         })).filter(lb => lb.timer > 0);
         
-        // Update peg flash timers
-        pegFlashTimersRef.current = pegFlashTimersRef.current.map(f => ({
-          ...f,
-          timer: f.timer - 1
-        })).filter(f => f.timer > 0);
+        // Since there are no more pegs, we don't need to update peg flash timers
+        // pegFlashTimersRef.current remains empty
         
         // Update cooldown
         if (dropCooldown > 0) {
@@ -500,7 +399,7 @@ export function HypnoticPlinkoGame() {
     setWinMessage(null);
     setHighlightedSlot(null);
     landedBallsRef.current = [];
-    pegFlashTimersRef.current = [];
+    // No more pegs to clear, so pegFlashTimersRef remains empty
     setDropCooldown(0);
   };
 
@@ -538,46 +437,7 @@ export function HypnoticPlinkoGame() {
             style={{ width: '3%', height: '80%' }}
           ></div>
           
-          {/* Pegs */}
-          {pegPositions.current.map((peg, index) => {
-            const isFlashing = pegFlashTimersRef.current.some(f => 
-              f.pegGlobalIndex === peg.globalIndex && f.timer > 0
-            );
-            
-            return (
-              <div
-                key={index}
-                className={`absolute rounded-full bg-gradient-to-br from-white to-amber-300 ${
-                  isFlashing ? 'animate-pulse' : ''
-                }`}
-                style={{
-                  left: `${(peg.x / CANVAS_WIDTH) * 100}%`,
-                  top: `${(peg.y / CANVAS_HEIGHT) * 100}%`,
-                  width: '16px',
-                  height: '16px',
-                  transform: 'translate(-50%, -50%)',
-                  boxShadow: isFlashing 
-                    ? '0 0 12px rgba(255, 255, 200, 0.9), 0 0 20px rgba(255, 220, 100, 0.4)' 
-                    : '0 0 4px rgba(255, 255, 255, 0.6)',
-                  zIndex: 5
-                }}
-              >
-                {isFlashing && (
-                  <div 
-                    className="absolute rounded-full bg-yellow-300/40"
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      left: '-12px',
-                      top: '-12px',
-                      transform: 'translate(-50%, -50%)',
-                      animation: 'pulse 0.5s ease-out'
-                    }}
-                  ></div>
-                )}
-              </div>
-            );
-          })}
+          {/* No more pegs - removed peg rendering */}
           
           {/* Balls */}
           {balls.map((ball) => (
