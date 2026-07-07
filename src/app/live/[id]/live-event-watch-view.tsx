@@ -76,29 +76,8 @@ export function LiveEventWatchView({
         <p className="mt-4 max-w-3xl text-sm text-zinc-300">{event.description}</p>
       )}
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_340px]">
-        <div className="min-w-0 space-y-4">
-          <StreamEmbed streamUrl={event.stream_url} title={event.title} />
-
-          {event.duel_id && (
-            <Link
-              href={`/duels/${event.duel_id}`}
-              className="block rounded-lg border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-sm text-violet-200 hover:bg-violet-500/15"
-            >
-              Linked prediction duel — view match details →
-            </Link>
-          )}
-          {event.paper_duel_id && (
-            <Link
-              href={`/games/paper/${event.paper_duel_id}`}
-              className="block rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-200 hover:bg-cyan-500/15"
-            >
-              Linked return race — watch live scores →
-            </Link>
-          )}
-        </div>
-
-        <aside className="space-y-4">
+      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(280px,340px)_1fr]">
+        <aside className="order-2 space-y-4 lg:order-1 lg:sticky lg:top-20 lg:self-start">
           <div className="rounded-xl border border-white/5 bg-zinc-900/60 p-4">
             <h2 className="text-sm font-semibold">Place a bet</h2>
             <p className="mt-1 text-xs text-zinc-500">
@@ -144,6 +123,27 @@ export function LiveEventWatchView({
             </div>
           )}
         </aside>
+
+        <div className="order-1 min-w-0 space-y-4 lg:order-2">
+          <StreamEmbed streamUrl={event.stream_url} title={event.title} />
+
+          {event.duel_id && (
+            <Link
+              href={`/duels/${event.duel_id}`}
+              className="block rounded-lg border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-sm text-violet-200 hover:bg-violet-500/15"
+            >
+              Linked prediction duel — view match details →
+            </Link>
+          )}
+          {event.paper_duel_id && (
+            <Link
+              href={`/games/paper/${event.paper_duel_id}`}
+              className="block rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-sm text-cyan-200 hover:bg-cyan-500/15"
+            >
+              Linked return race — watch live scores →
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   );

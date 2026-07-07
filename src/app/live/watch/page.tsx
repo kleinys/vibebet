@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { DiscoveredStreamWatchView } from "@/components/discovered-stream-watch-view";
+import { isEnabled } from "@/lib/feature-flags";
+import { getBalance } from "@/lib/ledger";
+import { createClient } from "@/lib/supabase/server";
+import { getWatchBetMarkets } from "@/lib/watch-bet-markets";
 
 export const revalidate = 0;
 
@@ -11,6 +15,8 @@ export default async function WatchDiscoveredStreamPage({
     id?: string;
     title?: string;
     channel?: string;
+    game?: string;
+    market?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -18,6 +24,8 @@ export default async function WatchDiscoveredStreamPage({
   const id = params.id?.trim();
   const title = params.title?.trim() ?? "Live stream";
   const channel = params.channel?.trim() ?? "";
+  const game = params.game?.trim() ?? "";
+  const defaultMarketId = params.market?.trim() ?? null;
 
   if (!id) {
     return (
@@ -41,12 +49,37 @@ export default async function WatchDiscoveredStreamPage({
     watchUrl = id.startsWith("http") ? id : `https://${id}`;
   }
 
+  const loginNext = `/live/watch?provider=${encodeURIComponent(provider)}&id=${encodeURIComponent(id)}&title=${encodeURIComponent(title)}&channel=${encodeURIComponent(channel)}${game ? `&game=${encodeURIComponent(game)}` : ""}`;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const [betMarkets, vibeBalance, quickExitEnabled] = await Promise.all([
+    getWatchBetMarkets({
+      userId: user?.id ?? null,
+      title,
+      channel,
+      game: game || undefined,
+      limit: 8,
+    }),
+    user ? getBalance(user.id, "vibe") : Promise.resolve(0),
+    isEnabled("quick_exit_enabled"),
+  ]);
+
   return (
     <DiscoveredStreamWatchView
       watchUrl={watchUrl}
       title={title}
       channel={channel}
       provider={provider}
+      betMarkets={betMarkets}
+      vibeBalance={user ? vibeBalance : 0}
+      quickExitEnabled={quickExitEnabled}
+      signedIn={!!user}
+      loginNext={loginNext}
+      defaultMarketId={defaultMarketId}
     />
   );
 }

@@ -302,7 +302,10 @@ export function streamWatchId(stream: DiscoveredStream): string {
 
 export function streamWatchHref(stream: DiscoveredStream): string {
   const id = streamWatchId(stream);
-  return `/live/watch?provider=${stream.provider}&id=${encodeURIComponent(id)}&title=${encodeURIComponent(stream.title)}&channel=${encodeURIComponent(stream.channel)}`;
+  const game = stream.gameOrCategory
+    ? `&game=${encodeURIComponent(stream.gameOrCategory)}`
+    : "";
+  return `/live/watch?provider=${stream.provider}&id=${encodeURIComponent(id)}&title=${encodeURIComponent(stream.title)}&channel=${encodeURIComponent(stream.channel)}${game}`;
 }
 
 export async function fetchDiscoveredStreamsWithMeta(opts?: {
