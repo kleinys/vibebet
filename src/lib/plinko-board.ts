@@ -171,7 +171,7 @@ function easeInQuad(t: number): number {
   return t * t;
 }
 
-export const PLINKO_BOUNCE_MS = 120;
+export const PLINKO_BOUNCE_MS = 240;
 
 export function stepPlinkoPhysicsBall(ball: PlinkoPhysicsBall): boolean {
   if (!ball.active) return false;
@@ -219,5 +219,6 @@ export function stepPlinkoPhysicsBall(ball: PlinkoPhysicsBall): boolean {
   return false;
 }
 
-export const PLINKO_BALL_TTL_MS = 7000;
-export const PLINKO_BATCH_MS = 140;
+export const PLINKO_BALL_TTL_MS = 12000;
+/** Grace period after the last RPC returns — balls in the queue drop together. */
+export const PLINKO_BATCH_GRACE_MS = 150;

@@ -9,7 +9,7 @@ import {
   createPlinkoPhysicsBall,
   formatPlinkoMultiplier,
   PLINKO_BALL_TTL_MS,
-  PLINKO_BATCH_MS,
+  PLINKO_BATCH_GRACE_MS,
   PLINKO_PEGS,
   plinkoSlotsForRisk,
   stepPlinkoPhysicsBall,
@@ -237,6 +237,7 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
   const ballIdRef = useRef(0);
   const batchQueueRef = useRef<Array<{ id: number; slot: number; message: string }>>([]);
   const batchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inFlightRef = useRef(0);
 
   const clampedStake = useMemo(() => {
     const n = Number(stake);
@@ -303,31 +304,47 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
   }, [syncBalls]);
 
   const flushBatch = useCallback(() => {
+    if (inFlightRef.current > 0) {
+      batchTimerRef.current = setTimeout(() => {
+        batchTimerRef.current = null;
+        flushBatch();
+      }, 40);
+      return;
+    }
+
     if (batchQueueRef.current.length === 0) return;
-    const releaseAt = performance.now() + 60;
+
     const items = batchQueueRef.current.splice(0);
+    const dropAt = performance.now();
     const newBalls = items.map(({ id, slot, message }) => {
-      const ball = createPlinkoPhysicsBall(id, slot, releaseAt);
+      const ball = createPlinkoPhysicsBall(id, slot, null);
+      ball.segmentStartAt = dropAt;
       ball.message = message;
       return ball;
     });
     syncBalls([...ballsRef.current, ...newBalls]);
   }, [syncBalls]);
 
+  const scheduleBatchFlush = useCallback(() => {
+    if (batchTimerRef.current) clearTimeout(batchTimerRef.current);
+    batchTimerRef.current = setTimeout(() => {
+      batchTimerRef.current = null;
+      flushBatch();
+    }, PLINKO_BATCH_GRACE_MS);
+  }, [flushBatch]);
+
   const enqueueBall = useCallback(
     (item: { id: number; slot: number; message: string }) => {
       batchQueueRef.current.push(item);
-      if (batchTimerRef.current) clearTimeout(batchTimerRef.current);
-      batchTimerRef.current = setTimeout(() => {
-        batchTimerRef.current = null;
-        flushBatch();
-      }, PLINKO_BATCH_MS);
+      scheduleBatchFlush();
     },
-    [flushBatch],
+    [scheduleBatchFlush],
   );
 
   const sendBall = useCallback(() => {
-    if (ballsRef.current.filter((b) => b.active).length >= MAX_ACTIVE_BALLS) {
+    const activeCount = ballsRef.current.filter((b) => b.active).length;
+    const queuedCount = batchQueueRef.current.length + inFlightRef.current;
+    if (activeCount + queuedCount >= MAX_ACTIVE_BALLS) {
       toast.error(`Max ${MAX_ACTIVE_BALLS} balls in the air.`);
       return;
     }
@@ -337,6 +354,7 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
     }
 
     const id = ballIdRef.current++;
+    inFlightRef.current += 1;
     setPendingCount((c) => c + 1);
 
     const currentRisk = risk;
@@ -344,10 +362,14 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
 
     void (async () => {
       const result = await playPlinko(currentStake, currentRisk);
+      inFlightRef.current = Math.max(0, inFlightRef.current - 1);
       setPendingCount((c) => Math.max(0, c - 1));
 
       if (result.error) {
         toast.error(result.error);
+        if (batchQueueRef.current.length > 0 || inFlightRef.current > 0) {
+          scheduleBatchFlush();
+        }
         return;
       }
 
@@ -355,7 +377,7 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
       const message = result.ok ?? "Ball dropped!";
       enqueueBall({ id, slot, message });
     })();
-  }, [balance, clampedStake, risk, enqueueBall]);
+  }, [balance, clampedStake, risk, enqueueBall, scheduleBatchFlush]);
 
   const gameBody = (
     <div className="hypnotic-plinko-panel__layout">
