@@ -11,7 +11,6 @@ const nextConfig: NextConfig = {
   compress: true,
   // Optimize images
   images: {
-    domains: ['avatars.githubusercontent.com', 'lh3.googleusercontent.com'],
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
@@ -26,13 +25,14 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'i.ytimg.com',
+      },
     ],
   },
-  // Enable experimental features for better performance
-  experimental: {
-    typedRoutes: true,
-    instrumentationHook: true,
-  },
+  // Move typedRoutes out of experimental
+  typedRoutes: true,
   // Optimize webpack bundles
   webpack: (config, { isServer }) => {
     if (!isServer) {
