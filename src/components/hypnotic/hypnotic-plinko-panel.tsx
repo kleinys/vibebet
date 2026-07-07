@@ -279,16 +279,16 @@ export function HypnoticPlinkoPanel() {
       : "Send Ball";
 
   return (
-    <div className="hypnotic-plinko-panel w-full">
-      <div className="hypnotic-plinko-panel__layout">
-        <div className="hypnotic-plinko-panel__board-wrap">
+    <div className="hypnotic-plinko-panel w-full max-w-4xl mx-auto px-2 sm:px-4">
+      <div className="hypnotic-plinko-panel__layout flex flex-col md:flex-row gap-4 sm:gap-6">
+        <div className="hypnotic-plinko-panel__board-wrap w-full md:w-7/12">
           <div className="mb-2 flex items-center justify-between px-1">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-fuchsia-200/80">
+            <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-fuchsia-200/80">
               Plinko · Ball Falling
             </span>
           </div>
 
-          <div className="hypnotic-plinko-panel__board">
+          <div className="hypnotic-plinko-panel__board relative aspect-[3/4] sm:aspect-square max-w-full h-auto min-h-[300px] md:min-h-[400px] lg:min-h-[500px] rounded-xl overflow-hidden bg-zinc-900/50 border border-zinc-700/50 shadow-xl">
             <div
               className="pointer-events-none absolute inset-0 opacity-40"
               style={{
@@ -324,11 +324,11 @@ export function HypnoticPlinkoPanel() {
               />
             ))}
 
-            <div className="absolute bottom-0 left-0 right-0 flex h-14 gap-0.5 px-1 pb-1">
+            <div className="absolute bottom-0 left-0 right-0 flex h-14 sm:h-16 gap-0.5 px-1 pb-1">
               {PLINKO_SLOTS.map((slot, index) => (
                 <div
                   key={index}
-                  className={`flex flex-1 items-end justify-center rounded-sm border border-black/30 pb-1 text-[9px] font-bold text-white transition-all duration-300 ${
+                  className={`flex flex-1 items-end justify-center rounded-sm border border-black/30 pb-1 text-[8px] sm:text-[9px] font-bold text-white transition-all duration-300 ${
                     lastSlot === index
                       ? `${slot.color} ${slot.glow} scale-105 shadow-lg`
                       : "bg-zinc-800/90"
@@ -340,18 +340,18 @@ export function HypnoticPlinkoPanel() {
             </div>
 
             {lastMessage && !animating && (
-              <div className="absolute left-1/2 top-3 max-w-[90%] -translate-x-1/2 rounded-lg border border-emerald-400/30 bg-black/60 px-3 py-1.5 text-center text-[10px] font-medium text-emerald-200">
+              <div className="absolute left-1/2 top-3 max-w-[90%] -translate-x-1/2 rounded-lg border border-emerald-400/30 bg-black/60 px-3 py-1.5 text-center text-[10px] sm:text-sm font-medium text-emerald-200">
                 {lastMessage}
               </div>
             )}
           </div>
         </div>
 
-        <div className="hypnotic-plinko-panel__controls">
-          <p className="text-center text-sm font-bold text-sky-200">Plinko Ball Falling</p>
+        <div className="hypnotic-plinko-panel__controls w-full md:w-5/12">
+          <p className="text-center text-sm sm:text-base font-bold text-sky-200">Plinko Ball Falling</p>
 
           <div className="mt-4">
-            <label className="text-[11px] font-semibold text-zinc-300">Ball Price</label>
+            <label className="text-[11px] sm:text-sm font-semibold text-zinc-300">Ball Price</label>
             <div className="mt-1.5 flex items-center gap-2">
               <div className="flex flex-1 items-center gap-2 rounded-lg border border-white/10 bg-zinc-950/80 px-3 py-2">
                 <CurrencyIconVibe className="h-4 w-4 shrink-0" />
@@ -367,14 +367,14 @@ export function HypnoticPlinkoPanel() {
               <button
                 type="button"
                 onClick={() => adjustStake(0.5)}
-                className="rounded-lg border border-rose-500/40 bg-rose-600/80 px-2.5 py-2 text-xs font-bold text-white hover:bg-rose-500"
+                className="btn-responsive rounded-lg border border-rose-500/40 bg-rose-600/80 px-2.5 text-xs font-bold text-white hover:bg-rose-500 min-w-[40px]"
               >
                 ½
               </button>
               <button
                 type="button"
                 onClick={() => adjustStake(2)}
-                className="rounded-lg border border-emerald-500/40 bg-emerald-600/80 px-2.5 py-2 text-xs font-bold text-white hover:bg-emerald-500"
+                className="btn-responsive rounded-lg border border-emerald-500/40 bg-emerald-600/80 px-2.5 text-xs font-bold text-white hover:bg-emerald-500 min-w-[40px]"
               >
                 2×
               </button>
@@ -382,7 +382,7 @@ export function HypnoticPlinkoPanel() {
           </div>
 
           <div className="mt-4">
-            <label className="text-[11px] font-semibold text-zinc-300">Risk</label>
+            <label className="text-[11px] sm:text-sm font-semibold text-zinc-300">Risk</label>
             <div className="mt-1.5 grid grid-cols-3 overflow-hidden rounded-lg border border-white/10">
               {(["low", "medium", "high"] as const).map((r) => (
                 <button
@@ -409,7 +409,7 @@ export function HypnoticPlinkoPanel() {
             type="button"
             disabled={pending || animating}
             onClick={sendBall}
-            className="mt-5 w-full rounded-xl border border-emerald-400/50 bg-gradient-to-b from-lime-400 to-emerald-600 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_4px_0_rgba(21,128,61,0.8)] transition hover:brightness-110 disabled:opacity-50"
+            className="mt-5 w-full btn-responsive rounded-xl border border-emerald-400/50 bg-gradient-to-b from-lime-400 to-emerald-600 text-sm font-bold uppercase tracking-wide text-white shadow-[0_4px_0_rgba(21,128,61,0.8)] transition hover:brightness-110 disabled:opacity-50"
           >
             {buttonLabel}
           </button>

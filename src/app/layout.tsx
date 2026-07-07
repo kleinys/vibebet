@@ -45,6 +45,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: "#09090b",
+  maximumScale: 1,           // Disables zoom on mobile
+  userScalable: false,      // Disables user scaling
 };
 
 export default async function RootLayout({
@@ -68,7 +70,9 @@ export default async function RootLayout({
                 : "flex-1"
             }
           >
-            {children}
+            <div className="container-responsive">
+              {children}
+            </div>
           </main>
           <footer
             className={

@@ -134,7 +134,7 @@ export async function Header({
               <form action="/auth/signout" method="post" className="hidden sm:block">
                 <button
                   type="submit"
-                  className="rounded-sm border border-white/10 px-3 py-2 text-sm text-zinc-300 hover:border-white/20 hover:text-white"
+                  className="btn-responsive rounded-sm border border-white/10 text-sm text-zinc-300 hover:border-white/20 hover:text-white"
                 >
                   Sign out
                 </button>
@@ -147,7 +147,7 @@ export async function Header({
               </Link>
               <Link
                 href="/signup"
-                className="rounded-sm bg-fuchsia-500 px-3 py-2 text-sm font-medium text-white hover:bg-fuchsia-400"
+                className="btn-responsive rounded-sm bg-fuchsia-500 px-3 text-sm font-medium text-white hover:bg-fuchsia-400"
               >
                 Sign up
               </Link>

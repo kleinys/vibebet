@@ -3215,3 +3215,207 @@ body {
     transform: none !important;
   }
 }
+
+/* Responsive container for all major content areas */
+.container-responsive {
+  @apply mx-auto px-4 sm:px-6 lg:px-8;
+  max-width: 100%;
+}
+
+/* Enhanced button/touch target sizing for all devices */
+.btn-responsive {
+  @apply px-4 py-2.5 min-h-[44px];
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Responsive text sizing */
+.text-responsive-sm {
+  @apply text-xs sm:text-sm md:text-base;
+}
+
+.text-responsive-base {
+  @apply text-sm sm:text-base md:text-lg;
+}
+
+.text-responsive-lg {
+  @apply text-base sm:text-lg md:text-xl;
+}
+
+.text-responsive-xl {
+  @apply text-lg sm:text-xl md:text-2xl;
+}
+
+/* Responsive card/grid layouts */
+.grid-responsive {
+  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4;
+  gap: 1rem;
+}
+
+.card-responsive {
+  @apply rounded-lg p-4 sm:p-6;
+  min-height: 120px;
+}
+
+/* Responsive form elements */
+.form-input-responsive {
+  @apply w-full px-3 py-2 rounded-md text-base;
+  min-height: 44px;
+}
+
+/* Responsive navigation */
+.nav-responsive {
+  @apply flex flex-col sm:flex-row items-center justify-between gap-4 p-4;
+}
+
+/* Responsive footer */
+.footer-responsive {
+  @apply py-6 px-4 text-center text-sm;
+}
+
+/* TV-friendly elements */
+.tv-friendly {
+  @apply p-4 m-2;
+}
+
+.tv-friendly-text {
+  @apply text-lg md:text-xl;
+}
+
+/* Responsive image containers */
+.img-container-responsive {
+  @apply w-full h-auto;
+  aspect-ratio: auto;
+}
+
+/* Responsive modal/popup */
+.modal-responsive {
+  @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.modal-content-responsive {
+  @apply bg-zinc-900 rounded-xl p-6 max-w-full w-full max-h-[90vh] overflow-y-auto;
+}
+
+/* Responsive table */
+.table-responsive {
+  @apply w-full overflow-x-auto;
+}
+
+/* Enhanced responsive utilities */
+@media (max-width: 640px) {
+  .container {
+    @apply px-4;
+  }
+}
+
+/* TV and large screen optimizations */
+@media (min-width: 1200px) {
+  body {
+    font-size: 1.125rem; /* Slightly larger text for TV viewing */
+  }
+  
+  .text-sm { font-size: 0.875rem; }
+  .text-base { font-size: 1rem; }
+  .text-lg { font-size: 1.25rem; }
+  .text-xl { font-size: 1.5rem; }
+  .text-2xl { font-size: 2rem; }
+}
+
+/* Focus styles for TV and keyboard navigation */
+@media (any-pointer: coarse) {
+  *:focus {
+    outline: 2px solid #8b5cf6; /* Fuchsia focus indicator */
+    outline-offset: 2px;
+  }
+}
+
+/* Responsive container for all major content areas */
+.container-responsive {
+  @apply mx-auto px-4 sm:px-6 lg:px-8;
+  max-width: 100%;
+}
+
+/* Enhanced button/touch target sizing for all devices */
+.btn-responsive {
+  @apply px-4 py-2.5 min-h-[44px];
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Responsive text sizing */
+.text-responsive-sm {
+  @apply text-xs sm:text-sm md:text-base;
+}
+
+.text-responsive-base {
+  @apply text-sm sm:text-base md:text-lg;
+}
+
+.text-responsive-lg {
+  @apply text-base sm:text-lg md:text-xl;
+}
+
+.text-responsive-xl {
+  @apply text-lg sm:text-xl md:text-2xl;
+}
+
+/* Responsive card/grid layouts */
+.grid-responsive {
+  @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4;
+  gap: 1rem;
+}
+
+.card-responsive {
+  @apply rounded-lg p-4 sm:p-6;
+  min-height: 120px;
+}
+
+/* Responsive form elements */
+.form-input-responsive {
+  @apply w-full px-3 py-2 rounded-md text-base;
+  min-height: 44px;
+}
+
+/* Responsive navigation */
+.nav-responsive {
+  @apply flex flex-col sm:flex-row items-center justify-between gap-4 p-4;
+}
+
+/* Responsive footer */
+.footer-responsive {
+  @apply py-6 px-4 text-center text-sm;
+}
+
+/* TV-friendly elements */
+.tv-friendly {
+  @apply p-4 m-2;
+}
+
+.tv-friendly-text {
+  @apply text-lg md:text-xl;
+}
+
+/* Responsive image containers */
+.img-container-responsive {
+  @apply w-full h-auto;
+  aspect-ratio: auto;
+}
+
+/* Responsive modal/popup */
+.modal-responsive {
+  @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.modal-content-responsive {
+  @apply bg-zinc-900 rounded-xl p-6 max-w-full w-full max-h-[90vh] overflow-y-auto;
+}
+
+/* Responsive table */
+.table-responsive {
+  @apply w-full overflow-x-auto;
+}
