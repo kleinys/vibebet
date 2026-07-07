@@ -4,6 +4,7 @@ import Link from "next/link";
 import { StreamEmbed } from "@/components/stream-embed";
 import { WatchBetSidebar } from "@/components/watch-bet-sidebar";
 import { streamProviderLabel, type StreamProvider } from "@/lib/stream-url";
+import type { StreamWatchComment } from "@/lib/stream-watch-comments";
 import type { WatchBetMarket } from "@/lib/watch-bet-markets";
 
 export function DiscoveredStreamWatchView({
@@ -13,7 +14,7 @@ export function DiscoveredStreamWatchView({
   provider,
   streamExternalId,
   streamBets,
-  otherMarkets,
+  streamComments,
   vibeBalance,
   quickExitEnabled,
   signedIn,
@@ -26,7 +27,7 @@ export function DiscoveredStreamWatchView({
   provider: string;
   streamExternalId: string;
   streamBets: WatchBetMarket[];
-  otherMarkets: WatchBetMarket[];
+  streamComments: StreamWatchComment[];
   vibeBalance: number;
   quickExitEnabled: boolean;
   signedIn: boolean;
@@ -60,11 +61,11 @@ export function DiscoveredStreamWatchView({
         </Link>
       </div>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(280px,340px)_1fr]">
-        <aside className="order-2 lg:order-1 lg:sticky lg:top-20 lg:self-start">
+      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(340px,400px)_1fr]">
+        <aside className="order-2 lg:order-1 lg:sticky lg:top-20 lg:max-h-[calc(100vh-5rem)] lg:self-start">
           <WatchBetSidebar
             streamBets={streamBets}
-            otherMarkets={otherMarkets}
+            streamComments={streamComments}
             streamContext={{
               provider,
               externalId: streamExternalId,
@@ -85,8 +86,8 @@ export function DiscoveredStreamWatchView({
             className="shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
           />
           <p className="mt-4 text-xs text-zinc-500">
-            Stream plays here — no jump to YouTube, Twitch, or Kick. Create stream bets on the
-            left or trade on polls others posted for this stream.
+            Stream plays here — no jump to YouTube, Twitch, or Kick. Create stream bets and
+            chat on the left while you watch.
           </p>
         </div>
       </div>

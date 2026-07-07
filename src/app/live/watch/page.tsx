@@ -4,7 +4,7 @@ import { isEnabled } from "@/lib/feature-flags";
 import { getBalance } from "@/lib/ledger";
 import { createClient } from "@/lib/supabase/server";
 import { getStreamWatchBets } from "@/lib/stream-watch-bets";
-import { getWatchBetMarkets } from "@/lib/watch-bet-markets";
+import { getStreamWatchComments } from "@/lib/stream-watch-comments";
 
 export const revalidate = 0;
 
@@ -25,7 +25,6 @@ export default async function WatchDiscoveredStreamPage({
   const id = params.id?.trim();
   const title = params.title?.trim() ?? "Live stream";
   const channel = params.channel?.trim() ?? "";
-  const game = params.game?.trim() ?? "";
   const defaultMarketId = params.market?.trim() ?? null;
 
   if (!id) {
@@ -50,31 +49,19 @@ export default async function WatchDiscoveredStreamPage({
     watchUrl = id.startsWith("http") ? id : `https://${id}`;
   }
 
-  const loginNext = `/live/watch?provider=${encodeURIComponent(provider)}&id=${encodeURIComponent(id)}&title=${encodeURIComponent(title)}&channel=${encodeURIComponent(channel)}${game ? `&game=${encodeURIComponent(game)}` : ""}`;
+  const loginNext = `/live/watch?provider=${encodeURIComponent(provider)}&id=${encodeURIComponent(id)}&title=${encodeURIComponent(title)}&channel=${encodeURIComponent(channel)}`;
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [streamBets, otherMarkets, vibeBalance, quickExitEnabled] = await Promise.all([
-    getStreamWatchBets(
-      { provider, externalId: id, title },
-      user?.id ?? null,
-    ),
-    getWatchBetMarkets({
-      userId: user?.id ?? null,
-      title,
-      channel,
-      game: game || undefined,
-      limit: 6,
-    }),
+  const [streamBets, streamComments, vibeBalance, quickExitEnabled] = await Promise.all([
+    getStreamWatchBets({ provider, externalId: id, title }, user?.id ?? null),
+    getStreamWatchComments(provider, id),
     user ? getBalance(user.id, "vibe") : Promise.resolve(0),
     isEnabled("quick_exit_enabled"),
   ]);
-
-  const streamBetIds = new Set(streamBets.map((b) => b.id));
-  const filteredOther = otherMarkets.filter((m) => !streamBetIds.has(m.id));
 
   return (
     <DiscoveredStreamWatchView
@@ -84,7 +71,7 @@ export default async function WatchDiscoveredStreamPage({
       provider={provider}
       streamExternalId={id}
       streamBets={streamBets}
-      otherMarkets={filteredOther}
+      streamComments={streamComments}
       vibeBalance={user ? vibeBalance : 0}
       quickExitEnabled={quickExitEnabled}
       signedIn={!!user}

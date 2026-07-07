@@ -677,6 +677,26 @@ export interface Database {
         Update: never;
         Relationships: [];
       };
+      stream_watch_comments: {
+        Row: {
+          id: string;
+          stream_provider: string;
+          stream_external_id: string;
+          user_id: string;
+          body: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          stream_provider: string;
+          stream_external_id: string;
+          user_id: string;
+          body: string;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
       notifications: {
         Row: {
           id: string;
@@ -1512,6 +1532,19 @@ export interface Database {
           reserve_yes: number;
           reserve_no: number;
           yes_price: number;
+        }[];
+      };
+      get_stream_watch_comments: {
+        Args: {
+          p_provider: string;
+          p_external_id: string;
+          p_limit?: number;
+        };
+        Returns: {
+          id: string;
+          body: string;
+          author_name: string;
+          created_at: string;
         }[];
       };
       link_live_event_game: {

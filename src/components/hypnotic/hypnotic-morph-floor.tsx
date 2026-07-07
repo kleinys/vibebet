@@ -111,13 +111,8 @@ export function HypnoticMorphFloor({
 
   const freeSpinAvailable = spinsUsed === 0;
   const cinemaActive = cinema === "wheel-spin" || cinema === "case-open";
-  const cinemaVisible = cinemaActive || cinemaPortal != null;
-  const cinemaMode =
-    cinema === "wheel-spin" || cinemaPortal === "wheel"
-      ? "wheel"
-      : cinema === "case-open" || cinemaPortal === "case"
-        ? "case"
-        : null;
+  const cinemaVisible = cinemaPortal != null;
+  const cinemaMode = cinemaPortal;
 
   const caseTier = crateResult
     ? resultLabelToTier(crateResult.label)
@@ -176,7 +171,6 @@ export function HypnoticMorphFloor({
     setCrateResult(null);
     setCinema("case-open");
     setReaction("watch-wheel");
-    setCinemaPortal("case");
     setPendingCrate(job.result);
     setCaseRouletteTier(job.tier);
     crateSyncRef.current = job.syncRow;
@@ -193,7 +187,6 @@ export function HypnoticMorphFloor({
     setWheelResult(null);
     setCinema("wheel-spin");
     setReaction("watch-wheel");
-    setCinemaPortal("wheel");
 
     const spins = 5 + Math.floor(Math.random() * 2);
     const targetRotation = wheelRotationToSegment(
