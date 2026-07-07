@@ -114,9 +114,10 @@ export function HypnoticPlinkoGame() {
     pegPositions.current = newPegPositions;
   }, []);
 
-  const GRAVITY = 0.35;
-  const DAMPING = 0.65;
-  const WALL_DAMPING = 0.55;
+  const GRAVITY = 0.25; // Reduced gravity for more realistic falling
+  const DAMPING = 0.75; // Increased damping for more realistic energy loss
+  const WALL_DAMPING = 0.7; // Wall damping factor
+  const PEG_RESTITUTION = 0.6; // Coefficient of restitution for peg collisions
   const DROP_COOLDOWN_MAX = 12;
   const [dropCooldown, setDropCooldown] = useState<number>(0);
 
@@ -125,8 +126,8 @@ export function HypnoticPlinkoGame() {
       id: ballIdCounter,
       x,
       y,
-      vx: (Math.random() - 0.5) * 1.2, // Small initial horizontal velocity
-      vy: 1.5 + Math.random() * 1.5, // Initial downward velocity
+      vx: (Math.random() - 0.5) * 0.8, // Reduced initial horizontal velocity for more controlled drops
+      vy: 0.5 + Math.random() * 0.5, // Reduced initial vertical velocity
       radius: BALL_RADIUS,
       active: true,
       age: 0,
@@ -141,20 +142,40 @@ export function HypnoticPlinkoGame() {
     const minDist = ball.radius + pegRadius;
 
     if (dist < minDist && dist > 0.001) {
+      // Normalize collision vector
       const nx = dx / dist;
       const ny = dy / dist;
+      
+      // Separate ball and peg to prevent sticking
       const overlap = minDist - dist;
       ball.x += nx * overlap;
       ball.y += ny * overlap;
 
-      const dot = ball.vx * nx + ball.vy * ny;
-      ball.vx -= 2 * dot * nx;
-      ball.vy -= 2 * dot * ny;
+      // Calculate relative velocity in collision direction
+      const relVelX = ball.vx;
+      const relVelY = ball.vy;
+      const velAlongNormal = relVelX * nx + relVelY * ny;
 
+      // Don't resolve if velocities are separating (already collided)
+      if (velAlongNormal > 0) return false;
+
+      // Calculate impulse scalar
+      const j = -(1 + PEG_RESTITUTION) * velAlongNormal;
+      const impulseX = j * nx;
+      const impulseY = j * ny;
+
+      // Apply impulse to ball (we assume peg is immovable)
+      ball.vx += impulseX;
+      ball.vy += impulseY;
+
+      // Apply additional damping to simulate friction and energy loss
       ball.vx *= DAMPING;
       ball.vy *= DAMPING;
-      ball.vx += (Math.random() - 0.5) * 0.6;
-      ball.vy += (Math.random() - 0.5) * 0.3;
+      
+      // Add slight randomness to make it less predictable
+      ball.vx += (Math.random() - 0.5) * 0.3;
+      ball.vy += (Math.random() - 0.5) * 0.1;
+      
       return true;
     }
     return false;
@@ -164,13 +185,17 @@ export function HypnoticPlinkoGame() {
     if (!ball.active) return ball;
 
     ball.age++;
+    
+    // Apply gravity
     ball.vy += GRAVITY;
+    
+    // Update position
     ball.x += ball.vx;
     ball.y += ball.vy;
 
     // Limit max speed to prevent balls from going too fast
     const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
-    const maxSpeed = 16;
+    const maxSpeed = 15; // Reduced max speed
     if (speed > maxSpeed) {
       const scale = maxSpeed / speed;
       ball.vx *= scale;
@@ -183,14 +208,14 @@ export function HypnoticPlinkoGame() {
     ball.trail.forEach(t => t.life--);
     ball.trail = ball.trail.filter(t => t.life > 0);
 
-    // Wall collisions
+    // Wall collisions with proper reflection
     if (ball.x - ball.radius < LEFT_WALL) {
       ball.x = LEFT_WALL + ball.radius;
-      ball.vx = Math.abs(ball.vx) * WALL_DAMPING;
+      ball.vx = Math.abs(ball.vx) * WALL_DAMPING; // Reflect and dampen
     }
     if (ball.x + ball.radius > RIGHT_WALL) {
       ball.x = RIGHT_WALL - ball.radius;
-      ball.vx = -Math.abs(ball.vx) * WALL_DAMPING;
+      ball.vx = -Math.abs(ball.vx) * WALL_DAMPING; // Reflect and dampen
     }
 
     // Peg collisions
@@ -276,7 +301,8 @@ export function HypnoticPlinkoGame() {
     setHighlightedSlot(null);
     setWinMessage(null);
     
-    const newBall = createBall(CENTER_DROP_X, PEG_AREA_TOP - 30);
+    // Create ball with precise center position
+    const newBall = createBall(CENTER_DROP_X, PEG_AREA_TOP - 20); // Slightly higher starting point
     
     setBalls(prev => [...prev, newBall]);
     setBallIdCounter(prev => prev + 1);
@@ -286,14 +312,133 @@ export function HypnoticPlinkoGame() {
   // Physics simulation loop
   useEffect(() => {
     const animate = (timestamp: number) => {
-      const deltaTime = timestamp - lastTimeRef.current;
+      if (!lastTimeRef.current) {
+        lastTimeRef.current = timestamp;
+      }
+      
+      // Calculate delta time in seconds (with clamping to prevent large jumps)
+      let deltaTime = (timestamp - lastTimeRef.current) / 1000;
       lastTimeRef.current = timestamp;
+      
+      // Clamp deltaTime to prevent large physics jumps when tab is unfocused
+      deltaTime = Math.min(deltaTime, 0.05); // Maximum 50ms delta
       
       setBalls(prevBalls => {
         let updatedBalls = [...prevBalls];
         
-        // Update all active balls
-        updatedBalls = updatedBalls.map(updateBall);
+        // Update all active balls with time-based physics
+        updatedBalls = updatedBalls.map(ball => {
+          if (!ball.active) return ball;
+          
+          ball.age++;
+          
+          // Apply gravity with time scaling
+          ball.vy += GRAVITY * (deltaTime * 60); // Scale to approximate 60fps behavior
+          
+          // Update position with time scaling
+          ball.x += ball.vx * (deltaTime * 60);
+          ball.y += ball.vy * (deltaTime * 60);
+
+          // Limit max speed to prevent balls from going too fast
+          const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+          const maxSpeed = 15;
+          if (speed > maxSpeed) {
+            const scale = maxSpeed / speed;
+            ball.vx *= scale;
+            ball.vy *= scale;
+          }
+
+          // Update trail
+          ball.trail.push({ x: ball.x, y: ball.y, life: 6 });
+          if (ball.trail.length > 8) ball.trail.shift();
+          ball.trail.forEach(t => t.life--);
+          ball.trail = ball.trail.filter(t => t.life > 0);
+
+          // Wall collisions with proper reflection
+          if (ball.x - ball.radius < LEFT_WALL) {
+            ball.x = LEFT_WALL + ball.radius;
+            ball.vx = Math.abs(ball.vx) * WALL_DAMPING; // Reflect and dampen
+          }
+          if (ball.x + ball.radius > RIGHT_WALL) {
+            ball.x = RIGHT_WALL - ball.radius;
+            ball.vx = -Math.abs(ball.vx) * WALL_DAMPING; // Reflect and dampen
+          }
+
+          // Peg collisions
+          for (const peg of pegPositions.current) {
+            if (resolveCircleCollision(ball, peg.x, peg.y, PEG_RADIUS)) {
+              // Add visual feedback for peg collision
+              const existing = pegFlashTimersRef.current.find(f => f.pegGlobalIndex === peg.globalIndex);
+              if (existing) {
+                existing.timer = 8;
+              } else {
+                pegFlashTimersRef.current.push({ pegGlobalIndex: peg.globalIndex, timer: 8, peg });
+              }
+            }
+          }
+
+          // Slot dividers collision
+          if (ball.y > SLOT_DIVIDER_TOP - ball.radius && ball.y < SLOT_DIVIDER_BOTTOM + ball.radius) {
+            for (let i = 1; i < NUM_SLOTS; i++) {
+              const dividerX = slotBoundaries[i];
+              const dx = Math.abs(ball.x - dividerX);
+              if (dx < ball.radius && ball.y > SLOT_DIVIDER_TOP - ball.radius && ball.y < SLOT_DIVIDER_BOTTOM + ball.radius) {
+                if (ball.x < dividerX) {
+                  ball.x = dividerX - ball.radius;
+                  ball.vx = -Math.abs(ball.vx) * WALL_DAMPING;
+                } else {
+                  ball.x = dividerX + ball.radius;
+                  ball.vx = Math.abs(ball.vx) * WALL_DAMPING;
+                }
+              }
+            }
+          }
+
+          // Check if ball has landed in a slot
+          if (ball.y >= SLOT_BOTTOM_Y) {
+            // Determine which slot the ball landed in
+            let slotIndex = 0;
+            for (let i = 1; i < NUM_SLOTS; i++) {
+              if (ball.x < slotBoundaries[i]) { 
+                slotIndex = i - 1; 
+                break; 
+              }
+              if (i === NUM_SLOTS - 1 && ball.x >= slotBoundaries[i]) slotIndex = i;
+            }
+            if (ball.x <= slotBoundaries[0]) slotIndex = 0;
+            if (ball.x >= slotBoundaries[NUM_SLOTS]) slotIndex = NUM_SLOTS - 1;
+
+            // Mark ball as inactive and store the slot it landed in
+            ball.active = false;
+            
+            // Add a stationary ball that slowly fades
+            landedBallsRef.current.push({
+              x: slotCenters[slotIndex],
+              y: SLOT_BOTTOM_Y + 12,
+              timer: 140,
+              opacity: 1,
+            });
+
+            // Highlight the winning slot and show message
+            setHighlightedSlot(slotIndex);
+            setWinMessage(`${PLINKO_SLOTS[slotIndex].multiplier}× WINNER!`);
+
+            // Clear win message after delay
+            setTimeout(() => {
+              setWinMessage(null);
+            }, 2000);
+          }
+
+          // Failsafe: remove very old balls
+          if (ball.age > 1100) {
+            ball.vy += 1.5;
+            if (ball.age > 1400) {
+              ball.active = false;
+            }
+          }
+
+          return ball;
+        });
         
         // Update landed balls
         landedBallsRef.current = landedBallsRef.current.map(lb => ({
@@ -329,12 +474,6 @@ export function HypnoticPlinkoGame() {
         // All balls have finished, stop animation
         setIsAnimating(false);
       }
-      
-      return () => {
-        if (animationRef.current) {
-          cancelAnimationFrame(animationRef.current);
-        }
-      };
     };
     
     if (balls.some((ball: PlinkoBall) => ball.active)) {
