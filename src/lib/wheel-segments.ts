@@ -81,6 +81,10 @@ export function wheelLabelFontSize(label: string, size: "panel" | "cinema"): num
   return size === "cinema" ? 17 : 15;
 }
 
+export function isPremiumWheelSegment(label: string): boolean {
+  return label.includes("2500") || label.includes("JACKPOT") || label.includes("1000") || label.startsWith("500");
+}
+
 export function isJackpotSegment(label: string): boolean {
   return label.includes("2500") || label.includes("JACKPOT");
 }

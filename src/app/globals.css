@@ -2022,7 +2022,7 @@ body {
 
 @media (min-width: 1280px) {
   .hypnotic-morph-floor__grid {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
@@ -2082,6 +2082,35 @@ body {
 
 .hypnotic-morph-panel--plinko.hypnotic-morph-panel--focused {
   box-shadow: 0 0 0 1px rgba(192, 132, 252, 0.35);
+}
+
+.hypnotic-plinko-panel__layout {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .hypnotic-plinko-panel__layout {
+    grid-template-columns: 1.15fr 0.85fr;
+    align-items: start;
+  }
+}
+
+.hypnotic-plinko-panel__board {
+  position: relative;
+  height: 320px;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, #0f172a 0%, #020617 55%, #0c4a6e 100%);
+}
+
+.hypnotic-plinko-panel__controls {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.95), rgba(2, 6, 23, 0.98));
+  padding: 1rem;
 }
 
 .hypnotic-morph-panel__title {
@@ -2537,6 +2566,16 @@ body {
 .locker-casino-wheel-wrap--cinema .locker-casino-wheel-svg__label {
   stroke-width: 3.5px;
   letter-spacing: 0.05em;
+}
+
+.locker-casino-wheel-svg__label--premium {
+  stroke: rgba(0, 0, 0, 0.92);
+  stroke-width: 4.25px;
+  letter-spacing: 0.02em;
+}
+
+.locker-casino-wheel-wrap--cinema .locker-casino-wheel-svg__label--premium {
+  stroke-width: 4.75px;
 }
 
 .locker-casino-wheel-svg__label--jackpot {

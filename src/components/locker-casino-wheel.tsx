@@ -5,6 +5,7 @@ import {
   wheelRotationToSegment,
   wheelLabelFontSize,
   isJackpotSegment,
+  isPremiumWheelSegment,
   wheelSegmentLayout,
 } from "@/lib/wheel-segments";
 
@@ -94,7 +95,11 @@ export function LockerCasinoWheel({
               y2="100%"
             >
               <stop offset="0%" stopColor={seg.color} stopOpacity={1} />
-              <stop offset="100%" stopColor={seg.color} stopOpacity={0.72} />
+              <stop
+                offset="100%"
+                stopColor={seg.color}
+                stopOpacity={isPremiumWheelSegment(seg.label) ? 0.92 : 0.72}
+              />
             </linearGradient>
           ))}
         </defs>
@@ -140,6 +145,7 @@ export function LockerCasinoWheel({
             const mid = seg.mid;
             const labelPos = polar(R_OUTER * (seg.sweep < 14 ? 0.68 : 0.72), mid);
             const jackpot = isJackpotSegment(seg.label);
+            const premium = isPremiumWheelSegment(seg.label);
             const fontSize = wheelLabelFontSize(seg.label, size);
             return (
               <g key={seg.label}>
@@ -167,7 +173,7 @@ export function LockerCasinoWheel({
                   textAnchor="middle"
                   dominantBaseline="middle"
                   transform={`rotate(${mid}, ${labelPos.x}, ${labelPos.y})`}
-                  className={`locker-casino-wheel-svg__label ${jackpot ? "locker-casino-wheel-svg__label--jackpot" : ""}`}
+                  className={`locker-casino-wheel-svg__label ${premium ? "locker-casino-wheel-svg__label--premium" : ""} ${jackpot ? "locker-casino-wheel-svg__label--jackpot" : ""}`}
                   filter={`url(#${uid}-glow)`}
                 >
                   {labelForSegment(seg.label)}
