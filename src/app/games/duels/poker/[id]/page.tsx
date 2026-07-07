@@ -18,7 +18,11 @@ export default async function PokerGamePage({ params }: { params: Promise<{ id: 
   } = await supabase.auth.getUser();
   if (!user) redirect(`/login?next=/games/duels/poker/${id}`);
 
-  const { data } = await supabase.rpc("get_poker_game", { p_game_id: id });
+  const { data, error } = await supabase.rpc("get_poker_game", { p_game_id: id });
+  if (error) {
+    console.error("get_poker_game failed:", error.message);
+    notFound();
+  }
   const game = Array.isArray(data) ? data[0] : null;
   if (!game) notFound();
 
