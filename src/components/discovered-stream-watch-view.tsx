@@ -11,7 +11,9 @@ export function DiscoveredStreamWatchView({
   title,
   channel,
   provider,
-  betMarkets,
+  streamExternalId,
+  streamBets,
+  otherMarkets,
   vibeBalance,
   quickExitEnabled,
   signedIn,
@@ -22,7 +24,9 @@ export function DiscoveredStreamWatchView({
   title: string;
   channel: string;
   provider: string;
-  betMarkets: WatchBetMarket[];
+  streamExternalId: string;
+  streamBets: WatchBetMarket[];
+  otherMarkets: WatchBetMarket[];
   vibeBalance: number;
   quickExitEnabled: boolean;
   signedIn: boolean;
@@ -59,7 +63,13 @@ export function DiscoveredStreamWatchView({
       <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(280px,340px)_1fr]">
         <aside className="order-2 lg:order-1 lg:sticky lg:top-20 lg:self-start">
           <WatchBetSidebar
-            markets={betMarkets}
+            streamBets={streamBets}
+            otherMarkets={otherMarkets}
+            streamContext={{
+              provider,
+              externalId: streamExternalId,
+              title,
+            }}
             vibeBalance={vibeBalance}
             quickExitEnabled={quickExitEnabled}
             signedIn={signedIn}
@@ -75,8 +85,8 @@ export function DiscoveredStreamWatchView({
             className="shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
           />
           <p className="mt-4 text-xs text-zinc-500">
-            Stream plays here — no jump to YouTube, Twitch, or Kick. Bet on the left while you
-            watch; markets resolve on Vibebet when outcomes are known.
+            Stream plays here — no jump to YouTube, Twitch, or Kick. Create stream bets on the
+            left or trade on polls others posted for this stream.
           </p>
         </div>
       </div>
