@@ -31,6 +31,7 @@ function paintBoard(
   risk: PlinkoRisk,
   balls: PlinkoBall[],
   highlightSlot: number | null,
+  pendingDrops: number,
 ) {
   const w = BOARD_W;
   const h = BOARD_H;
@@ -107,6 +108,17 @@ function paintBoard(
     ctx.shadowBlur = ball.active ? 14 : 8;
     ctx.fill();
     ctx.shadowBlur = 0;
+  }
+
+  if (pendingDrops > 0) {
+    const pulse = 0.85 + Math.sin(performance.now() / 120) * 0.15;
+    ctx.beginPath();
+    ctx.arc(BOARD_W / 2, 24, BALL_R * pulse, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(74,222,128,0.35)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(134,239,172,0.9)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
   }
 }
 
@@ -204,7 +216,28 @@ function Controls({
   );
 }
 
-export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
+function fitCanvas(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
+  const rect = canvas.getBoundingClientRect();
+  if (rect.width === 0 || rect.height === 0) return false;
+  const dpr = window.devicePixelRatio || 1;
+  const nextW = Math.round(rect.width * dpr);
+  const nextH = Math.round(rect.height * dpr);
+  if (canvas.width !== nextW || canvas.height !== nextH) {
+    canvas.width = nextW;
+    canvas.height = nextH;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.scale(rect.width / BOARD_W, rect.height / BOARD_H);
+  }
+  return true;
+}
+
+export function HypnoticPlinkoPanel({
+  balance,
+  onBalanceChange,
+}: {
+  balance?: number;
+  onBalanceChange?: (next: number) => void;
+}) {
   const [stake, setStake] = useState(50);
   const [risk, setRisk] = useState<PlinkoRisk>("medium");
   const [pending, setPending] = useState(0);
@@ -224,28 +257,29 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
   const inFlightRef = useRef(0);
   const riskRef = useRef(risk);
   const highlightRef = useRef(highlightSlot);
+  const pendingRef = useRef(pending);
 
   riskRef.current = risk;
   highlightRef.current = highlightSlot;
+  pendingRef.current = pending;
 
   const clampedStake = useMemo(
     () => Math.max(10, Math.min(5000, Math.floor(Number(stake) || 50))),
     [stake],
   );
 
-  const redraw = useCallback(() => {
+  const paint = useCallback(() => {
     for (const canvas of [canvasRef.current, cinemaCanvasRef.current]) {
       if (!canvas) continue;
       const ctx = canvas.getContext("2d");
-      if (!ctx) continue;
-      const rect = canvas.getBoundingClientRect();
-      if (rect.width === 0) continue;
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = Math.round(rect.width * dpr);
-      canvas.height = Math.round(rect.height * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.scale(rect.width / BOARD_W, rect.height / BOARD_H);
-      paintBoard(ctx, riskRef.current, ballsRef.current, highlightRef.current);
+      if (!ctx || !fitCanvas(canvas, ctx)) continue;
+      paintBoard(
+        ctx,
+        riskRef.current,
+        ballsRef.current,
+        highlightRef.current,
+        pendingRef.current,
+      );
     }
   }, []);
 
@@ -267,12 +301,12 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
   }, [cinemaOpen]);
 
   useEffect(() => {
-    redraw();
-    const ro = new ResizeObserver(() => redraw());
+    paint();
+    const ro = new ResizeObserver(() => paint());
     if (canvasRef.current) ro.observe(canvasRef.current);
     if (cinemaCanvasRef.current) ro.observe(cinemaCanvasRef.current);
     return () => ro.disconnect();
-  }, [cinemaOpen, redraw, risk, highlightSlot]);
+  }, [cinemaOpen, paint, risk, highlightSlot]);
 
   useEffect(() => {
     const loop = () => {
@@ -301,7 +335,7 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
         })
         .filter((b): b is PlinkoBall => b != null);
 
-      redraw();
+      paint();
 
       if (needsSync) bumpBallCount();
       rafRef.current = requestAnimationFrame(loop);
@@ -309,7 +343,7 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
 
     rafRef.current = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [redraw, bumpBallCount]);
+  }, [paint, bumpBallCount]);
 
   const flushQueue = useCallback(() => {
     if (inFlightRef.current > 0) {
@@ -326,8 +360,8 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
     });
     ballsRef.current = [...ballsRef.current, ...added];
     bumpBallCount();
-    redraw();
-  }, [bumpBallCount, redraw]);
+    paint();
+  }, [bumpBallCount, paint]);
 
   const enqueue = useCallback(
     (item: { id: number; slot: number; message: string }) => {
@@ -364,6 +398,9 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
           toast.error(result.error);
           return;
         }
+        if (typeof result.newBalance === "number" && onBalanceChange) {
+          onBalanceChange(result.newBalance);
+        }
         enqueue({
           id,
           slot: result.slot ?? Math.floor(PLINKO_SLOT_COUNT / 2),
@@ -375,7 +412,7 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
         setPending((n) => Math.max(0, n - 1));
         toast.error("Plinko drop failed.");
       });
-  }, [balance, clampedStake, risk, enqueue]);
+  }, [balance, clampedStake, risk, enqueue, onBalanceChange]);
 
   const showResult = lastMessage != null && ballCount > 0;
 

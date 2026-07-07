@@ -86,12 +86,13 @@ export async function playPlinko(stake: number, risk: "low" | "medium" | "high")
   const row = Array.isArray(data) ? data[0] : data;
   if (!row) return { error: "No result." };
   revalidatePath("/games/arcade");
-  revalidatePath("/account/profile/arena");
   return {
     ok: `Slot ${row.slot_index + 1} · ${row.multiplier}× → ${row.payout} VIBE (${row.net >= 0 ? "+" : ""}${row.net}).`,
     won: row.net > 0,
     slot: row.slot_index as number,
     multiplier: Number(row.multiplier),
+    net: Number(row.net),
+    newBalance: Number(row.new_balance),
   };
 }
 
