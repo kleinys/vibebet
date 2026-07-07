@@ -494,7 +494,7 @@ export function HypnoticMorphFloor({
           <p className="hypnotic-morph-panel__title text-[10px] font-semibold uppercase tracking-wider text-fuchsia-300/90">
             Plinko
           </p>
-          <HypnoticPlinkoPanel balance={balance} />
+          <HypnoticPlinkoPanel />
         </section>
       </div>
 
