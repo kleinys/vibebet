@@ -279,7 +279,7 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
             return ball;
           }
 
-          const landed = stepPlinkoPhysicsBall(ball, PLINKO_PEGS);
+          const landed = stepPlinkoPhysicsBall(ball);
           changed = true;
 
           if (landed && ball.message) {
