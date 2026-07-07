@@ -2119,10 +2119,7 @@ body {
   margin-bottom: 0.75rem;
 }
 
-/* Hypnotic Plinko Game Styles */
-.hypnotic-plinko-game {
-  position: relative;
-}
+/* Removed hypnotic-plinko-panel and hypnotic-plinko-game CSS classes */
 
 .hypnotic-plinko-game .peg {
   position: absolute;
@@ -2211,6 +2208,10 @@ body {
 
 .hypnotic-plinko-clear-btn:hover {
   background: #52525b;
+}
+
+.hypnotic-morph-panel--plinko.hypnotic-morph-panel--focused {
+  box-shadow: 0 0 0 1px rgba(192, 132, 252, 0.35);
 }
 
 .hypnotic-morph-viewport {
