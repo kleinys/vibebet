@@ -75,7 +75,25 @@ export async function cancelDiceDuel(duelId: string) {
   return { ok: "Cancelled." };
 }
 
-// Removed playPlinko function
+export async function playPlinko(stake: number, risk: "low" | "medium" | "high") {
+  if (stake < 10 || stake > 5000) return { error: "Stake must be 10–5,000 VIBE." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("play_plinko", {
+    p_stake: stake,
+    p_risk: risk,
+  });
+  if (error) return { error: error.message };
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row) return { error: "No result." };
+  revalidatePath("/games/arcade");
+  revalidatePath("/account/profile/arena");
+  return {
+    ok: `Slot ${row.slot_index + 1} · ${row.multiplier}× → ${row.payout} VIBE (${row.net >= 0 ? "+" : ""}${row.net}).`,
+    won: row.net > 0,
+    slot: row.slot_index as number,
+    multiplier: Number(row.multiplier),
+  };
+}
 
 export async function spinLuckySlots(stake: number) {
   if (stake < 10 || stake > 2000) return { error: "Stake must be 10–2,000 VIBE." };
