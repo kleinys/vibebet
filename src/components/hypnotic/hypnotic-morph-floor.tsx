@@ -23,8 +23,7 @@ import {
   type CaseTier,
 } from "@/components/locker-tier-case";
 import { LockerCaseRoulette } from "@/components/locker-case-roulette";
-import { LuckySlotsPanel } from "@/app/games/arcade/arcade-panels";
-import { HypnoticPlinkoGame } from "@/components/hypnotic/hypnotic-plinko-game";
+import { HypnoticPlinkoPanel } from "@/components/hypnotic/hypnotic-plinko-panel";
 
 const BTN =
   "rounded-sm border px-4 py-2 text-[11px] font-semibold uppercase tracking-wider transition disabled:opacity-50";
@@ -50,12 +49,10 @@ export function HypnoticMorphFloor({
   vibeBalance,
   spinsUsedToday,
   equippedSkinSlug,
-  pendingScratchers = [],
 }: {
   vibeBalance: number;
   spinsUsedToday: number;
   equippedSkinSlug?: string | null;
-  pendingScratchers?: { id: string; prize: number }[];
 }) {
   const router = useRouter();
   const {
@@ -299,18 +296,6 @@ export function HypnoticMorphFloor({
         >
           Plinko
         </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={mode === "slots"}
-          className={`hypnotic-morph-floor__tab ${mode === "slots" ? "hypnotic-morph-floor__tab--active" : ""}`}
-          onClick={() => {
-            setMode("slots");
-            document.getElementById("vibe-slots")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-          }}
-        >
-          Lucky slots
-        </button>
         <div className="ml-auto inline-flex items-center gap-1.5 rounded-sm border border-amber-500/30 bg-amber-950/40 px-2.5 py-1 text-xs text-amber-200">
           <CurrencyIconVibe className="h-4 w-4" />
           <span className="tabular-nums font-medium">{formatVibe(balance)} VIBE</span>
@@ -507,20 +492,9 @@ export function HypnoticMorphFloor({
           id="vibe-plinko"
         >
           <p className="hypnotic-morph-panel__title text-[10px] font-semibold uppercase tracking-wider text-fuchsia-300/90">
-            PLINKO GAME
+            Plinko
           </p>
-          <div className="mt-4">
-            <HypnoticPlinkoGame />
-          </div>
-        </section>
-
-        <section
-          className={`hypnotic-morph-panel hypnotic-morph-panel--slots ${mode === "slots" ? "hypnotic-morph-panel--focused" : ""}`}
-          id="vibe-slots"
-        >
-          <div className="w-full max-w-md [&_section]:mt-0 [&_section]:border-0 [&_section]:bg-transparent [&_section]:p-0">
-            <LuckySlotsPanel pendingTickets={pendingScratchers} />
-          </div>
+          <HypnoticPlinkoPanel balance={balance} />
         </section>
       </div>
 

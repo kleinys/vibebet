@@ -61,15 +61,11 @@ export interface PolymarketMarket {
 
 
 interface RawPolymarketEvent {
-
   id?: string;
-
   slug?: string;
-
   title?: string;
-
+  image?: string;
   tags?: Array<{ slug?: string; label?: string }>;
-
 }
 
 
@@ -320,7 +316,7 @@ function mapRawMarket(m: RawPolymarketMarket): PolymarketMarket | null {
 
     endDate: m.endDate ?? null,
 
-    image: m.image ?? null,
+    image: m.image ?? event?.image ?? null,
 
     category: inferCategory(m.question, eventTitle, tags),
 

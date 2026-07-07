@@ -9,8 +9,6 @@ import { CurrencyIconVibe } from "@/components/fantasy-icons";
 import { resolveFigureConfig } from "@/lib/companion-figure";
 import { getAllBalances } from "@/lib/ledger";
 import { getLockerMomentum, lockerMomentumToSession } from "@/lib/locker-momentum-server";
-import { getPendingScratchers } from "@/app/games/arcade/actions";
-
 export const revalidate = 0;
 
 export default async function LockerArenaPage() {
@@ -21,7 +19,7 @@ export default async function LockerArenaPage() {
   if (!user) redirect("/login?next=/account/profile/arena");
 
   const utcToday = new Date().toISOString().slice(0, 10);
-  const [equipped, companionInput, balances, wheelDaily, lockerMomentum, scratchers] = await Promise.all([
+  const [equipped, companionInput, balances, wheelDaily, lockerMomentum] = await Promise.all([
     getEquippedCosmetics(user.id).catch(() => ({ skin: null, badge: null })),
     getCompanionInput(user.id).catch(() => ({
       currentStreak: 0,
@@ -37,7 +35,6 @@ export default async function LockerArenaPage() {
       .maybeSingle()
       .then((r) => r.data?.spins_used ?? 0),
     getLockerMomentum(user.id),
-    getPendingScratchers(),
   ]);
 
   const figureConfig = resolveFigureConfig(companionInput);
@@ -70,7 +67,6 @@ export default async function LockerArenaPage() {
             equippedSkinSlug={skinSlug}
             initialSession={initialSession}
             initialAffinityLabel={lockerMomentum.affinityLabel ?? null}
-            pendingScratchers={scratchers.tickets ?? []}
           />
         </div>
       </div>
