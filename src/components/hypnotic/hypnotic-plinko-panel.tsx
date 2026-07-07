@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { playPlinko } from "@/app/games/arcade/actions";
 import { CurrencyIconVibe } from "@/components/fantasy-icons";
@@ -18,6 +18,8 @@ const PLINKO_SLOTS = [
   { multiplier: 0.2, color: "bg-rose-600", glow: "shadow-rose-500/50" },
 ] as const;
 
+const MIN_FALL_MS = 1800;
+
 type Risk = "low" | "medium" | "high";
 
 type Ball = {
@@ -28,6 +30,7 @@ type Ball = {
   vy: number;
   active: boolean;
   targetSlot: number;
+  startedAt: number;
 };
 
 function slotCenterX(slot: number) {
@@ -44,8 +47,11 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
   const [animating, setAnimating] = useState(false);
   const [lastSlot, setLastSlot] = useState<number | null>(null);
   const [lastMessage, setLastMessage] = useState<string | null>(null);
+
+  const ballsRef = useRef<Ball[]>([]);
   const rafRef = useRef<number>(0);
   const lastTimeRef = useRef<number | null>(null);
+  const pendingResultRef = useRef<{ slot: number; message: string } | null>(null);
 
   const clampedStake = useMemo(() => {
     const n = Number(stake);
@@ -53,64 +59,88 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
     return Math.max(10, Math.min(5000, Math.floor(n)));
   }, [stake]);
 
-  useEffect(() => {
-    if (!balls.some((b) => b.active)) return;
+  const syncBalls = useCallback((next: Ball[]) => {
+    ballsRef.current = next;
+    setBalls(next);
+  }, []);
 
+  const finishDrop = useCallback(() => {
+    const pendingResult = pendingResultRef.current;
+    if (pendingResult) {
+      setLastSlot(pendingResult.slot);
+      setLastMessage(pendingResult.message);
+      toast.success(pendingResult.message);
+      pendingResultRef.current = null;
+    }
+    setAnimating(false);
+  }, []);
+
+  useEffect(() => {
     const tick = (now: number) => {
+      const current = ballsRef.current;
+      if (!current.some((b) => b.active)) {
+        rafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+
       if (!lastTimeRef.current) lastTimeRef.current = now;
       const dt = Math.min(32, now - lastTimeRef.current);
       lastTimeRef.current = now;
 
-      setBalls((prev) => {
-        let anyActive = false;
-        const next = prev.map((ball) => {
-          if (!ball.active) return ball;
+      let anyActive = false;
+      const next = current.map((ball) => {
+        if (!ball.active) return ball;
 
-          let vx = ball.vx;
-          let vy = ball.vy + 0.06 * (dt / 16);
-          let x = ball.x + vx * (dt / 16);
-          let y = ball.y + vy * (dt / 16);
+        const elapsed = now - ball.startedAt;
+        const steerStrength = elapsed < MIN_FALL_MS * 0.55 ? 0.0008 : 0.0045;
 
-          if (x < 4) {
-            x = 4;
-            vx = Math.abs(vx) * 0.85;
-          } else if (x > 96) {
-            x = 96;
-            vx = -Math.abs(vx) * 0.85;
-          }
+        let vx = ball.vx;
+        let vy = ball.vy + 0.045 * (dt / 16);
+        let x = ball.x + vx * (dt / 16);
+        let y = ball.y + vy * (dt / 16);
 
-          const targetX = slotCenterX(ball.targetSlot);
-          vx += (targetX - x) * 0.0025;
-
-          for (let row = 1; row <= 8; row++) {
-            const pegY = row * 8 + 12;
-            if (Math.abs(y - pegY) < 2.2) {
-              vx += (Math.random() - 0.5) * 0.35;
-              vy *= 0.88;
-            }
-          }
-
-          if (y >= 78) {
-            return {
-              ...ball,
-              x: targetX,
-              y: 82,
-              vx: 0,
-              vy: 0,
-              active: false,
-            };
-          }
-
-          anyActive = true;
-          return { ...ball, x, y, vx, vy };
-        });
-
-        if (!anyActive && prev.some((b) => b.active)) {
-          setAnimating(false);
+        if (x < 4) {
+          x = 4;
+          vx = Math.abs(vx) * 0.82;
+        } else if (x > 96) {
+          x = 96;
+          vx = -Math.abs(vx) * 0.82;
         }
 
-        return next;
+        const targetX = slotCenterX(ball.targetSlot);
+        vx += (targetX - x) * steerStrength;
+
+        for (let row = 1; row <= 8; row++) {
+          const pegY = row * 8 + 12;
+          if (Math.abs(y - pegY) < 2.4) {
+            vx += (Math.random() - 0.5) * 0.42;
+            vy *= 0.9;
+            y = pegY + 0.5;
+          }
+        }
+
+        const canLand = elapsed >= MIN_FALL_MS && y >= 74;
+        if (canLand) {
+          return {
+            ...ball,
+            x: targetX,
+            y: 82,
+            vx: 0,
+            vy: 0,
+            active: false,
+          };
+        }
+
+        anyActive = true;
+        return { ...ball, x, y, vx, vy };
       });
+
+      ballsRef.current = next;
+      setBalls(next);
+
+      if (!anyActive && current.some((b) => b.active)) {
+        finishDrop();
+      }
 
       rafRef.current = requestAnimationFrame(tick);
     };
@@ -120,7 +150,7 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       lastTimeRef.current = null;
     };
-  }, [balls]);
+  }, [finishDrop]);
 
   function adjustStake(mult: number) {
     setStake((s) => {
@@ -136,40 +166,59 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
       return;
     }
 
+    setLastMessage(null);
+    setLastSlot(null);
+    pendingResultRef.current = null;
+    setAnimating(true);
+    lastTimeRef.current = null;
+
+    const id = ballId;
+    const startedAt = performance.now();
+    syncBalls([
+      ...ballsRef.current.filter((b) => b.active),
+      {
+        id,
+        x: 50,
+        y: 4,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: 0.2,
+        active: true,
+        targetSlot: 4,
+        startedAt,
+      },
+    ]);
+    setBallId((n) => n + 1);
+
     startTransition(async () => {
       const result = await playPlinko(clampedStake, risk);
       if (result.error) {
+        syncBalls(ballsRef.current.filter((b) => b.id !== id));
+        setAnimating(false);
         toast.error(result.error);
         return;
       }
 
       const slot = result.slot ?? 4;
-      setLastSlot(slot);
-      setLastMessage(result.ok ?? null);
-      toast.success(result.ok ?? "Ball dropped!");
-      setAnimating(true);
-      lastTimeRef.current = null;
+      const message = result.ok ?? "Ball dropped!";
+      pendingResultRef.current = { slot, message };
 
-      setBalls((prev) => [
-        ...prev.filter((b) => b.active),
-        {
-          id: ballId,
-          x: 50,
-          y: 4,
-          vx: (Math.random() - 0.5) * 0.4,
-          vy: 0.35,
-          active: true,
-          targetSlot: slot,
-        },
-      ]);
-      setBallId((id) => id + 1);
+      syncBalls(
+        ballsRef.current.map((b) =>
+          b.id === id ? { ...b, targetSlot: slot } : b,
+        ),
+      );
     });
   }
+
+  const buttonLabel = pending
+    ? "Sending…"
+    : animating
+      ? "Dropping…"
+      : "Send Ball";
 
   return (
     <div className="hypnotic-plinko-panel w-full">
       <div className="hypnotic-plinko-panel__layout">
-        {/* Board */}
         <div className="hypnotic-plinko-panel__board-wrap">
           <div className="mb-2 flex items-center justify-between px-1">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-fuchsia-200/80">
@@ -218,12 +267,13 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
             {balls.map((ball) => (
               <div
                 key={ball.id}
-                className={`absolute h-3.5 w-3.5 rounded-full bg-gradient-to-br from-lime-300 to-emerald-500 shadow-[0_0_12px_rgba(74,222,128,0.8)] ${ball.active ? "" : "opacity-90"}`}
+                className={`absolute h-3.5 w-3.5 rounded-full bg-gradient-to-br from-lime-300 to-emerald-500 shadow-[0_0_12px_rgba(74,222,128,0.8)] transition-opacity ${ball.active ? "opacity-100" : "opacity-95"}`}
                 style={{
                   left: `${ball.x}%`,
                   top: `${ball.y}%`,
                   transform: "translate(-50%, -50%)",
                   zIndex: 10,
+                  willChange: ball.active ? "left, top" : undefined,
                 }}
               />
             ))}
@@ -243,7 +293,7 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
               ))}
             </div>
 
-            {lastMessage && (
+            {lastMessage && !animating && (
               <div className="absolute left-1/2 top-3 max-w-[90%] -translate-x-1/2 rounded-lg border border-emerald-400/30 bg-black/60 px-3 py-1.5 text-center text-[10px] font-medium text-emerald-200">
                 {lastMessage}
               </div>
@@ -251,7 +301,6 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
           </div>
         </div>
 
-        {/* Controls — reference-style side panel */}
         <div className="hypnotic-plinko-panel__controls">
           <p className="text-center text-sm font-bold text-sky-200">Plinko Ball Falling</p>
 
@@ -316,7 +365,7 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
             onClick={sendBall}
             className="mt-5 w-full rounded-xl border border-emerald-400/50 bg-gradient-to-b from-lime-400 to-emerald-600 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_4px_0_rgba(21,128,61,0.8)] transition hover:brightness-110 disabled:opacity-50"
           >
-            {pending || animating ? "Sending…" : "Send Ball"}
+            {buttonLabel}
           </button>
         </div>
       </div>

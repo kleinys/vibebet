@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatProbability } from "@/lib/cpmm";
 import { formatVibe } from "@/lib/utils";
 import { formatUsdVolume } from "@/lib/polymarket";
+import { resolveMarketImage } from "@/lib/market-image";
 import { CATEGORY_LABELS, type MarketSource } from "@/lib/supabase/types";
 import type { MarketSummary } from "@/lib/markets";
 
@@ -16,9 +17,11 @@ export function MarketCard({ market }: { market: MarketSummary }) {
   const showDelta = market.volume_24h > 0;
   const isMirror = market.source === "polymarket_mirror";
   const mirrorVol24h = market.external_volume_24h_usd ?? 0;
-  const img =
-    market.image_url ||
-    placeholderMarketImage({ question: market.question, category: market.category });
+  const img = resolveMarketImage({
+    question: market.question,
+    category: market.category,
+    imageUrl: market.image_url,
+  });
 
   return (
     <Link
@@ -143,64 +146,4 @@ function PriceDelta({ delta }: { delta: number }) {
       {Math.abs(Number(pct))}%
     </span>
   );
-}
-
-const CATEGORY_EMOJI: Record<string, string> = {
-  politics: "🏛️",
-  sports: "⚽",
-  crypto: "₿",
-  tech: "💻",
-  entertainment: "🎬",
-  finance: "📈",
-  world: "🌍",
-  culture: "🎨",
-  other: "🔮",
-};
-
-function placeholderMarketImage({
-  question,
-  category,
-}: {
-  question: string;
-  category: string;
-}): string {
-  const emoji = CATEGORY_EMOJI[category] ?? CATEGORY_EMOJI.other;
-  const title = escapeSvg(question.trim().slice(0, 42) || "Market");
-  const sub = escapeSvg((CATEGORY_LABELS as Record<string, string>)[category] ?? "Market");
-  const svg = `
-<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#a855f7"/>
-      <stop offset="0.55" stop-color="#0ea5e9"/>
-      <stop offset="1" stop-color="#ec4899"/>
-    </linearGradient>
-    <filter id="s" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="rgba(0,0,0,0.45)"/>
-    </filter>
-  </defs>
-  <rect x="6" y="6" width="84" height="84" rx="16" fill="url(#g)" filter="url(#s)"/>
-  <rect x="8" y="8" width="80" height="80" rx="14" fill="rgba(0,0,0,0.32)"/>
-  <text x="18" y="34" font-size="20">${emoji}</text>
-  <text x="18" y="54" font-size="10" font-weight="700" fill="rgba(255,255,255,0.92)">${sub}</text>
-  <text x="18" y="70" font-size="10" fill="rgba(255,255,255,0.82)">${title}</text>
-</svg>`;
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
-}
-
-function escapeSvg(value: string): string {
-  return value.replace(/[&<>"]/g, (ch) => {
-    switch (ch) {
-      case "&":
-        return "&amp;";
-      case "<":
-        return "&lt;";
-      case ">":
-        return "&gt;";
-      case '"':
-        return "&quot;";
-      default:
-        return ch;
-    }
-  });
 }
