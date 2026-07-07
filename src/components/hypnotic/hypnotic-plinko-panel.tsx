@@ -38,7 +38,7 @@ function slotCenterX(slot: number) {
   return w * slot + w / 2;
 }
 
-export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
+export function HypnoticPlinkoPanel() {
   const [pending, startTransition] = useTransition();
   const [stake, setStake] = useState(50);
   const [risk, setRisk] = useState<Risk>("medium");
@@ -161,11 +161,8 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
 
   function sendBall() {
     if (animating || pending) return;
-    if (balance != null && balance < clampedStake) {
-      toast.error(`Need ${formatVibe(clampedStake)} VIBE.`);
-      return;
-    }
-
+    // Removed balance check entirely since balance prop was removed
+    
     setLastMessage(null);
     setLastSlot(null);
     pendingResultRef.current = null;
@@ -224,12 +221,7 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
             <span className="text-[10px] font-semibold uppercase tracking-wider text-fuchsia-200/80">
               Plinko · Ball Falling
             </span>
-            {balance != null && (
-              <span className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-black/40 px-2 py-0.5 text-[10px] text-amber-200">
-                <CurrencyIconVibe className="h-3.5 w-3.5" />
-                {formatVibe(balance)}
-              </span>
-            )}
+            {/* Removed balance display */}
           </div>
 
           <div className="hypnotic-plinko-panel__board">
