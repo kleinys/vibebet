@@ -10,7 +10,6 @@ import { getPlayerPath } from "@/lib/player-path-server";
 import { getMyPlayerCode } from "@/lib/player-code";
 import { clientEnv } from "@/lib/env";
 import type { PlayerPath } from "@/lib/player-path";
-import type { MyPlayerCode } from "@/lib/player-code";
 
 /** Sticky top shell — header, collapsible nav + player code, getting-started bar. */
 export async function SiteChrome() {
@@ -32,33 +31,20 @@ export async function SiteChrome() {
   } = await supabase.auth.getUser();
 
   if (user) {
-    // Only fetch user-specific data if user exists
-    const promises = [];
-    
-    if (pathPickerOn) {
-      promises.push(getPlayerPath(user.id));
-    }
-    
-    if (referralsOn) {
-      promises.push(getMyPlayerCode());
-    }
+    const [pathResult, codeRow] = await Promise.all([
+      pathPickerOn ? getPlayerPath(user.id) : Promise.resolve(null),
+      referralsOn ? getMyPlayerCode() : Promise.resolve(null),
+    ]);
 
-    const results = await Promise.allSettled(promises);
-    
-    if (pathPickerOn && results[0].status === 'fulfilled') {
-      storedPath = results[0].value;
+    if (pathPickerOn && pathResult) {
+      storedPath = pathResult;
       showModeBar = true;
     }
-    
-    if (referralsOn && results[pathPickerOn ? 1 : 0].status === 'fulfilled') {
-      const codeRow = results[pathPickerOn ? 1 : 0].value;
-      if (codeRow?.referral_code) {
-        playerCode = codeRow.referral_code;
-        if (referralsOn) {
-          const siteUrl = clientEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
-          inviteLink = `${siteUrl}/signup?ref=${playerCode}`;
-        }
-      }
+
+    if (referralsOn && codeRow?.referral_code) {
+      playerCode = codeRow.referral_code;
+      const siteUrl = clientEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+      inviteLink = `${siteUrl}/signup?ref=${playerCode}`;
     }
   }
 

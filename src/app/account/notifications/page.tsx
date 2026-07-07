@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { listNotifications, notificationHref } from "@/lib/notifications";
@@ -119,7 +120,7 @@ function FilterTab({
   active,
   label,
 }: {
-  href: string;
+  href: Route;
   active: boolean;
   label: string;
 }) {
