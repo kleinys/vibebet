@@ -38,6 +38,36 @@ function slotCenterX(slot: number) {
   return w * slot + w / 2;
 }
 
+/**
+ * Generate peg positions for a pyramid:
+ * row 0: 1 peg, row 1: 2 pegs, ... row 7: 8 pegs.
+ * Pegs are centered horizontally with 4% margins.
+ */
+function getPegPositions() {
+  const rows = 8;
+  const leftMargin = 4;
+  const rightMargin = 4;
+  const usableWidth = 100 - leftMargin - rightMargin;
+  const positions: { x: number; y: number; row: number; col: number }[] = [];
+
+  for (let row = 0; row < rows; row++) {
+    const numPegs = row + 1;
+    const y = 12 + row * 8; // same vertical spacing as before
+    if (numPegs === 1) {
+      positions.push({ x: 50, y, row, col: 0 });
+    } else {
+      const spacing = usableWidth / (numPegs - 1);
+      for (let col = 0; col < numPegs; col++) {
+        const x = leftMargin + col * spacing;
+        positions.push({ x, y, row, col });
+      }
+    }
+  }
+  return positions;
+}
+
+const PEG_POSITIONS = getPegPositions();
+
 export function HypnoticPlinkoPanel() {
   const [pending, startTransition] = useTransition();
   const [stake, setStake] = useState(50);
@@ -92,47 +122,71 @@ export function HypnoticPlinkoPanel() {
         if (!ball.active) return ball;
 
         const elapsed = now - ball.startedAt;
-        const steerStrength = elapsed < MIN_FALL_MS * 0.55 ? 0.0008 : 0.0045;
+        // Weaker steering to allow more natural bouncing
+        const steerStrength = elapsed < MIN_FALL_MS * 0.55 ? 0.0004 : 0.002;
 
         let vx = ball.vx;
         let vy = ball.vy + 0.045 * (dt / 16);
         let x = ball.x + vx * (dt / 16);
         let y = ball.y + vy * (dt / 16);
 
-        if (x < 4) {
-          x = 4;
-          vx = Math.abs(vx) * 0.82;
-        } else if (x > 96) {
-          x = 96;
-          vx = -Math.abs(vx) * 0.82;
+        // Wall collisions
+        if (x < 2) {
+          x = 2;
+          vx = Math.abs(vx) * 0.8;
+        } else if (x > 98) {
+          x = 98;
+          vx = -Math.abs(vx) * 0.8;
         }
 
-        const targetX = slotCenterX(ball.targetSlot);
-        vx += (targetX - x) * steerStrength;
+        // Pyramid peg collisions
+        const pegRadius = 2.4; // radius for collision
+        for (const peg of PEG_POSITIONS) {
+          const dx = x - peg.x;
+          const dy = y - peg.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < pegRadius) {
+            // Push ball away from peg center
+            const angle = Math.atan2(dy, dx);
+            const overlap = pegRadius - dist;
+            x += Math.cos(angle) * overlap * 1.2;
+            y += Math.sin(angle) * overlap * 1.2;
 
-        // Update peg collision detection to handle pyramid pattern
-        for (let row = 1; row <= 8; row++) {
-          const pegY = row * 8 + 12;
-          if (Math.abs(y - pegY) < 2.4) {
-            // Calculate expected peg positions based on pyramid pattern
-            const numPegs = row;
-            const pegSpacing = 100 / (numPegs - 1);
-            const startX = (100 - (numPegs - 1) * pegSpacing) / 2;
-            
-            for (let i = 0; i < numPegs; i++) {
-              const pegX = startX + i * pegSpacing;
-              if (Math.abs(x - pegX) < 2.4) {
-                vx += (Math.random() - 0.5) * 0.42;
-                vy *= 0.9;
-                y = pegY + 0.5;
-                break;
+            // Reflect velocity with some randomness
+            const speed = Math.sqrt(vx * vx + vy * vy);
+            if (speed > 0.1) {
+              // Normalize direction from peg to ball
+              const nx = Math.cos(angle);
+              const ny = Math.sin(angle);
+              // Dot product of velocity with normal
+              const vn = vx * nx + vy * ny;
+              if (vn < 0) {
+                // Reflect and add randomness
+                const restitution = 0.6 + Math.random() * 0.2;
+                vx -= (1 + restitution) * vn * nx;
+                vy -= (1 + restitution) * vn * ny;
+                // Add small random deflection
+                vx += (Math.random() - 0.5) * 0.3;
+                vy += (Math.random() - 0.5) * 0.1;
+                // Clamp to prevent explosion
+                const newSpeed = Math.sqrt(vx * vx + vy * vy);
+                if (newSpeed > 12) {
+                  vx = (vx / newSpeed) * 12;
+                  vy = (vy / newSpeed) * 12;
+                }
               }
             }
+            break; // only one peg collision per frame
           }
         }
 
+        // Gentle steering toward target slot (only horizontal)
+        const targetX = slotCenterX(ball.targetSlot);
+        vx += (targetX - x) * steerStrength;
+
         const canLand = elapsed >= MIN_FALL_MS && y >= 74;
         if (canLand) {
+          // Snap to target slot center and stop
           return {
             ...ball,
             x: targetX,
@@ -173,8 +227,7 @@ export function HypnoticPlinkoPanel() {
 
   function sendBall() {
     if (animating || pending) return;
-    // Removed balance check entirely since balance prop was removed
-    
+
     setLastMessage(null);
     setLastSlot(null);
     pendingResultRef.current = null;
@@ -233,7 +286,6 @@ export function HypnoticPlinkoPanel() {
             <span className="text-[10px] font-semibold uppercase tracking-wider text-fuchsia-200/80">
               Plinko · Ball Falling
             </span>
-            {/* Removed balance display */}
           </div>
 
           <div className="hypnotic-plinko-panel__board">
@@ -245,27 +297,17 @@ export function HypnoticPlinkoPanel() {
               }}
             />
 
-            {Array.from({ length: 8 }).map((_, rowIndex) => (
+            {/* Render pyramid pegs */}
+            {PEG_POSITIONS.map((peg, idx) => (
               <div
-                key={rowIndex}
-                className="absolute w-full"
-                style={{ top: `${rowIndex * 8 + 12}%` }}
-              >
-                {Array.from({ length: 10 - (rowIndex % 2) }).map((_, colIndex) => {
-                  const cols = 10 - (rowIndex % 2);
-                  const offsetX = (rowIndex % 2) * (100 / (cols * 2));
-                  return (
-                    <div
-                      key={`${rowIndex}-${colIndex}`}
-                      className="absolute h-2 w-2 rounded-full bg-white/90 shadow-[0_0_8px_rgba(255,255,255,0.6)]"
-                      style={{
-                        left: `${offsetX + colIndex * (100 / cols)}%`,
-                        transform: "translate(-50%, -50%)",
-                      }}
-                    />
-                  );
-                })}
-              </div>
+                key={idx}
+                className="absolute h-2 w-2 rounded-full bg-white/90 shadow-[0_0_8px_rgba(255,255,255,0.6)]"
+                style={{
+                  left: `${peg.x}%`,
+                  top: `${peg.y}%`,
+                  transform: "translate(-50%, -50%)",
+                }}
+              />
             ))}
 
             {balls.map((ball) => (
