@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { playPlinko } from "@/app/games/arcade/actions";
@@ -34,7 +34,10 @@ function PlinkoBoard({
   lastSlot,
   lastMessage,
   variant = "normal",
-}: PlinkoBoardProps) {
+  ballRefs,
+}: PlinkoBoardProps & {
+  ballRefs: MutableRefObject<Map<number, HTMLDivElement>>;
+}) {
   const slots = useMemo(() => plinkoSlotsForRisk(risk), [risk]);
   const activeCount = balls.filter((b) => b.active).length;
 
@@ -60,19 +63,25 @@ function PlinkoBoard({
         />
       ))}
 
-      {balls.map((ball) => (
-        <div
-          key={ball.id}
-          className={`hypnotic-plinko-panel__ball ${
-            ball.active
-              ? "hypnotic-plinko-panel__ball--active"
-              : ball.landedAt
-                ? "hypnotic-plinko-panel__ball--landed"
-                : ""
-          }`}
-          style={{ left: `${ball.x}%`, top: `${ball.y}%` }}
-        />
-      ))}
+      <div className="hypnotic-plinko-panel__balls" aria-hidden={balls.length === 0}>
+        {balls.map((ball) => (
+          <div
+            key={ball.id}
+            ref={(el) => {
+              if (el) ballRefs.current.set(ball.id, el);
+              else ballRefs.current.delete(ball.id);
+            }}
+            className={`hypnotic-plinko-panel__ball ${
+              ball.active
+                ? "hypnotic-plinko-panel__ball--active"
+                : ball.landedAt
+                  ? "hypnotic-plinko-panel__ball--landed"
+                  : ""
+            }`}
+            style={{ left: `${ball.x}%`, top: `${ball.y}%` }}
+          />
+        ))}
+      </div>
 
       <div className="hypnotic-plinko-panel__slots">
         {slots.map((slot, index) => (
@@ -216,6 +225,7 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
   const [mounted, setMounted] = useState(false);
 
   const ballsRef = useRef<PlinkoPhysicsBall[]>([]);
+  const ballElsRef = useRef<Map<number, HTMLDivElement>>(new Map());
   const rafRef = useRef<number>(0);
   const ballIdRef = useRef(0);
   const batchQueueRef = useRef<Array<{ id: number; slot: number; message: string }>>([]);
@@ -234,35 +244,70 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
     setMounted(true);
   }, []);
 
+  const syncBallElement = useCallback((ball: PlinkoPhysicsBall) => {
+    const el = ballElsRef.current.get(ball.id);
+    if (!el) return;
+    el.style.left = `${ball.x}%`;
+    el.style.top = `${ball.y}%`;
+    el.classList.toggle("hypnotic-plinko-panel__ball--active", ball.active);
+    el.classList.toggle("hypnotic-plinko-panel__ball--landed", !ball.active && ball.landedAt != null);
+  }, []);
+
+  useLayoutEffect(() => {
+    for (const ball of ballsRef.current) syncBallElement(ball);
+  }, [cinemaOpen, balls, syncBallElement]);
+
+  useEffect(() => {
+    if (!cinemaOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [cinemaOpen]);
+
   useEffect(() => {
     const tick = () => {
       const now = performance.now();
-      let changed = false;
+      let needsStateSync = false;
+
       const next = ballsRef.current
         .map((ball) => {
           if (!ball.active) {
             if (ball.landedAt && now - ball.landedAt > PLINKO_BALL_TTL_MS) {
-              changed = true;
+              needsStateSync = true;
+              ballElsRef.current.delete(ball.id);
               return null;
             }
             return ball;
           }
+
           const landed = stepPlinkoPhysicsBall(ball);
-          changed = true;
-          if (landed && ball.message) {
-            setLastSlot(ball.targetSlot);
-            setLastMessage(ball.message);
-            toast.success(ball.message);
+          syncBallElement(ball);
+
+          if (landed) {
+            needsStateSync = true;
+            if (ball.message) {
+              setLastSlot(ball.targetSlot);
+              setLastMessage(ball.message);
+              toast.success(ball.message);
+            }
           }
+
           return ball;
         })
         .filter((b): b is PlinkoPhysicsBall => b != null);
-      if (changed || next.length !== ballsRef.current.length) syncBalls(next);
+
+      if (needsStateSync || next.length !== ballsRef.current.length) {
+        syncBalls(next);
+      }
+
       rafRef.current = requestAnimationFrame(tick);
     };
+
     rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [syncBalls]);
+  }, [syncBalls, syncBallElement]);
 
   const flushBatch = useCallback(() => {
     if (inFlightRef.current > 0) {
@@ -278,8 +323,12 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
       ball.message = message;
       return ball;
     });
-    syncBalls([...ballsRef.current, ...newBalls]);
-  }, [syncBalls]);
+    const merged = [...ballsRef.current, ...newBalls];
+    syncBalls(merged);
+    requestAnimationFrame(() => {
+      for (const ball of newBalls) syncBallElement(ball);
+    });
+  }, [syncBalls, syncBallElement]);
 
   const enqueueBall = useCallback((item: { id: number; slot: number; message: string }) => {
     batchQueueRef.current.push(item);
@@ -312,31 +361,55 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
   const gameBody = (
     <div className="hypnotic-plinko-panel__layout">
       <div className="hypnotic-plinko-panel__board-wrap">
-        <PlinkoBoard risk={risk} balls={balls} lastSlot={lastSlot} lastMessage={lastMessage} />
+        <PlinkoBoard
+          risk={risk}
+          balls={balls}
+          lastSlot={lastSlot}
+          lastMessage={lastMessage}
+          ballRefs={ballElsRef}
+        />
       </div>
       <PlinkoControls
         stake={stake} setStake={setStake} risk={risk} setRisk={setRisk} onSend={sendBall}
         pendingCount={pendingCount} activeBalls={activeBalls} balance={balance}
         onFullscreen={() => setCinemaOpen(true)}
+        showFullscreen
+      />
+    </div>
+  );
+
+  const cinemaBody = (
+    <div className="hypnotic-plinko-cinema__game">
+      <PlinkoBoard
+        risk={risk}
+        balls={balls}
+        lastSlot={lastSlot}
+        lastMessage={lastMessage}
+        variant="cinema"
+        ballRefs={ballElsRef}
+      />
+      <PlinkoControls
+        stake={stake} setStake={setStake} risk={risk} setRisk={setRisk} onSend={sendBall}
+        pendingCount={pendingCount} activeBalls={activeBalls} balance={balance} showFullscreen={false}
       />
     </div>
   );
 
   return (
     <div className="hypnotic-plinko-panel w-full">
-      {gameBody}
+      {!cinemaOpen && gameBody}
       {mounted && cinemaOpen && createPortal(
-        <div className="hypnotic-plinko-cinema" role="dialog">
-          <div className="hypnotic-plinko-cinema__backdrop" onClick={() => setCinemaOpen(false)} />
-          <div className="hypnotic-plinko-cinema__shell">
-            <button className="hypnotic-plinko-cinema__exit" onClick={() => setCinemaOpen(false)}>Exit</button>
-            <div className="hypnotic-plinko-cinema__game">
-              <PlinkoBoard risk={risk} balls={balls} lastSlot={lastSlot} lastMessage={lastMessage} variant="cinema" />
-              <PlinkoControls
-                stake={stake} setStake={setStake} risk={risk} setRisk={setRisk} onSend={sendBall}
-                pendingCount={pendingCount} activeBalls={activeBalls} balance={balance} showFullscreen={false}
-              />
-            </div>
+        <div className="hypnotic-plinko-cinema" role="dialog" aria-modal="true" aria-label="Plinko full screen">
+          <div className="hypnotic-plinko-cinema__backdrop" aria-hidden />
+          <div
+            className="hypnotic-plinko-cinema__shell"
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+          >
+            <button type="button" className="hypnotic-plinko-cinema__exit" onClick={() => setCinemaOpen(false)}>
+              Exit full screen
+            </button>
+            {cinemaBody}
           </div>
         </div>,
         document.body

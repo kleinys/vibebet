@@ -167,11 +167,11 @@ export function createPlinkoPhysicsBall(
   };
 }
 
-function easeInQuad(t: number): number {
-  return t * t;
+function easeInOutQuad(t: number): number {
+  return t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2;
 }
 
-export const PLINKO_BOUNCE_MS = 240;
+export const PLINKO_BOUNCE_MS = 480;
 
 export function stepPlinkoPhysicsBall(ball: PlinkoPhysicsBall): boolean {
   if (!ball.active) return false;
@@ -198,7 +198,7 @@ export function stepPlinkoPhysicsBall(ball: PlinkoPhysicsBall): boolean {
 
   const raw = (now - ball.segmentStartAt) / PLINKO_BOUNCE_MS;
   const t = Math.min(1, raw);
-  const eased = easeInQuad(t);
+  const eased = easeInOutQuad(t);
 
   ball.x = from.x + (to.x - from.x) * eased;
   ball.y = from.y + (to.y - from.y) * eased;
