@@ -47,3 +47,35 @@ export async function createStreamWatchBet(
 
   return { ok: "Stream bet created!", marketId };
 }
+
+export type StreamCommentState = { error?: string; ok?: string } | null;
+
+export async function postStreamWatchComment(
+  _prev: StreamCommentState,
+  formData: FormData,
+): Promise<StreamCommentState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Sign in to comment." };
+
+  const provider = String(formData.get("provider") ?? "other").toLowerCase().trim();
+  const externalId = String(formData.get("externalId") ?? "").trim();
+  const body = String(formData.get("body") ?? "").trim();
+  const loginNext = String(formData.get("loginNext") ?? "/live/watch");
+
+  if (!externalId) return { error: "Missing stream." };
+  if (body.length < 1) return { error: "Write a comment first." };
+
+  const { error } = await supabase.from("stream_watch_comments").insert({
+    stream_provider: provider,
+    stream_external_id: externalId,
+    user_id: user.id,
+    body: body.slice(0, 500),
+  });
+  if (error) return { error: error.message };
+
+  revalidatePath(loginNext.split("?")[0] || "/live/watch");
+  return { ok: "Posted." };
+}
