@@ -3,9 +3,10 @@ import { formatOutcomeProbability } from "@/lib/lmsr";
 import { formatVibe } from "@/lib/utils";
 import { CATEGORY_LABELS } from "@/lib/supabase/types";
 import type { CategoricalMarket } from "@/lib/categorical";
+import { memo } from "react";
 
 /** Compact card for multi-outcome markets on /markets and home. */
-export function CategoricalMarketCard({ market }: { market: CategoricalMarket }) {
+const CategoricalMarketCardComponent = ({ market }: { market: CategoricalMarket }) => {
   const sorted = [...market.outcomes].sort(
     (a, b) => b.probability - a.probability,
   );
@@ -56,4 +57,14 @@ export function CategoricalMarketCard({ market }: { market: CategoricalMarket })
       </div>
     </Link>
   );
-}
+};
+
+export const CategoricalMarketCard = memo(CategoricalMarketCardComponent, (prev, next) => {
+  // Only re-render if the market data actually changes
+  return prev.market.id === next.market.id &&
+         prev.market.volume === next.market.volume &&
+         prev.market.trade_count === next.market.trade_count &&
+         JSON.stringify(prev.market.outcomes) === JSON.stringify(next.market.outcomes);
+});
+
+CategoricalMarketCard.displayName = 'CategoricalMarketCard';

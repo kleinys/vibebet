@@ -3,9 +3,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Toaster } from "sonner";
-import { useState, type ReactNode } from "react";
+import { useState, type ReactNode, memo } from "react";
 
-export function Providers({ children }: { children: ReactNode }) {
+const ProvidersComponent = ({ children }: { children: ReactNode }) => {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -13,6 +13,8 @@ export function Providers({ children }: { children: ReactNode }) {
           queries: {
             staleTime: 30_000,
             refetchOnWindowFocus: false,
+            retry: 1, // Reduce retries to improve perceived performance
+            gcTime: 5 * 60 * 1000, // Keep cache for 5 minutes
           },
         },
       }),
@@ -27,4 +29,9 @@ export function Providers({ children }: { children: ReactNode }) {
       )}
     </QueryClientProvider>
   );
-}
+};
+
+export const Providers = memo(ProvidersComponent);
+
+// Add display name for better debugging
+Providers.displayName = 'Providers';

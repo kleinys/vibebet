@@ -21,41 +21,49 @@ export async function Header({
     data: { user },
   } = await supabase.auth.getUser();
 
+  // 初始化状态
   let balances = { vibe: 0, gem: 0 };
   let streak = 0;
   let companionInput: Awaited<ReturnType<typeof getCompanionInput>> | null = null;
-  let duelsOn = false;
-  let guildsOn = false;
-  let copyOn = false;
-  let limitsOn = false;
+
+  // 初始化功能开关
+  let [duelsOn, guildsOn, copyOn, limitsOn] = [false, false, false, false];
 
   if (user) {
     try {
       await maybeRecordDailyActivity();
     } catch {
-      // Never break the shell if streak/hustle writes fail.
+      // 不要因为记录活动失败而中断页面渲染
     }
+    
+    // 并行获取功能开关状态
     [duelsOn, guildsOn, copyOn, limitsOn] = await Promise.all([
       isEnabled("duels_enabled"),
       isEnabled("guilds_enabled"),
       isEnabled("copy_trading_enabled"),
       isEnabled("limit_orders_enabled"),
     ]);
-    try {
-      balances = await getAllBalances(user.id);
-    } catch {
-      // Ledger unreachable.
+    
+    // 并行获取用户数据，使用Promise.allSettled避免单个请求失败导致整体失败
+    const [balanceResult, streakResult, companionResult] = await Promise.allSettled([
+      getAllBalances(user.id),
+      getStreakInfo(user.id),
+      getCompanionInput(user.id),
+    ]);
+
+    // 处理余额数据
+    if (balanceResult.status === 'fulfilled') {
+      balances = balanceResult.value;
     }
-    try {
-      const info = await getStreakInfo(user.id);
-      streak = info.currentStreak;
-    } catch {
-      // Profile columns may not exist until migration 16.
+
+    // 处理连击数据
+    if (streakResult.status === 'fulfilled') {
+      streak = streakResult.value.currentStreak;
     }
-    try {
-      companionInput = await getCompanionInput(user.id);
-    } catch {
-      // Shop tables may not exist yet.
+
+    // 处理同伴数据
+    if (companionResult.status === 'fulfilled') {
+      companionInput = companionResult.value;
     }
   }
 

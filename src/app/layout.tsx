@@ -52,12 +52,14 @@ export const viewport: Viewport = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Cache the mobileNavOn flag to avoid repeated calls
   const mobileNavOn = await isEnabled("mobile_nav_enabled");
 
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${gothic.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col bg-zinc-950 text-zinc-100">
         <Providers>

@@ -5,12 +5,13 @@ import { formatVibe } from "@/lib/utils";
 import { formatUsdVolume } from "@/lib/polymarket";
 import { CATEGORY_LABELS, type MarketSource } from "@/lib/supabase/types";
 import type { MarketSummary } from "@/lib/markets";
+import { memo } from "react";
 
 /**
  * Polymarket-style market card.
  * Compact: question + YES/NO probabilities + meta footer.
  */
-export function MarketCard({ market }: { market: MarketSummary }) {
+const MarketCardComponent = ({ market }: { market: MarketSummary }) => {
   const yesPct = market.yes_price;
   const noPct = 1 - yesPct;
   const delta = market.yes_price - market.yes_price_24h_ago;
@@ -89,7 +90,18 @@ export function MarketCard({ market }: { market: MarketSummary }) {
       </div>
     </Link>
   );
-}
+};
+
+export const MarketCard = memo(MarketCardComponent, (prev, next) => {
+  // Only re-render if the market data actually changes
+  return prev.market.id === next.market.id &&
+         prev.market.yes_price === next.market.yes_price &&
+         prev.market.yes_price_24h_ago === next.market.yes_price_24h_ago &&
+         prev.market.volume_24h === next.market.volume_24h &&
+         prev.market.trade_count === next.market.trade_count;
+});
+
+MarketCard.displayName = 'MarketCard';
 
 function SourceBadge({ source }: { source: MarketSource }) {
   if (source === "community") return null;
@@ -107,7 +119,7 @@ function SourceBadge({ source }: { source: MarketSource }) {
   );
 }
 
-function OutcomeRow({
+const OutcomeRowComponent = ({
   label,
   probability,
   variant,
@@ -115,7 +127,7 @@ function OutcomeRow({
   label: string;
   probability: number;
   variant: "yes" | "no";
-}) {
+}) => {
   const colors =
     variant === "yes"
       ? "bg-emerald-500/5 ring-emerald-500/10 text-emerald-200"
@@ -128,7 +140,10 @@ function OutcomeRow({
       </span>
     </div>
   );
-}
+};
+
+export const OutcomeRow = memo(OutcomeRowComponent);
+OutcomeRow.displayName = 'OutcomeRow';
 
 function PriceDelta({ delta }: { delta: number }) {
   if (Math.abs(delta) < 0.005) {

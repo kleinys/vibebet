@@ -12,7 +12,8 @@ import { CATEGORY_LABELS } from "@/lib/supabase/types";
 import { LiveFeedSection } from "@/components/live-feed-section";
 import type { MarketSummary } from "@/lib/markets";
 
-export const revalidate = 0;
+// Reduce revalidation frequency to improve performance
+export const revalidate = 30; // Revalidate every 30 seconds instead of on every request
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -46,26 +47,28 @@ export default async function HomePage() {
     }
   }
 
-  const [mirrors, official, hot, breaking, recent, community, multi] =
-    await Promise.all([
-      listMarkets({
-        status: "open",
-        source: "polymarket_mirror",
-        sort: "mirror_volume",
-        limit: 12,
-      }),
-      listMarkets({
-        status: "open",
-        source: "platform",
-        sort: "volume",
-        limit: 8,
-      }),
-      listMarkets({ status: "open", sort: "trending", limit: 8, excludeSource: "community" }),
-      listBreakingMarkets(6),
-      listMarkets({ status: "open", sort: "new", limit: 6, excludeSource: "community" }),
-      listMarkets({ status: "open", source: "community", sort: "new", limit: 4 }),
-      listCategoricalMarkets({ status: "open", limit: 4 }),
-    ]);
+  // Fetch all market data in parallel to reduce total loading time
+  const marketPromises = [
+    listMarkets({
+      status: "open",
+      source: "polymarket_mirror",
+      sort: "mirror_volume",
+      limit: 12,
+    }),
+    listMarkets({
+      status: "open",
+      source: "platform",
+      sort: "volume",
+      limit: 8,
+    }),
+    listMarkets({ status: "open", sort: "trending", limit: 8, excludeSource: "community" }),
+    listBreakingMarkets(6),
+    listMarkets({ status: "open", sort: "new", limit: 6, excludeSource: "community" }),
+    listMarkets({ status: "open", source: "community", sort: "new", limit: 4 }),
+    listCategoricalMarkets({ status: "open", limit: 4 }),
+  ];
+
+  const [mirrors, official, hot, breaking, recent, community, multi] = await Promise.all(marketPromises);
 
   const featured =
     mirrors[0] ??
@@ -169,20 +172,31 @@ export default async function HomePage() {
     );
   }
 
-  const { data: profile } = await supabase
+  // Fetch user profile in parallel with market data
+  const profilePromise = supabase
     .from("profiles")
     .select("display_name, player_path")
     .eq("id", user.id)
     .maybeSingle();
 
-  const { pathOption } = await import("@/lib/player-path");
-  const playerPath = pathOption(profile?.player_path);
-
-  const [liveArenaOn, fastOn, paperOn] = await Promise.all([
+  // Fetch feature flags in parallel
+  const featureFlagsPromise = Promise.all([
     isEnabled("live_arena_enabled"),
     isEnabled("fast_markets_enabled"),
     isEnabled("paper_trading_duels_enabled"),
   ]);
+
+  const [profileResult, featureFlagsResult] = await Promise.all([
+    profilePromise,
+    featureFlagsPromise,
+  ]);
+
+  const profile = profileResult.data;
+
+  const { pathOption } = await import("@/lib/player-path");
+  const playerPath = pathOption(profile?.player_path);
+
+  const [liveArenaOn, fastOn, paperOn] = featureFlagsResult;
   const showLiveArena = liveArenaOn || fastOn || paperOn;
 
   return (
