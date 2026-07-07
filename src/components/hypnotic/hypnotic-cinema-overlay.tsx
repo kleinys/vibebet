@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { LockerCasinoWheel } from "@/components/locker-casino-wheel";
 import { LockerCaseRoulette } from "@/components/locker-case-roulette";
 import { LockerTierCase, type CaseTier } from "@/components/locker-tier-case";
@@ -23,6 +25,14 @@ export function HypnoticCinemaOverlay({
   caseTier,
   crateOpen,
   onCaseRouletteDone,
+  onExit,
+  queueHint,
+  onWheelSpin,
+  onCaseOpen,
+  wheelSpinDisabled,
+  caseOpenDisabled,
+  wheelSpinLabel,
+  caseOpenLabel,
 }: {
   visible: boolean;
   mode: "wheel" | "case" | null;
@@ -34,12 +44,45 @@ export function HypnoticCinemaOverlay({
   caseTier: CaseTier;
   crateOpen: boolean;
   onCaseRouletteDone?: () => void;
+  onExit?: () => void;
+  queueHint?: string | null;
+  onWheelSpin?: () => void;
+  onCaseOpen?: () => void;
+  wheelSpinDisabled?: boolean;
+  caseOpenDisabled?: boolean;
+  wheelSpinLabel?: string;
+  caseOpenLabel?: string;
 }) {
-  if (!visible || !mode) return null;
+  const [mounted, setMounted] = useState(false);
 
-  return (
-    <div className="hypnotic-cinema-overlay" role="presentation" aria-hidden={!visible}>
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!visible) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [visible]);
+
+  if (!visible || !mode || !mounted) return null;
+
+  return createPortal(
+    <div
+      className="hypnotic-cinema-overlay hypnotic-cinema-overlay--interactive"
+      role="dialog"
+      aria-modal="true"
+      aria-label={mode === "wheel" ? "Daily wheel full screen" : "VIBE case full screen"}
+    >
       <div className="hypnotic-cinema-overlay__backdrop" />
+      {onExit && (
+        <button type="button" className="hypnotic-cinema-overlay__exit" onClick={onExit}>
+          Exit full screen
+        </button>
+      )}
       <div className="hypnotic-cinema-overlay__content">
         {mode === "wheel" && (
           <>
@@ -51,8 +94,18 @@ export function HypnoticCinemaOverlay({
               glowing={wheelSpinning || superActive}
             />
             <p className="hypnotic-cinema-overlay__hint">
-              {wheelSpinning ? "Spinning…" : "Result"}
+              {wheelSpinning ? "Spinning…" : queueHint ?? "Tap spin again to queue more"}
             </p>
+            {onWheelSpin && (
+              <button
+                type="button"
+                disabled={wheelSpinDisabled}
+                onClick={onWheelSpin}
+                className="hypnotic-cinema-overlay__cta hypnotic-cinema-overlay__cta--wheel"
+              >
+                {wheelSpinLabel ?? "Spin"}
+              </button>
+            )}
           </>
         )}
         {mode === "case" && (
@@ -78,11 +131,22 @@ export function HypnoticCinemaOverlay({
               </div>
             </div>
             <p className="hypnotic-cinema-overlay__hint">
-              {caseRouletteActive ? "Inspecting weapon finish…" : "Revealed"}
+              {caseRouletteActive ? "Inspecting weapon finish…" : queueHint ?? "Tap open again to queue more"}
             </p>
+            {onCaseOpen && (
+              <button
+                type="button"
+                disabled={caseOpenDisabled}
+                onClick={onCaseOpen}
+                className="hypnotic-cinema-overlay__cta hypnotic-cinema-overlay__cta--case"
+              >
+                {caseOpenLabel ?? "Open case"}
+              </button>
+            )}
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

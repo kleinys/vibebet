@@ -1,8 +1,8 @@
 import Link from "next/link";
+import { MarketCardImage } from "@/components/market-card-image";
 import { formatProbability } from "@/lib/cpmm";
 import { formatVibe } from "@/lib/utils";
 import { formatUsdVolume } from "@/lib/polymarket";
-import { resolveMarketImage } from "@/lib/market-image";
 import { CATEGORY_LABELS, type MarketSource } from "@/lib/supabase/types";
 import type { MarketSummary } from "@/lib/markets";
 
@@ -17,11 +17,13 @@ export function MarketCard({ market }: { market: MarketSummary }) {
   const showDelta = market.volume_24h > 0;
   const isMirror = market.source === "polymarket_mirror";
   const mirrorVol24h = market.external_volume_24h_usd ?? 0;
-  const img = resolveMarketImage({
-    question: market.question,
-    category: market.category,
-    imageUrl: market.image_url,
-  });
+  const img = (
+    <MarketCardImage
+      question={market.question}
+      category={market.category}
+      imageUrl={market.image_url}
+    />
+  );
 
   return (
     <Link
@@ -29,13 +31,7 @@ export function MarketCard({ market }: { market: MarketSummary }) {
       className="group flex h-full flex-col rounded-xl border border-white/5 bg-zinc-900/40 p-4 transition hover:border-white/10 hover:bg-zinc-900"
     >
       <div className="flex items-start gap-3">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={img}
-          alt=""
-          className="h-9 w-9 shrink-0 rounded-md border border-white/5 object-cover"
-          loading="lazy"
-        />
+        {img}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
             <SourceBadge source={market.source} />

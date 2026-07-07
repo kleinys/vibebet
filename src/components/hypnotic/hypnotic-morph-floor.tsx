@@ -28,6 +28,9 @@ import { HypnoticPlinkoPanel } from "@/components/hypnotic/hypnotic-plinko-panel
 const BTN =
   "rounded-sm border px-4 py-2 text-[11px] font-semibold uppercase tracking-wider transition disabled:opacity-50";
 
+const MAX_WHEEL_QUEUE = 8;
+const MAX_CASE_QUEUE = 5;
+
 type CrateResult = {
   label: string;
   payout: number;
@@ -43,6 +46,18 @@ type WheelResult = {
   net: number;
   newBalance: number;
   freeSpin: boolean;
+};
+
+type WheelSpinJob = {
+  segmentIndex: number;
+  result: WheelResult;
+  syncRow: Record<string, unknown>;
+};
+
+type CaseOpenJob = {
+  result: CrateResult;
+  tier: CaseTier;
+  syncRow: Record<string, unknown>;
 };
 
 export function HypnoticMorphFloor({
@@ -79,21 +94,42 @@ export function HypnoticMorphFloor({
   const [wheelResult, setWheelResult] = useState<WheelResult | null>(null);
   const [wheelRotation, setWheelRotation] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
   const [chipSliding, setChipSliding] = useState<number | null>(null);
   const [caseRouletteTier, setCaseRouletteTier] = useState<CaseTier | null>(null);
   const [pendingCrate, setPendingCrate] = useState<CrateResult | null>(null);
+  const [cinemaPortal, setCinemaPortal] = useState<"wheel" | "case" | null>(null);
+  const [pendingSpins, setPendingSpins] = useState(0);
+  const [pendingCases, setPendingCases] = useState(0);
+  const [wheelQueueLen, setWheelQueueLen] = useState(0);
+  const [caseQueueLen, setCaseQueueLen] = useState(0);
   const crateSyncRef = useRef<Record<string, unknown> | null>(null);
-  const autoFullscreenRef = useRef(false);
+  const wheelQueueRef = useRef<WheelSpinJob[]>([]);
+  const caseQueueRef = useRef<CaseOpenJob[]>([]);
+  const wheelDrainingRef = useRef(false);
+  const caseDrainingRef = useRef(false);
+  const wheelRotationRef = useRef(0);
 
   const freeSpinAvailable = spinsUsed === 0;
   const cinemaActive = cinema === "wheel-spin" || cinema === "case-open";
+  const cinemaVisible = cinemaActive || cinemaPortal != null;
   const cinemaMode =
-    cinema === "wheel-spin" ? "wheel" : cinema === "case-open" ? "case" : null;
+    cinema === "wheel-spin" || cinemaPortal === "wheel"
+      ? "wheel"
+      : cinema === "case-open" || cinemaPortal === "case"
+        ? "case"
+        : null;
 
   const caseTier = crateResult
     ? resultLabelToTier(crateResult.label)
     : stakeToTier(crateStake);
+
+  const wheelQueued =
+    pendingSpins + wheelQueueLen + (wheelDrainingRef.current ? 1 : 0);
+  const caseQueued =
+    pendingCases + caseQueueLen + (caseDrainingRef.current ? 1 : 0);
+  const wheelQueueFull = wheelQueued >= MAX_WHEEL_QUEUE;
+  const caseQueueFull = caseQueued >= MAX_CASE_QUEUE;
+  const caseStakeLocked = caseQueued > 0;
 
   function parseError(err: unknown): string {
     if (err && typeof err === "object" && "message" in err) {
@@ -108,7 +144,6 @@ export function HypnoticMorphFloor({
       setCrateResult(pending);
       setBalance(pending.newBalance);
       setCaseRouletteTier(null);
-      setBusy(false);
       setCinema("idle");
       setReaction("idle");
       const sync = crateSyncRef.current;
@@ -116,14 +151,73 @@ export function HypnoticMorphFloor({
         onCaseResult(pending.net, parseMomentumFromRpc(sync));
       }
       crateSyncRef.current = null;
-      exitGamblingFullscreen();
       router.refresh();
+
+      window.setTimeout(() => {
+        setCrateOpen(false);
+        setCrateResult(null);
+        caseDrainingRef.current = false;
+        void drainCaseQueue();
+      }, 900);
+
       return null;
     });
   }
 
+  async function drainCaseQueue() {
+    if (caseDrainingRef.current || caseQueueRef.current.length === 0) return;
+    const job = caseQueueRef.current.shift() ?? null;
+    if (!job) return;
+    setCaseQueueLen(caseQueueRef.current.length);
+
+    caseDrainingRef.current = true;
+    setError(null);
+    setCrateOpen(true);
+    setCrateResult(null);
+    setCinema("case-open");
+    setReaction("watch-wheel");
+    setCinemaPortal("case");
+    setPendingCrate(job.result);
+    setCaseRouletteTier(job.tier);
+    crateSyncRef.current = job.syncRow;
+  }
+
+  async function drainWheelQueue() {
+    if (wheelDrainingRef.current || wheelQueueRef.current.length === 0) return;
+    const job = wheelQueueRef.current.shift() ?? null;
+    if (!job) return;
+    setWheelQueueLen(wheelQueueRef.current.length);
+
+    wheelDrainingRef.current = true;
+    setWheelSpinning(true);
+    setWheelResult(null);
+    setCinema("wheel-spin");
+    setReaction("watch-wheel");
+    setCinemaPortal("wheel");
+
+    const spins = 5 + Math.floor(Math.random() * 2);
+    const targetRotation = wheelRotationToSegment(
+      job.segmentIndex,
+      wheelRotationRef.current,
+      spins,
+    );
+    wheelRotationRef.current = targetRotation;
+    setWheelRotation(targetRotation);
+
+    window.setTimeout(() => {
+      setWheelResult(job.result);
+      setBalance(job.result.newBalance);
+      setSpinsUsed((n) => n + 1);
+      setWheelSpinning(false);
+      wheelDrainingRef.current = false;
+      onWheelWin(job.result.payout, parseMomentumFromRpc(job.syncRow));
+      router.refresh();
+      void drainWheelQueue();
+    }, WHEEL_SPIN_MS);
+  }
+
   function selectStake(stake: (typeof CRATE_STAKES)[number]) {
-    if (busy || crateOpen) return;
+    if (caseStakeLocked) return;
     setChipSliding(stake);
     window.setTimeout(() => {
       setCrateStake(stake);
@@ -132,39 +226,21 @@ export function HypnoticMorphFloor({
     }, 420);
   }
 
-  async function enterGamblingFullscreen() {
-    const arena = document.getElementById("hypnotic-arena-root");
-    if (arena && !document.fullscreenElement) {
-      try {
-        await arena.requestFullscreen();
-        autoFullscreenRef.current = true;
-      } catch {
-        autoFullscreenRef.current = false;
-      }
-    }
-  }
-
-  function exitGamblingFullscreen() {
-    if (autoFullscreenRef.current && document.fullscreenElement) {
-      void document.exitFullscreen();
-    }
-    autoFullscreenRef.current = false;
-  }
-
   async function openCrate() {
-    if (crateOpen || busy) return;
+    if (!stakeDocked || balance < crateStake) return;
+    if (caseQueueFull) {
+      setError(`Max ${MAX_CASE_QUEUE} cases queued.`);
+      return;
+    }
+
     setError(null);
-    setBusy(true);
-    setCrateOpen(true);
-    setCrateResult(null);
-    setCinema("case-open");
-    setReaction("watch-wheel");
-    await enterGamblingFullscreen();
+    setPendingCases((n) => n + 1);
+    const stake = crateStake;
 
     try {
       const supabase = createClient();
       const { data, error: rpcError } = await supabase.rpc("open_locker_crate", {
-        p_stake: crateStake,
+        p_stake: stake,
       });
       if (rpcError) throw rpcError;
 
@@ -178,16 +254,17 @@ export function HypnoticMorphFloor({
         newBalance: Number(row.new_balance),
       };
       const tier = resultLabelToTier(result.label);
-      setPendingCrate(result);
-      setCaseRouletteTier(tier);
-      crateSyncRef.current = row as Record<string, unknown>;
+      caseQueueRef.current.push({
+        result,
+        tier,
+        syncRow: row as Record<string, unknown>,
+      });
+      setCaseQueueLen(caseQueueRef.current.length);
+      void drainCaseQueue();
     } catch (e) {
-      setCrateOpen(false);
-      setBusy(false);
-      setCinema("idle");
-      setReaction("idle");
-      exitGamblingFullscreen();
       setError(parseError(e));
+    } finally {
+      setPendingCases((n) => Math.max(0, n - 1));
     }
   }
 
@@ -197,38 +274,35 @@ export function HypnoticMorphFloor({
     setPendingCrate(null);
     setCaseRouletteTier(null);
     crateSyncRef.current = null;
+    caseQueueRef.current = [];
+    caseDrainingRef.current = false;
+    setCaseQueueLen(0);
     setError(null);
     setStakeDocked(false);
-    exitGamblingFullscreen();
   }
 
-  async function spinWheel() {
-    if (wheelSpinning || busy) return;
+  function spinWheel() {
+    if (wheelQueueFull) {
+      setError(`Max ${MAX_WHEEL_QUEUE} spins queued.`);
+      return;
+    }
+    if (!freeSpinAvailable && balance < PAID_SPIN_COST) return;
+
     setError(null);
-    setBusy(true);
-    setWheelSpinning(true);
-    setWheelResult(null);
-    setCinema("wheel-spin");
-    setReaction("watch-wheel");
-    await enterGamblingFullscreen();
+    setPendingSpins((n) => n + 1);
 
-    try {
-      const supabase = createClient();
-      const { data, error: rpcError } = await supabase.rpc("spin_locker_wheel", {
-        p_paid_stake: PAID_SPIN_COST,
-      });
-      if (rpcError) throw rpcError;
+    void (async () => {
+      try {
+        const supabase = createClient();
+        const { data, error: rpcError } = await supabase.rpc("spin_locker_wheel", {
+          p_paid_stake: PAID_SPIN_COST,
+        });
+        if (rpcError) throw rpcError;
 
-      const row = Array.isArray(data) ? data[0] : data;
-      if (!row) throw new Error("No spin result returned");
+        const row = Array.isArray(data) ? data[0] : data;
+        if (!row) throw new Error("No spin result returned");
 
-      const segmentIndex = Number(row.segment_index);
-      const spins = 5 + Math.floor(Math.random() * 2);
-      const nextRotation = wheelRotationToSegment(segmentIndex, wheelRotation, spins);
-
-      setWheelRotation(nextRotation);
-
-      window.setTimeout(() => {
+        const segmentIndex = Number(row.segment_index);
         const result: WheelResult = {
           segmentIndex,
           label: row.label as string,
@@ -238,24 +312,40 @@ export function HypnoticMorphFloor({
           newBalance: Number(row.new_balance),
           freeSpin: Boolean(row.free_spin),
         };
-        setWheelResult(result);
-        setBalance(result.newBalance);
-        setSpinsUsed((n) => n + 1);
-        setWheelSpinning(false);
-        setBusy(false);
-        onWheelWin(result.payout, parseMomentumFromRpc(row as Record<string, unknown>));
-        exitGamblingFullscreen();
-        router.refresh();
-      }, WHEEL_SPIN_MS);
-    } catch (e) {
-      setWheelSpinning(false);
-      setBusy(false);
+
+        wheelQueueRef.current.push({
+          segmentIndex,
+          result,
+          syncRow: row as Record<string, unknown>,
+        });
+        setWheelQueueLen(wheelQueueRef.current.length);
+        void drainWheelQueue();
+      } catch (e) {
+        setError(parseError(e));
+      } finally {
+        setPendingSpins((n) => Math.max(0, n - 1));
+      }
+    })();
+  }
+
+  function closeCinemaPortal() {
+    setCinemaPortal(null);
+    if (!wheelDrainingRef.current && !caseDrainingRef.current) {
       setCinema("idle");
       setReaction("idle");
-      exitGamblingFullscreen();
-      setError(parseError(e));
     }
   }
+
+  const wheelSpinLabel = freeSpinAvailable
+    ? "Free daily spin"
+    : `Spin · ${PAID_SPIN_COST} VIBE`;
+  const caseOpenLabel = `Open case · ${formatVibe(crateStake)} VIBE`;
+  const wheelQueueHint =
+    wheelQueueLen > 0 || pendingSpins > 0
+      ? `${wheelQueued} in queue`
+      : null;
+  const caseQueueHint =
+    caseQueueLen > 0 || pendingCases > 0 ? `${caseQueued} in queue` : null;
 
   return (
     <div className="hypnotic-morph-floor">
@@ -316,16 +406,27 @@ export function HypnoticMorphFloor({
       )}
 
       <div
-        className={`hypnotic-morph-floor__grid ${cinemaActive ? "hypnotic-morph-floor__grid--cinema-dim" : ""}`}
+        className={`hypnotic-morph-floor__grid ${cinemaVisible ? "hypnotic-morph-floor__grid--cinema-dim" : ""}`}
       >
         {/* VIBE case — always visible beside wheel on md+ */}
         <section
           className={`hypnotic-morph-panel hypnotic-morph-panel--case ${mode === "case" ? "hypnotic-morph-panel--focused" : ""}`}
           id="vibe-case"
         >
-          <p className="hypnotic-morph-panel__title text-[10px] font-semibold uppercase tracking-wider text-amber-300/90">
-            VIBE case
-          </p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="hypnotic-morph-panel__title text-[10px] font-semibold uppercase tracking-wider text-amber-300/90">
+              VIBE case
+            </p>
+            {cinemaPortal !== "case" && (
+              <button
+                type="button"
+                onClick={() => setCinemaPortal("case")}
+                className="rounded-md border border-amber-400/35 bg-amber-500/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-amber-200 hover:bg-amber-500/25"
+              >
+                Full screen
+              </button>
+            )}
+          </div>
           <LockerCaseRoulette
             active={crateOpen && caseRouletteTier != null && !crateResult}
             targetTier={caseRouletteTier ?? "common"}
@@ -383,7 +484,7 @@ export function HypnoticMorphFloor({
                 <button
                   key={stake}
                   type="button"
-                  disabled={busy || crateOpen}
+                  disabled={caseStakeLocked}
                   onClick={() => selectStake(stake)}
                   className={`hypnotic-stake-chip min-w-[4.5rem] rounded-lg border px-4 py-2.5 text-sm font-bold tabular-nums transition ${
                     chipSliding === stake ? "hypnotic-stake-chip--slide" : ""
@@ -408,11 +509,11 @@ export function HypnoticMorphFloor({
             {!crateResult ? (
               <button
                 type="button"
-                disabled={crateOpen || busy || balance < crateStake || !stakeDocked}
+                disabled={caseQueueFull || balance < crateStake || !stakeDocked}
                 onClick={openCrate}
                 className={`hypnotic-cta hypnotic-cta--case ${BTN} border-amber-400/45 bg-amber-500/20 text-amber-100 hover:bg-amber-500/30`}
               >
-                {crateOpen ? "Opening…" : `Open case · ${formatVibe(crateStake)} VIBE`}
+                {caseQueued > 0 ? `Open case (${caseQueued} queued)` : caseOpenLabel}
               </button>
             ) : (
               <button
@@ -431,9 +532,20 @@ export function HypnoticMorphFloor({
           className={`hypnotic-morph-panel hypnotic-morph-panel--wheel ${mode === "wheel" ? "hypnotic-morph-panel--focused" : ""}`}
           id="vibe-wheel"
         >
-          <p className="hypnotic-morph-panel__title text-[10px] font-semibold uppercase tracking-wider text-violet-300/90">
-            Daily wheel
-          </p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="hypnotic-morph-panel__title text-[10px] font-semibold uppercase tracking-wider text-violet-300/90">
+              Daily wheel
+            </p>
+            {cinemaPortal !== "wheel" && (
+              <button
+                type="button"
+                onClick={() => setCinemaPortal("wheel")}
+                className="rounded-md border border-violet-400/35 bg-violet-500/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-violet-200 hover:bg-violet-500/25"
+              >
+                Full screen
+              </button>
+            )}
+          </div>
           <LockerCasinoWheel
             rotation={wheelRotation}
             spinning={wheelSpinning}
@@ -474,15 +586,15 @@ export function HypnoticMorphFloor({
           <div className="mt-4 flex justify-center">
             <button
               type="button"
-              disabled={wheelSpinning || busy || (!freeSpinAvailable && balance < PAID_SPIN_COST)}
+              disabled={wheelQueueFull || (!freeSpinAvailable && balance < PAID_SPIN_COST)}
               onClick={spinWheel}
               className={`hypnotic-cta hypnotic-cta--wheel ${freeSpinAvailable ? "hypnotic-cta--magnet" : ""} ${BTN} border-violet-400/45 bg-violet-500/20 text-violet-100 hover:bg-violet-500/30`}
             >
-              {wheelSpinning
-                ? "Spinning…"
-                : freeSpinAvailable
-                  ? "Free daily spin"
-                  : `Spin · ${PAID_SPIN_COST} VIBE`}
+              {wheelQueued > 0
+                ? `Spin (${wheelQueued} queued)`
+                : wheelSpinning
+                  ? "Spinning…"
+                  : wheelSpinLabel}
             </button>
           </div>
         </section>
@@ -494,12 +606,12 @@ export function HypnoticMorphFloor({
           <p className="hypnotic-morph-panel__title text-[10px] font-semibold uppercase tracking-wider text-fuchsia-300/90">
             Plinko
           </p>
-          <HypnoticPlinkoPanel />
+          <HypnoticPlinkoPanel balance={balance} />
         </section>
       </div>
 
       <HypnoticCinemaOverlay
-        visible={cinemaActive}
+        visible={cinemaVisible}
         mode={cinemaMode}
         wheelRotation={wheelRotation}
         wheelSpinning={wheelSpinning}
@@ -509,6 +621,14 @@ export function HypnoticMorphFloor({
         caseTier={caseTier}
         crateOpen={crateOpen}
         onCaseRouletteDone={finishCrateOpen}
+        onExit={closeCinemaPortal}
+        queueHint={cinemaMode === "wheel" ? wheelQueueHint : caseQueueHint}
+        onWheelSpin={cinemaMode === "wheel" ? spinWheel : undefined}
+        onCaseOpen={cinemaMode === "case" ? openCrate : undefined}
+        wheelSpinDisabled={wheelQueueFull || (!freeSpinAvailable && balance < PAID_SPIN_COST)}
+        caseOpenDisabled={caseQueueFull || balance < crateStake || !stakeDocked}
+        wheelSpinLabel={wheelSpinLabel}
+        caseOpenLabel={caseOpenLabel}
       />
     </div>
   );

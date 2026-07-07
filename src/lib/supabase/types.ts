@@ -1483,6 +1483,37 @@ export interface Database {
         Args: { p_event_id: string };
         Returns: Record<string, unknown>;
       };
+      create_stream_watch_bet: {
+        Args: {
+          p_provider: string;
+          p_external_id: string;
+          p_question: string;
+          p_yes_label?: string;
+          p_no_label?: string;
+          p_stream_title?: string | null;
+        };
+        Returns: string;
+      };
+      get_stream_watch_bets: {
+        Args: {
+          p_provider: string;
+          p_external_id: string;
+          p_limit?: number;
+        };
+        Returns: {
+          bet_id: string;
+          market_id: string;
+          question: string;
+          yes_label: string;
+          no_label: string;
+          creator_name: string;
+          created_at: string;
+          market_status: string;
+          reserve_yes: number;
+          reserve_no: number;
+          yes_price: number;
+        }[];
+      };
       link_live_event_game: {
         Args: {
           p_event_id: string;

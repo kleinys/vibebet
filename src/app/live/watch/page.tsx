@@ -3,6 +3,7 @@ import { DiscoveredStreamWatchView } from "@/components/discovered-stream-watch-
 import { isEnabled } from "@/lib/feature-flags";
 import { getBalance } from "@/lib/ledger";
 import { createClient } from "@/lib/supabase/server";
+import { getStreamWatchBets } from "@/lib/stream-watch-bets";
 import { getWatchBetMarkets } from "@/lib/watch-bet-markets";
 
 export const revalidate = 0;
@@ -56,17 +57,24 @@ export default async function WatchDiscoveredStreamPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [betMarkets, vibeBalance, quickExitEnabled] = await Promise.all([
+  const [streamBets, otherMarkets, vibeBalance, quickExitEnabled] = await Promise.all([
+    getStreamWatchBets(
+      { provider, externalId: id, title },
+      user?.id ?? null,
+    ),
     getWatchBetMarkets({
       userId: user?.id ?? null,
       title,
       channel,
       game: game || undefined,
-      limit: 8,
+      limit: 6,
     }),
     user ? getBalance(user.id, "vibe") : Promise.resolve(0),
     isEnabled("quick_exit_enabled"),
   ]);
+
+  const streamBetIds = new Set(streamBets.map((b) => b.id));
+  const filteredOther = otherMarkets.filter((m) => !streamBetIds.has(m.id));
 
   return (
     <DiscoveredStreamWatchView
@@ -74,7 +82,9 @@ export default async function WatchDiscoveredStreamPage({
       title={title}
       channel={channel}
       provider={provider}
-      betMarkets={betMarkets}
+      streamExternalId={id}
+      streamBets={streamBets}
+      otherMarkets={filteredOther}
       vibeBalance={user ? vibeBalance : 0}
       quickExitEnabled={quickExitEnabled}
       signedIn={!!user}

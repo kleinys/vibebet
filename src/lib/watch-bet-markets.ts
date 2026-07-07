@@ -8,7 +8,7 @@ import { getMarket, getUserPosition, listMarkets } from "@/lib/markets";
 export type WatchBetMarket = {
   id: string;
   question: string;
-  tag: "Duel" | "Live" | "Trending";
+  tag: "Duel" | "Live" | "Trending" | "Stream";
   reserveYes: number;
   reserveNo: number;
   yesLabel: string;
@@ -17,6 +17,8 @@ export type WatchBetMarket = {
   noShares: number;
   totalCost: number;
   yesPrice: number;
+  creatorName?: string;
+  createdAt?: string;
 };
 
 function relevanceScore(
@@ -130,7 +132,7 @@ export async function getWatchBetMarkets(opts?: {
 
   return markets
     .sort((a, b) => {
-      const tagOrder = { Duel: 3, Live: 2, Trending: 1 };
+      const tagOrder = { Stream: 4, Duel: 3, Live: 2, Trending: 1 };
       const ta = tagOrder[a.tag];
       const tb = tagOrder[b.tag];
       if (ta !== tb) return tb - ta;

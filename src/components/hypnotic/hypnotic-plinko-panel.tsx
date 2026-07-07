@@ -1,420 +1,328 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { playPlinko } from "@/app/games/arcade/actions";
 import { CurrencyIconVibe } from "@/components/fantasy-icons";
+import {
+  createPlinkoPhysicsBall,
+  formatPlinkoMultiplier,
+  PLINKO_BALL_TTL_MS,
+  PLINKO_BATCH_GRACE_MS,
+  PLINKO_PEGS,
+  plinkoSlotsForRisk,
+  stepPlinkoPhysicsBall,
+  type PlinkoPhysicsBall,
+  type PlinkoRisk,
+} from "@/lib/plinko-board";
 import { formatVibe } from "@/lib/utils";
 
-const PLINKO_SLOTS = [
-  { multiplier: 0.2, color: "bg-rose-600", glow: "shadow-rose-500/50" },
-  { multiplier: 0.5, color: "bg-orange-500", glow: "shadow-orange-500/50" },
-  { multiplier: 1, color: "bg-amber-500", glow: "shadow-amber-500/50" },
-  { multiplier: 1.5, color: "bg-lime-500", glow: "shadow-lime-500/50" },
-  { multiplier: 3, color: "bg-emerald-400", glow: "shadow-emerald-400/60" },
-  { multiplier: 1.5, color: "bg-lime-500", glow: "shadow-lime-500/50" },
-  { multiplier: 1, color: "bg-amber-500", glow: "shadow-amber-500/50" },
-  { multiplier: 0.5, color: "bg-orange-500", glow: "shadow-orange-500/50" },
-  { multiplier: 0.2, color: "bg-rose-600", glow: "shadow-rose-500/50" },
-] as const;
+const MAX_ACTIVE_BALLS = 16;
 
-const MIN_FALL_MS = 1800;
-
-type Risk = "low" | "medium" | "high";
-
-type Ball = {
-  id: number;
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  active: boolean;
-  targetSlot: number;
-  startedAt: number;
+type PlinkoBoardProps = {
+  risk: PlinkoRisk;
+  balls: PlinkoPhysicsBall[];
+  lastSlot: number | null;
+  lastMessage: string | null;
+  variant?: "normal" | "cinema";
 };
 
-function slotCenterX(slot: number) {
-  const w = 100 / PLINKO_SLOTS.length;
-  return w * slot + w / 2;
+function PlinkoBoard({
+  risk,
+  balls,
+  lastSlot,
+  lastMessage,
+  variant = "normal",
+}: PlinkoBoardProps) {
+  const slots = useMemo(() => plinkoSlotsForRisk(risk), [risk]);
+  const activeCount = balls.filter((b) => b.active).length;
+
+  return (
+    <div
+      className={`hypnotic-plinko-panel__board hypnotic-plinko-panel__board--pyramid ${
+        variant === "cinema" ? "hypnotic-plinko-panel__board--cinema" : ""
+      }`}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 opacity-35"
+        style={{
+          background:
+            "radial-gradient(ellipse 65% 45% at 50% 88%, rgba(34,211,238,0.18), transparent 72%)",
+        }}
+      />
+
+      {PLINKO_PEGS.map((peg) => (
+        <div
+          key={`${peg.row}-${peg.col}`}
+          className="hypnotic-plinko-panel__peg"
+          style={{ left: `${peg.x}%`, top: `${peg.y}%` }}
+        />
+      ))}
+
+      {balls.map((ball) => (
+        <div
+          key={ball.id}
+          className={`hypnotic-plinko-panel__ball ${ball.active ? "hypnotic-plinko-panel__ball--active" : ""}`}
+          style={{ left: `${ball.x}%`, top: `${ball.y}%` }}
+        />
+      ))}
+
+      <div className="hypnotic-plinko-panel__slots">
+        {slots.map((slot, index) => (
+          <div
+            key={`${risk}-${index}`}
+            className={`hypnotic-plinko-panel__slot ${
+              lastSlot === index ? `${slot.color} ${slot.glow} hypnotic-plinko-panel__slot--hit` : ""
+            }`}
+          >
+            {formatPlinkoMultiplier(slot.multiplier)}
+          </div>
+        ))}
+      </div>
+
+      {lastMessage && activeCount === 0 && (
+        <div className="absolute left-1/2 top-2 max-w-[92%] -translate-x-1/2 rounded-lg border border-emerald-400/30 bg-black/70 px-3 py-1.5 text-center text-[10px] font-medium text-emerald-200">
+          {lastMessage}
+        </div>
+      )}
+
+      {activeCount > 1 && (
+        <div className="absolute right-2 top-2 rounded-md border border-white/10 bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-sky-200">
+          {activeCount} balls
+        </div>
+      )}
+    </div>
+  );
 }
 
-/**
- * Generate peg positions for a pyramid:
- * row 0: 1 peg, row 1: 2 pegs, ... row 7: 8 pegs.
- * Pegs are centered horizontally with 4% margins.
- */
-function getPegPositions() {
-  const rows = 8;
-  const leftMargin = 4;
-  const rightMargin = 4;
-  const usableWidth = 100 - leftMargin - rightMargin;
-  const positions: { x: number; y: number; row: number; col: number }[] = [];
+type ControlsProps = {
+  stake: number;
+  setStake: (n: number) => void;
+  risk: PlinkoRisk;
+  setRisk: (r: PlinkoRisk) => void;
+  onSend: () => void;
+  pendingCount: number;
+  activeBalls: number;
+  balance?: number;
+  onFullscreen?: () => void;
+  showFullscreen?: boolean;
+};
 
-  for (let row = 0; row < rows; row++) {
-    const numPegs = row + 1;
-    const y = 12 + row * 8; // same vertical spacing as before
-    if (numPegs === 1) {
-      positions.push({ x: 50, y, row, col: 0 });
-    } else {
-      const spacing = usableWidth / (numPegs - 1);
-      for (let col = 0; col < numPegs; col++) {
-        const x = leftMargin + col * spacing;
-        positions.push({ x, y, row, col });
-      }
-    }
+function PlinkoControls({
+  stake,
+  setStake,
+  risk,
+  setRisk,
+  onSend,
+  pendingCount,
+  activeBalls,
+  balance,
+  onFullscreen,
+  showFullscreen = true,
+}: ControlsProps) {
+  function adjustStake(mult: number) {
+    setStake(Math.max(10, Math.min(5000, Math.floor((Number(stake) || 50) * mult))));
   }
-  return positions;
+
+  const buttonLabel =
+    pendingCount > 0 ? `Sending… (${pendingCount})` : "Send Ball";
+
+  return (
+    <div className="hypnotic-plinko-panel__controls">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-bold text-sky-200">Plinko Ball Falling</p>
+        {showFullscreen && onFullscreen && (
+          <button
+            type="button"
+            onClick={onFullscreen}
+            className="rounded-md border border-violet-400/35 bg-violet-500/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-violet-200 hover:bg-violet-500/25"
+          >
+            Full screen
+          </button>
+        )}
+      </div>
+
+      <div className="mt-4">
+        <label className="text-[11px] font-semibold text-zinc-300">Ball Price</label>
+        <div className="mt-1.5 flex items-center gap-2">
+          <div className="flex flex-1 items-center gap-2 rounded-lg border border-white/10 bg-zinc-950/80 px-3 py-2">
+            <CurrencyIconVibe className="h-4 w-4 shrink-0" />
+            <input
+              type="number"
+              min={10}
+              max={5000}
+              value={stake}
+              onChange={(e) => setStake(Number(e.target.value))}
+              className="w-full bg-transparent text-sm font-bold tabular-nums text-white outline-none"
+            />
+          </div>
+          <button type="button" onClick={() => adjustStake(0.5)} className="rounded-lg border border-rose-500/40 bg-rose-600/80 px-2.5 py-2 text-xs font-bold text-white hover:bg-rose-500">½</button>
+          <button type="button" onClick={() => adjustStake(2)} className="rounded-lg border border-emerald-500/40 bg-emerald-600/80 px-2.5 py-2 text-xs font-bold text-white hover:bg-emerald-500">2×</button>
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <label className="text-[11px] font-semibold text-zinc-300">Risk</label>
+        <div className="mt-1.5 grid grid-cols-3 overflow-hidden rounded-lg border border-white/10">
+          {(["low", "medium", "high"] as const).map((r) => (
+            <button
+              key={r}
+              type="button"
+              onClick={() => setRisk(r)}
+              className={`py-2.5 text-xs font-bold capitalize transition ${
+                risk === r
+                  ? r === "low" ? "bg-emerald-500 text-white" : r === "medium" ? "bg-amber-400 text-zinc-900" : "bg-rose-500 text-white"
+                  : "bg-zinc-900/80 text-zinc-400 hover:bg-zinc-800"
+              }`}
+            >
+              {r}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <button
+        type="button"
+        onClick={onSend}
+        className="mt-5 w-full rounded-xl border border-emerald-400/50 bg-gradient-to-b from-lime-400 to-emerald-600 py-3.5 text-sm font-bold uppercase tracking-wide text-white shadow-[0_4px_0_rgba(21,128,61,0.8)] transition hover:brightness-110"
+      >
+        {buttonLabel}
+      </button>
+
+      {balance != null && (
+        <p className="mt-2 text-center text-[10px] text-amber-200/90">
+          Balance: {formatVibe(balance)} VIBE
+        </p>
+      )}
+    </div>
+  );
 }
 
-const PEG_POSITIONS = getPegPositions();
-
-export function HypnoticPlinkoPanel() {
-  const [pending, startTransition] = useTransition();
+export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
   const [stake, setStake] = useState(50);
-  const [risk, setRisk] = useState<Risk>("medium");
-  const [balls, setBalls] = useState<Ball[]>([]);
-  const [ballId, setBallId] = useState(0);
-  const [animating, setAnimating] = useState(false);
+  const [risk, setRisk] = useState<PlinkoRisk>("medium");
+  const [balls, setBalls] = useState<PlinkoPhysicsBall[]>([]);
+  const [pendingCount, setPendingCount] = useState(0);
   const [lastSlot, setLastSlot] = useState<number | null>(null);
   const [lastMessage, setLastMessage] = useState<string | null>(null);
+  const [cinemaOpen, setCinemaOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const ballsRef = useRef<Ball[]>([]);
+  const ballsRef = useRef<PlinkoPhysicsBall[]>([]);
   const rafRef = useRef<number>(0);
-  const lastTimeRef = useRef<number | null>(null);
-  const pendingResultRef = useRef<{ slot: number; message: string } | null>(null);
+  const ballIdRef = useRef(0);
+  const batchQueueRef = useRef<Array<{ id: number; slot: number; message: string }>>([]);
+  const batchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inFlightRef = useRef(0);
 
-  const clampedStake = useMemo(() => {
-    const n = Number(stake);
-    if (!Number.isFinite(n)) return 50;
-    return Math.max(10, Math.min(5000, Math.floor(n)));
-  }, [stake]);
+  const clampedStake = useMemo(() => Math.max(10, Math.min(5000, Math.floor(Number(stake) || 50))), [stake]);
+  const activeBalls = balls.filter((b) => b.active).length;
 
-  const syncBalls = useCallback((next: Ball[]) => {
+  const syncBalls = useCallback((next: PlinkoPhysicsBall[]) => {
     ballsRef.current = next;
     setBalls(next);
   }, []);
 
-  const finishDrop = useCallback(() => {
-    const pendingResult = pendingResultRef.current;
-    if (pendingResult) {
-      setLastSlot(pendingResult.slot);
-      setLastMessage(pendingResult.message);
-      toast.success(pendingResult.message);
-      pendingResultRef.current = null;
-    }
-    setAnimating(false);
+  useEffect(() => {
+    setMounted(true);
   }, []);
 
   useEffect(() => {
-    const tick = (now: number) => {
-      const current = ballsRef.current;
-      if (!current.some((b) => b.active)) {
-        rafRef.current = requestAnimationFrame(tick);
-        return;
-      }
-
-      if (!lastTimeRef.current) lastTimeRef.current = now;
-      const dt = Math.min(32, now - lastTimeRef.current);
-      lastTimeRef.current = now;
-
-      let anyActive = false;
-      const next = current.map((ball) => {
-        if (!ball.active) return ball;
-
-        const elapsed = now - ball.startedAt;
-        // Weaker steering to allow more natural bouncing
-        const steerStrength = elapsed < MIN_FALL_MS * 0.55 ? 0.0004 : 0.002;
-
-        let vx = ball.vx;
-        let vy = ball.vy + 0.045 * (dt / 16);
-        let x = ball.x + vx * (dt / 16);
-        let y = ball.y + vy * (dt / 16);
-
-        // Wall collisions
-        if (x < 2) {
-          x = 2;
-          vx = Math.abs(vx) * 0.8;
-        } else if (x > 98) {
-          x = 98;
-          vx = -Math.abs(vx) * 0.8;
-        }
-
-        // Pyramid peg collisions
-        const pegRadius = 2.4; // radius for collision
-        for (const peg of PEG_POSITIONS) {
-          const dx = x - peg.x;
-          const dy = y - peg.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < pegRadius) {
-            // Push ball away from peg center
-            const angle = Math.atan2(dy, dx);
-            const overlap = pegRadius - dist;
-            x += Math.cos(angle) * overlap * 1.2;
-            y += Math.sin(angle) * overlap * 1.2;
-
-            // Reflect velocity with some randomness
-            const speed = Math.sqrt(vx * vx + vy * vy);
-            if (speed > 0.1) {
-              // Normalize direction from peg to ball
-              const nx = Math.cos(angle);
-              const ny = Math.sin(angle);
-              // Dot product of velocity with normal
-              const vn = vx * nx + vy * ny;
-              if (vn < 0) {
-                // Reflect and add randomness
-                const restitution = 0.6 + Math.random() * 0.2;
-                vx -= (1 + restitution) * vn * nx;
-                vy -= (1 + restitution) * vn * ny;
-                // Add small random deflection
-                vx += (Math.random() - 0.5) * 0.3;
-                vy += (Math.random() - 0.5) * 0.1;
-                // Clamp to prevent explosion
-                const newSpeed = Math.sqrt(vx * vx + vy * vy);
-                if (newSpeed > 12) {
-                  vx = (vx / newSpeed) * 12;
-                  vy = (vy / newSpeed) * 12;
-                }
-              }
-            }
-            break; // only one peg collision per frame
+    const tick = () => {
+      const now = performance.now();
+      let changed = false;
+      const next = ballsRef.current
+        .map((ball) => {
+          if (!ball.active) return (ball.landedAt && now - ball.landedAt > PLINKO_BALL_TTL_MS) ? null : ball;
+          const landed = stepPlinkoPhysicsBall(ball);
+          changed = true;
+          if (landed && ball.message) {
+            setLastSlot(ball.targetSlot);
+            setLastMessage(ball.message);
+            toast.success(ball.message);
           }
-        }
-
-        // Gentle steering toward target slot (only horizontal)
-        const targetX = slotCenterX(ball.targetSlot);
-        vx += (targetX - x) * steerStrength;
-
-        const canLand = elapsed >= MIN_FALL_MS && y >= 74;
-        if (canLand) {
-          // Snap to target slot center and stop
-          return {
-            ...ball,
-            x: targetX,
-            y: 82,
-            vx: 0,
-            vy: 0,
-            active: false,
-          };
-        }
-
-        anyActive = true;
-        return { ...ball, x, y, vx, vy };
-      });
-
-      ballsRef.current = next;
-      setBalls(next);
-
-      if (!anyActive && current.some((b) => b.active)) {
-        finishDrop();
-      }
-
+          return ball;
+        })
+        .filter((b): b is PlinkoPhysicsBall => b != null);
+      if (changed) syncBalls(next);
       rafRef.current = requestAnimationFrame(tick);
     };
-
     rafRef.current = requestAnimationFrame(tick);
-    return () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      lastTimeRef.current = null;
-    };
-  }, [finishDrop]);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [syncBalls]);
 
-  function adjustStake(mult: number) {
-    setStake((s) => {
-      const n = Math.floor(Number(s) || 50);
-      return Math.max(10, Math.min(5000, Math.floor(n * mult)));
+  const flushBatch = useCallback(() => {
+    if (inFlightRef.current > 0) {
+      batchTimerRef.current = setTimeout(flushBatch, 40);
+      return;
+    }
+    if (batchQueueRef.current.length === 0) return;
+    const items = batchQueueRef.current.splice(0);
+    const dropAt = performance.now();
+    const newBalls = items.map(({ id, slot, message }) => {
+      const ball = createPlinkoPhysicsBall(id, slot, null);
+      ball.segmentStartAt = dropAt;
+      ball.message = message;
+      return ball;
     });
-  }
+    syncBalls([...ballsRef.current, ...newBalls]);
+  }, [syncBalls]);
 
-  function sendBall() {
-    if (animating || pending) return;
+  const enqueueBall = useCallback((item: { id: number; slot: number; message: string }) => {
+    batchQueueRef.current.push(item);
+    if (batchTimerRef.current) clearTimeout(batchTimerRef.current);
+    batchTimerRef.current = setTimeout(flushBatch, PLINKO_BATCH_GRACE_MS);
+  }, [flushBatch]);
 
-    setLastMessage(null);
-    setLastSlot(null);
-    pendingResultRef.current = null;
-    setAnimating(true);
-    lastTimeRef.current = null;
-
-    const id = ballId;
-    const startedAt = performance.now();
-    syncBalls([
-      ...ballsRef.current.filter((b) => b.active),
-      {
-        id,
-        x: 50,
-        y: 4,
-        vx: (Math.random() - 0.5) * 0.35,
-        vy: 0.2,
-        active: true,
-        targetSlot: 4,
-        startedAt,
-      },
-    ]);
-    setBallId((n) => n + 1);
-
-    startTransition(async () => {
-      const result = await playPlinko(clampedStake, risk);
-      if (result.error) {
-        syncBalls(ballsRef.current.filter((b) => b.id !== id));
-        setAnimating(false);
-        toast.error(result.error);
-        return;
-      }
-
-      const slot = result.slot ?? 4;
-      const message = result.ok ?? "Ball dropped!";
-      pendingResultRef.current = { slot, message };
-
-      syncBalls(
-        ballsRef.current.map((b) =>
-          b.id === id ? { ...b, targetSlot: slot } : b,
-        ),
-      );
+  const sendBall = useCallback(() => {
+    if (ballsRef.current.filter(b => b.active).length + batchQueueRef.current.length + inFlightRef.current >= MAX_ACTIVE_BALLS) {
+      toast.error(`Max ${MAX_ACTIVE_BALLS} balls in air.`);
+      return;
+    }
+    const id = ballIdRef.current++;
+    inFlightRef.current += 1;
+    setPendingCount(c => c + 1);
+    void playPlinko(clampedStake, risk).then(result => {
+      inFlightRef.current -= 1;
+      setPendingCount(c => c - 1);
+      if (result.error) toast.error(result.error);
+      else enqueueBall({ id, slot: result.slot ?? 6, message: result.ok ?? "Dropped!" });
     });
-  }
+  }, [clampedStake, risk, enqueueBall]);
 
-  const buttonLabel = pending
-    ? "Sending…"
-    : animating
-      ? "Dropping…"
-      : "Send Ball";
+  const gameBody = (
+    <div className="hypnotic-plinko-panel__layout">
+      <div className="hypnotic-plinko-panel__board-wrap">
+        <PlinkoBoard risk={risk} balls={balls} lastSlot={lastSlot} lastMessage={lastMessage} />
+      </div>
+      <PlinkoControls
+        stake={stake} setStake={setStake} risk={risk} setRisk={setRisk} onSend={sendBall}
+        pendingCount={pendingCount} activeBalls={activeBalls} balance={balance}
+        onFullscreen={() => setCinemaOpen(true)}
+      />
+    </div>
+  );
 
   return (
-    <div className="hypnotic-plinko-panel w-full max-w-4xl mx-auto px-2 sm:px-4">
-      <div className="hypnotic-plinko-panel__layout flex flex-col md:flex-row gap-4 sm:gap-6">
-        <div className="hypnotic-plinko-panel__board-wrap w-full md:w-7/12">
-          <div className="mb-2 flex items-center justify-between px-1">
-            <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-fuchsia-200/80">
-              Plinko · Ball Falling
-            </span>
-          </div>
-
-          <div className="hypnotic-plinko-panel__board relative aspect-[3/4] sm:aspect-square max-w-full h-auto min-h-[300px] md:min-h-[400px] lg:min-h-[500px] rounded-xl overflow-hidden bg-zinc-900/50 border border-zinc-700/50 shadow-xl">
-            <div
-              className="pointer-events-none absolute inset-0 opacity-40"
-              style={{
-                background:
-                  "radial-gradient(ellipse 70% 50% at 50% 100%, rgba(34,211,238,0.15), transparent 70%)",
-              }}
-            />
-
-            {/* Render pyramid pegs */}
-            {PEG_POSITIONS.map((peg, idx) => (
-              <div
-                key={idx}
-                className="absolute h-2 w-2 rounded-full bg-white/90 shadow-[0_0_8px_rgba(255,255,255,0.6)]"
-                style={{
-                  left: `${peg.x}%`,
-                  top: `${peg.y}%`,
-                  transform: "translate(-50%, -50%)",
-                }}
+    <div className="hypnotic-plinko-panel w-full">
+      {gameBody}
+      {mounted && cinemaOpen && createPortal(
+        <div className="hypnotic-plinko-cinema" role="dialog">
+          <div className="hypnotic-plinko-cinema__backdrop" onClick={() => setCinemaOpen(false)} />
+          <div className="hypnotic-plinko-cinema__shell">
+            <button className="hypnotic-plinko-cinema__exit" onClick={() => setCinemaOpen(false)}>Exit</button>
+            <div className="hypnotic-plinko-cinema__game">
+              <PlinkoBoard risk={risk} balls={balls} lastSlot={lastSlot} lastMessage={lastMessage} variant="cinema" />
+              <PlinkoControls
+                stake={stake} setStake={setStake} risk={risk} setRisk={setRisk} onSend={sendBall}
+                pendingCount={pendingCount} activeBalls={activeBalls} balance={balance} showFullscreen={false}
               />
-            ))}
-
-            {balls.map((ball) => (
-              <div
-                key={ball.id}
-                className={`absolute h-3.5 w-3.5 rounded-full bg-gradient-to-br from-lime-300 to-emerald-500 shadow-[0_0_12px_rgba(74,222,128,0.8)] transition-opacity ${ball.active ? "opacity-100" : "opacity-95"}`}
-                style={{
-                  left: `${ball.x}%`,
-                  top: `${ball.y}%`,
-                  transform: "translate(-50%, -50%)",
-                  zIndex: 10,
-                  willChange: ball.active ? "left, top" : undefined,
-                }}
-              />
-            ))}
-
-            <div className="absolute bottom-0 left-0 right-0 flex h-14 sm:h-16 gap-0.5 px-1 pb-1">
-              {PLINKO_SLOTS.map((slot, index) => (
-                <div
-                  key={index}
-                  className={`flex flex-1 items-end justify-center rounded-sm border border-black/30 pb-1 text-[8px] sm:text-[9px] font-bold text-white transition-all duration-300 ${
-                    lastSlot === index
-                      ? `${slot.color} ${slot.glow} scale-105 shadow-lg`
-                      : "bg-zinc-800/90"
-                  }`}
-                >
-                  {slot.multiplier}x
-                </div>
-              ))}
-            </div>
-
-            {lastMessage && !animating && (
-              <div className="absolute left-1/2 top-3 max-w-[90%] -translate-x-1/2 rounded-lg border border-emerald-400/30 bg-black/60 px-3 py-1.5 text-center text-[10px] sm:text-sm font-medium text-emerald-200">
-                {lastMessage}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="hypnotic-plinko-panel__controls w-full md:w-5/12">
-          <p className="text-center text-sm sm:text-base font-bold text-sky-200">Plinko Ball Falling</p>
-
-          <div className="mt-4">
-            <label className="text-[11px] sm:text-sm font-semibold text-zinc-300">Ball Price</label>
-            <div className="mt-1.5 flex items-center gap-2">
-              <div className="flex flex-1 items-center gap-2 rounded-lg border border-white/10 bg-zinc-950/80 px-3 py-2">
-                <CurrencyIconVibe className="h-4 w-4 shrink-0" />
-                <input
-                  type="number"
-                  min={10}
-                  max={5000}
-                  value={stake}
-                  onChange={(e) => setStake(Number(e.target.value))}
-                  className="w-full bg-transparent text-sm font-bold tabular-nums text-white outline-none"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => adjustStake(0.5)}
-                className="btn-responsive rounded-lg border border-rose-500/40 bg-rose-600/80 px-2.5 text-xs font-bold text-white hover:bg-rose-500 min-w-[40px]"
-              >
-                ½
-              </button>
-              <button
-                type="button"
-                onClick={() => adjustStake(2)}
-                className="btn-responsive rounded-lg border border-emerald-500/40 bg-emerald-600/80 px-2.5 text-xs font-bold text-white hover:bg-emerald-500 min-w-[40px]"
-              >
-                2×
-              </button>
             </div>
           </div>
-
-          <div className="mt-4">
-            <label className="text-[11px] sm:text-sm font-semibold text-zinc-300">Risk</label>
-            <div className="mt-1.5 grid grid-cols-3 overflow-hidden rounded-lg border border-white/10">
-              {(["low", "medium", "high"] as const).map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setRisk(r)}
-                  className={`py-2.5 text-xs font-bold capitalize transition ${
-                    risk === r
-                      ? r === "low"
-                        ? "bg-emerald-500 text-white"
-                        : r === "medium"
-                          ? "bg-amber-400 text-zinc-900"
-                          : "bg-rose-500 text-white"
-                      : "bg-zinc-900/80 text-zinc-400 hover:bg-zinc-800"
-                  }`}
-                >
-                  {r}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <button
-            type="button"
-            disabled={pending || animating}
-            onClick={sendBall}
-            className="mt-5 w-full btn-responsive rounded-xl border border-emerald-400/50 bg-gradient-to-b from-lime-400 to-emerald-600 text-sm font-bold uppercase tracking-wide text-white shadow-[0_4px_0_rgba(21,128,61,0.8)] transition hover:brightness-110 disabled:opacity-50"
-          >
-            {buttonLabel}
-          </button>
-        </div>
-      </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

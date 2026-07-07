@@ -62,29 +62,75 @@ const COUNTRY_ISO: Record<string, string> = {
   wales: "gb-wls",
 };
 
-/** Keywords → icon URL (simple, license-friendly sources). */
-const ENTITY_ICONS: Array<{ pattern: RegExp; url: string }> = [
-  { pattern: /\bbitcoin\b|\bbtc\b/i, url: "https://cryptologos.cc/logos/bitcoin-btc-logo.png" },
-  { pattern: /\bethereum\b|\beth\b/i, url: "https://cryptologos.cc/logos/ethereum-eth-logo.png" },
-  { pattern: /\bsolana\b|\bsol\b/i, url: "https://cryptologos.cc/logos/solana-sol-logo.png" },
-  { pattern: /\bspacex\b|\bstarship\b|\bfalcon\b/i, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/SpaceX-Logo.svg/240px-SpaceX-Logo.svg.png" },
-  { pattern: /\btesla\b/i, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Tesla_Motors.svg/240px-Tesla_Motors.svg.png" },
-  { pattern: /\bapple\b|\biphone\b|\bios\b/i, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/240px-Apple_logo_black.svg.png" },
-  { pattern: /\bgoogle\b|\balphabet\b/i, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/240px-Google_2015_logo.svg.png" },
-  { pattern: /\bmeta\b|\bfacebook\b|\binstagram\b/i, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Meta-Logo.png/240px-Meta-Logo.png" },
-  { pattern: /\btiktok\b/i, url: "https://upload.wikimedia.org/wikipedia/en/thumb/a/a9/TikTok_logo.svg/240px-TikTok_logo.svg.png" },
-  { pattern: /\bnvidia\b/i, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Nvidia_logo.svg/240px-Nvidia_logo.svg.png" },
-  { pattern: /\bopenai\b|\bchatgpt\b|\bgpt\b/i, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/OpenAI_Logo.svg/240px-OpenAI_Logo.svg.png" },
-  { pattern: /\bgta\b|\brockstar\b|\bgrand theft auto\b/i, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Rockstar_Games_Logo.svg/240px-Rockstar_Games_Logo.svg.png" },
-  { pattern: /\blakers\b|\blos angeles lakers\b/i, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Los_Angeles_Lakers_logo.svg/240px-Los_Angeles_Lakers_logo.svg.png" },
-  { pattern: /\bceltics\b|\bboston celtics\b/i, url: "https://upload.wikimedia.org/wikipedia/en/thumb/8/8f/Boston_Celtics.svg/240px-Boston_Celtics.svg.png" },
-  { pattern: /\bwarriors\b|\bgolden state\b/i, url: "https://upload.wikimedia.org/wikipedia/en/thumb/0/01/Golden_State_Warriors_logo.svg/240px-Golden_State_Warriors_logo.svg.png" },
-  { pattern: /\btrump\b|\bdonald trump\b/i, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Donald_Trump_official_portrait.jpg/240px-Donald_Trump_official_portrait.jpg" },
-  { pattern: /\bbiden\b|\bjoe biden\b/i, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Joe_Biden_presidential_portrait.jpg/240px-Joe_Biden_presidential_portrait.jpg" },
-  { pattern: /\belon\b|\bmusk\b/i, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Elon_Musk_Royal_Society_%28crop2%29.jpg/240px-Elon_Musk_Royal_Society_%28crop2%29.jpg" },
-  { pattern: /\bufc\b|\bmma\b/i, url: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/UFC_Logo.svg/240px-UFC_Logo.svg.png" },
-  { pattern: /\bfifa\b|\bworld cup\b/i, url: "https://upload.wikimedia.org/wikipedia/en/thumb/6/67/2022_FIFA_World_Cup.svg/240px-2022_FIFA_World_Cup.svg.png" },
+/** Keywords → generated badge art (always local — no hotlink failures). */
+const ENTITY_BADGES: Array<{ pattern: RegExp; label: string; accent: string }> = [
+  { pattern: /\bbitcoin\b|\bbtc\b/i, label: "BTC", accent: "#f59e0b" },
+  { pattern: /\bethereum\b|\beth\b/i, label: "ETH", accent: "#6366f1" },
+  { pattern: /\bsolana\b|\bsol\b/i, label: "SOL", accent: "#14b8a6" },
+  { pattern: /\bspacex\b|\bstarship\b|\bfalcon\b/i, label: "SX", accent: "#0ea5e9" },
+  { pattern: /\btesla\b/i, label: "TSLA", accent: "#ef4444" },
+  { pattern: /\bapple\b|\biphone\b|\bios\b|\bfoldable\b/i, label: "AAPL", accent: "#a3a3a3" },
+  { pattern: /\bgoogle\b|\balphabet\b/i, label: "GOOG", accent: "#38bdf8" },
+  { pattern: /\bmeta\b|\bfacebook\b|\binstagram\b/i, label: "META", accent: "#3b82f6" },
+  { pattern: /\btiktok\b/i, label: "TT", accent: "#f472b6" },
+  { pattern: /\bnvidia\b/i, label: "NVDA", accent: "#84cc16" },
+  { pattern: /\bopenai\b|\bchatgpt\b|\bgpt-?5\b|\bgpt\b/i, label: "AI", accent: "#10b981" },
+  { pattern: /\bgta\b|\brockstar\b|\bgrand theft auto\b/i, label: "GTA", accent: "#f97316" },
+  { pattern: /\blakers\b|\blos angeles lakers\b/i, label: "LAL", accent: "#a855f7" },
+  { pattern: /\bceltics\b|\bboston celtics\b/i, label: "BOS", accent: "#22c55e" },
+  { pattern: /\bwarriors\b|\bgolden state\b/i, label: "GSW", accent: "#fbbf24" },
+  { pattern: /\btrump\b|\bdonald trump\b/i, label: "US", accent: "#dc2626" },
+  { pattern: /\bbiden\b|\bjoe biden\b/i, label: "US", accent: "#2563eb" },
+  { pattern: /\belon\b|\bmusk\b/i, label: "EM", accent: "#64748b" },
+  { pattern: /\bufc\b|\bmma\b/i, label: "UFC", accent: "#ef4444" },
+  { pattern: /\bfifa\b|\bworld cup\b/i, label: "WC", accent: "#22d3ee" },
+  { pattern: /\bfed\b|\brate cut\b|\bfederal reserve\b/i, label: "FED", accent: "#14b8a6" },
+  { pattern: /\boscar\b|\bacademy award\b/i, label: "OSC", accent: "#eab308" },
+  { pattern: /\brecession\b|\bgdp\b/i, label: "GDP", accent: "#f43f5e" },
+  { pattern: /\btemperature\b|\bclimate\b/i, label: "CLM", accent: "#06b6d4" },
 ];
+
+function isLikelyBrokenImageUrl(url: string): boolean {
+  const trimmed = url.trim();
+  if (!trimmed) return true;
+  if (trimmed.startsWith("data:")) return false;
+  try {
+    const parsed = new URL(trimmed);
+    if (!["http:", "https:"].includes(parsed.protocol)) return true;
+    if (parsed.hostname === "localhost") return true;
+    return false;
+  } catch {
+    return true;
+  }
+}
+
+function detectEntityBadge(question: string): { label: string; accent: string } | null {
+  for (const { pattern, label, accent } of ENTITY_BADGES) {
+    if (pattern.test(question)) return { label, accent };
+  }
+  return null;
+}
+
+function entityBadgeSvg(question: string, category: string, badge: { label: string; accent: string }): string {
+  const palette = CATEGORY_PALETTE[category] ?? CATEGORY_PALETTE.other;
+  const [c1, c2] = palette;
+  const title = escapeSvg(question.trim().slice(0, 28) || "Market");
+  const svg = `
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="${c1}"/>
+      <stop offset="1" stop-color="${c2}"/>
+    </linearGradient>
+  </defs>
+  <rect width="96" height="96" rx="14" fill="url(#g)"/>
+  <circle cx="48" cy="40" r="22" fill="rgba(0,0,0,0.32)"/>
+  <circle cx="48" cy="40" r="18" fill="${badge.accent}"/>
+  <text x="48" y="45" text-anchor="middle" font-size="13" font-weight="800" fill="#0f172a">${escapeSvg(badge.label)}</text>
+  <text x="10" y="78" font-size="8" fill="rgba(255,255,255,0.82)">${title}</text>
+</svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
 
 const CATEGORY_PALETTE: Record<string, [string, string, string]> = {
   politics: ["#6366f1", "#312e81", "#c4b5fd"],
@@ -118,11 +164,10 @@ function detectCountryFlag(question: string): string | null {
   return null;
 }
 
-function detectEntityIcon(question: string): string | null {
-  for (const { pattern, url } of ENTITY_ICONS) {
-    if (pattern.test(question)) return url;
-  }
-  return null;
+function detectEntityIcon(question: string, category: string): string | null {
+  const badge = detectEntityBadge(question);
+  if (!badge) return null;
+  return entityBadgeSvg(question, category, badge);
 }
 
 function escapeSvg(value: string): string {
@@ -168,16 +213,17 @@ function categoryPlaceholderSvg(question: string, category: string): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
-/** Best image for a market card: stored URL → entity flag/logo → distinct category art. */
+/** Best image for a market card: entity badge → flag → distinct category art (skip broken stored URLs). */
 export function resolveMarketImage(opts: {
   question: string;
   category: string;
   imageUrl?: string | null;
 }): string {
-  if (opts.imageUrl?.trim()) return opts.imageUrl.trim();
+  const stored = opts.imageUrl?.trim();
+  if (stored && !isLikelyBrokenImageUrl(stored)) return stored;
   return (
     detectCountryFlag(opts.question) ??
-    detectEntityIcon(opts.question) ??
+    detectEntityIcon(opts.question, opts.category) ??
     categoryPlaceholderSvg(opts.question, opts.category)
   );
 }
