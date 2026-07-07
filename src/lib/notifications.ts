@@ -1,4 +1,5 @@
 import "server-only";
+import type { Route } from "next";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 
@@ -40,7 +41,7 @@ export async function listNotifications(
  * Generate the in-app deep link for a notification. Falls back to /account
  * if `data` is missing the relevant id.
  */
-export function notificationHref(n: NotificationRow): string {
+export function notificationHref(n: NotificationRow): Route {
   const data = n.data as {
     market_id?: string;
     comment_id?: string;
@@ -52,8 +53,8 @@ export function notificationHref(n: NotificationRow): string {
     (n.kind === "dispute_opened" || n.kind === "dispute_resolved") &&
     data.dispute_id
   ) {
-    return `/court/${data.dispute_id}`;
+    return `/court/${data.dispute_id}` as Route;
   }
-  if (data.market_id) return `/markets/${data.market_id}`;
+  if (data.market_id) return `/markets/${data.market_id}` as Route;
   return "/account/notifications";
 }

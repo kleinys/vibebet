@@ -47,8 +47,7 @@ export default async function HomePage() {
     }
   }
 
-  // Fetch all market data in parallel to reduce total loading time
-  const marketPromises = [
+  const [mirrors, official, hot, breaking, recent, community, multi] = await Promise.all([
     listMarkets({
       status: "open",
       source: "polymarket_mirror",
@@ -66,9 +65,7 @@ export default async function HomePage() {
     listMarkets({ status: "open", sort: "new", limit: 6, excludeSource: "community" }),
     listMarkets({ status: "open", source: "community", sort: "new", limit: 4 }),
     listCategoricalMarkets({ status: "open", limit: 4 }),
-  ];
-
-  const [mirrors, official, hot, breaking, recent, community, multi] = await Promise.all(marketPromises);
+  ]);
 
   const featured =
     mirrors[0] ??

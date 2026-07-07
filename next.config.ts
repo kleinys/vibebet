@@ -31,8 +31,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Move typedRoutes out of experimental
-  typedRoutes: true,
   // Optimize webpack bundles
   webpack: (config, { isServer }) => {
     if (!isServer) {
