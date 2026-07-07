@@ -2099,7 +2099,7 @@ body {
 
 .hypnotic-plinko-panel__board {
   position: relative;
-  height: 360px;
+  height: 400px;
   overflow: hidden;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2114,8 +2114,8 @@ body {
 
 .hypnotic-plinko-panel__peg {
   position: absolute;
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   transform: translate(-50%, -50%);
   background: radial-gradient(circle at 35% 30%, #ffffff, #cbd5e1 55%, #64748b);
@@ -2162,11 +2162,11 @@ body {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding-bottom: 4px;
+  padding-bottom: 3px;
   border-radius: 3px 3px 5px 5px;
   border: 1px solid rgba(0, 0, 0, 0.45);
   background: rgba(24, 24, 27, 0.92);
-  font-size: 8px;
+  font-size: 7px;
   font-weight: 800;
   color: #fafafa;
   line-height: 1;

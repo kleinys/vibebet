@@ -7,6 +7,7 @@ import { CurrencyIconVibe } from "@/components/fantasy-icons";
 import {
   buildPlinkoDropPath,
   buildPlinkoPegs,
+  formatPlinkoMultiplier,
   plinkoSlotsForRisk,
   samplePlinkoPath,
   type PlinkoPoint,
@@ -14,7 +15,7 @@ import {
 } from "@/lib/plinko-board";
 import { formatVibe } from "@/lib/utils";
 
-const DROP_DURATION_MS = 2600;
+const DROP_DURATION_MS = 3200;
 const PEGS = buildPlinkoPegs();
 
 type Ball = {
@@ -134,7 +135,7 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
         return;
       }
 
-      const slot = result.slot ?? 4;
+      const slot = result.slot ?? 5;
       const message = result.ok ?? "Ball dropped!";
       pendingResultRef.current = { slot, message };
 
@@ -220,7 +221,7 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
                       : ""
                   }`}
                 >
-                  {slot.multiplier}x
+                  {formatPlinkoMultiplier(slot.multiplier)}
                 </div>
               ))}
             </div>
@@ -291,10 +292,10 @@ export function HypnoticPlinkoPanel({ balance }: { balance?: number }) {
             </div>
             <p className="mt-1.5 text-[10px] text-zinc-500">
               {risk === "low"
-                ? "Safer bins — center up to 1.5×"
+                ? "Safer curve — edges up to 3×, center 0.5×"
                 : risk === "high"
-                  ? "Volatile — center jackpot 5×"
-                  : "Balanced — center 3×"}
+                  ? "Volatile — edges 10×, center 0.1×"
+                  : "Classic — edges 5×, center 0.1×"}
             </p>
           </div>
 
