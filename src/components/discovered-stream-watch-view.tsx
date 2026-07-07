@@ -2,18 +2,32 @@
 
 import Link from "next/link";
 import { StreamEmbed } from "@/components/stream-embed";
+import { WatchBetSidebar } from "@/components/watch-bet-sidebar";
 import { streamProviderLabel, type StreamProvider } from "@/lib/stream-url";
+import type { WatchBetMarket } from "@/lib/watch-bet-markets";
 
 export function DiscoveredStreamWatchView({
   watchUrl,
   title,
   channel,
   provider,
+  betMarkets,
+  vibeBalance,
+  quickExitEnabled,
+  signedIn,
+  loginNext,
+  defaultMarketId,
 }: {
   watchUrl: string;
   title: string;
   channel: string;
   provider: string;
+  betMarkets: WatchBetMarket[];
+  vibeBalance: number;
+  quickExitEnabled: boolean;
+  signedIn: boolean;
+  loginNext: string;
+  defaultMarketId?: string | null;
 }) {
   const label =
     provider in { youtube: 1, twitch: 1, kick: 1 }
@@ -21,7 +35,7 @@ export function DiscoveredStreamWatchView({
       : provider;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
       <Link href="/live" className="text-xs text-zinc-500 hover:text-zinc-300">
         ← Watch hub
       </Link>
@@ -42,14 +56,30 @@ export function DiscoveredStreamWatchView({
         </Link>
       </div>
 
-      <div className="mt-6">
-        <StreamEmbed streamUrl={watchUrl} title={title} className="shadow-[0_20px_60px_rgba(0,0,0,0.45)]" />
-      </div>
+      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(280px,340px)_1fr]">
+        <aside className="order-2 lg:order-1 lg:sticky lg:top-20 lg:self-start">
+          <WatchBetSidebar
+            markets={betMarkets}
+            vibeBalance={vibeBalance}
+            quickExitEnabled={quickExitEnabled}
+            signedIn={signedIn}
+            loginNext={loginNext}
+            defaultMarketId={defaultMarketId}
+          />
+        </aside>
 
-      <p className="mt-4 text-xs text-zinc-500">
-        Stream plays here — no jump to YouTube, Twitch, or Kick. When you ship the native app, this
-        same embed shell becomes the in-app player.
-      </p>
+        <div className="order-1 min-w-0 lg:order-2">
+          <StreamEmbed
+            streamUrl={watchUrl}
+            title={title}
+            className="shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
+          />
+          <p className="mt-4 text-xs text-zinc-500">
+            Stream plays here — no jump to YouTube, Twitch, or Kick. Bet on the left while you
+            watch; markets resolve on Vibebet when outcomes are known.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
