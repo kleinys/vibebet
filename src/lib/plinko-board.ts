@@ -171,7 +171,7 @@ function easeInQuad(t: number): number {
   return t * t;
 }
 
-export const PLINKO_BOUNCE_MS = 30;
+export const PLINKO_BOUNCE_MS = 120;
 
 export function stepPlinkoPhysicsBall(ball: PlinkoPhysicsBall): boolean {
   if (!ball.active) return false;
