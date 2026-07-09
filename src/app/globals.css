@@ -2019,11 +2019,24 @@ body {
     grid-template-columns: 1fr 1fr;
     align-items: start;
   }
+
+  .hypnotic-morph-panel--plinko {
+    grid-column: 1 / -1;
+  }
+
+  .hypnotic-morph-panel--plinko .hypnotic-plinko-board {
+    max-width: 42rem;
+    margin-inline: auto;
+  }
+
+  .hypnotic-morph-panel--plinko .hypnotic-plinko-board__canvas {
+    height: 420px;
+  }
 }
 
 @media (min-width: 1280px) {
   .hypnotic-morph-floor__grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -2193,11 +2206,11 @@ body {
 }
 
 .hypnotic-plinko-board--cinema .hypnotic-plinko-board__canvas {
-  height: min(62vh, 560px);
+  height: min(68vh, 600px);
 }
 
 .hypnotic-cinema-overlay__plinko {
-  width: min(100%, 42rem);
+  width: min(100%, 44rem);
   margin: 0 auto;
 }
 
