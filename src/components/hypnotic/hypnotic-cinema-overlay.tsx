@@ -68,7 +68,7 @@ export function HypnoticCinemaOverlay({
   onPlinkoBalanceChange?: (balance: number) => void;
   crateStake?: (typeof CRATE_STAKES)[number];
   stakeDocked?: boolean;
-  recommendedStake?: (typeof CRATE_STAKES)[number];
+  recommendedStake?: number | null;
   caseStakeLocked?: boolean;
   chipSliding?: number | null;
   onSelectStake?: (stake: (typeof CRATE_STAKES)[number]) => void;
