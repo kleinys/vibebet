@@ -15,7 +15,12 @@ import {
   type PlinkoBoardLayout,
   type PlinkoRisk,
 } from "@/lib/plinko-board";
-import { pathForSlot, pointAlongWaypoints, waypointsForPath } from "@/lib/plinko-path";
+import {
+  pathForSlot,
+  pointAlongWaypoints,
+  type PlinkoWaypoint,
+  waypointsForPath,
+} from "@/lib/plinko-path";
 
 const BTN =
   "rounded-sm border px-3 py-2 text-[10px] font-semibold uppercase tracking-wider transition disabled:opacity-50";
@@ -28,6 +33,14 @@ export type PlinkoPlayResult = {
   payout: number;
   net: number;
   newBalance: number;
+};
+
+type ActivePlinkoBall = {
+  id: number;
+  waypoints: PlinkoWaypoint[];
+  startedAt: number;
+  ballRadius: number;
+  targetSlot: number;
 };
 
 export function HypnoticPlinkoBoard({
@@ -43,26 +56,29 @@ export function HypnoticPlinkoBoard({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const layoutRef = useRef<PlinkoBoardLayout | null>(null);
   const rafRef = useRef<number | null>(null);
-  const dropAliveRef = useRef(true);
-
-  const ballRef = useRef<PlinkoBallState | null>(null);
-  const highlightRef = useRef<number | null>(null);
+  const mountedRef = useRef(true);
+  const animLoopRef = useRef(false);
+  const nextBallIdRef = useRef(0);
+  const activeBallsRef = useRef<ActivePlinkoBall[]>([]);
   const riskRef = useRef<PlinkoRisk>("medium");
+  const balanceRef = useRef(balance);
+  const pendingRpcRef = useRef(0);
 
   const [stake, setStake] = useState(50);
   const [risk, setRisk] = useState<PlinkoRisk>("medium");
-  const [dropping, setDropping] = useState(false);
+  const [pendingRpc, setPendingRpc] = useState(0);
+  const [activeDrops, setActiveDrops] = useState(0);
   const [lastResult, setLastResult] = useState<PlinkoPlayResult | null>(null);
-  const [highlightSlot, setHighlightSlot] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const clampedStake = useMemo(() => clampPlinkoStake(stake), [stake]);
   const isCinema = variant === "cinema";
-  const controlsLocked = dropping;
+  const canBet = balance >= clampedStake;
+  const queueCount = pendingRpc + activeDrops;
 
   riskRef.current = risk;
+  balanceRef.current = balance;
 
   const paintFrame = useCallback(() => {
     const canvas = canvasRef.current;
@@ -82,33 +98,59 @@ export function HypnoticPlinkoBoard({
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     const layout = computePlinkoLayout(width, height);
-    if (!dropAliveRef.current) {
-      layoutRef.current = layout;
+    const now = performance.now();
+
+    const ballsOnCanvas: PlinkoBallState[] = [];
+    const highlightSlots: number[] = [];
+
+    for (const ball of activeBallsRef.current) {
+      const progress = Math.min(1, (now - ball.startedAt) / DROP_MS);
+      const pos = pointAlongWaypoints(ball.waypoints, progress);
+      ballsOnCanvas.push({ x: pos.x, y: pos.y, radius: ball.ballRadius });
+      if (progress >= 0.98) highlightSlots.push(ball.targetSlot);
     }
 
-    drawPlinkoBoard(
-      ctx,
-      layout,
-      riskRef.current,
-      ballRef.current,
-      highlightRef.current,
-    );
+    drawPlinkoBoard(ctx, layout, riskRef.current, ballsOnCanvas, highlightSlots);
   }, []);
+
+  const ensureAnimLoop = useCallback(() => {
+    if (animLoopRef.current || !mountedRef.current) return;
+    animLoopRef.current = true;
+
+    const tick = (now: number) => {
+      if (!mountedRef.current) {
+        animLoopRef.current = false;
+        return;
+      }
+
+      activeBallsRef.current = activeBallsRef.current.filter(
+        (ball) => (now - ball.startedAt) / DROP_MS < 1,
+      );
+      setActiveDrops(activeBallsRef.current.length);
+      paintFrame();
+
+      if (activeBallsRef.current.length > 0) {
+        rafRef.current = requestAnimationFrame(tick);
+      } else {
+        animLoopRef.current = false;
+      }
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+  }, [paintFrame]);
 
   useEffect(() => {
     paintFrame();
     const wrap = wrapRef.current;
     if (!wrap) return;
-    const ro = new ResizeObserver(() => {
-      if (!dropAliveRef.current) paintFrame();
-    });
+    const ro = new ResizeObserver(() => paintFrame());
     ro.observe(wrap);
     return () => ro.disconnect();
   }, [paintFrame, variant, risk]);
 
   useEffect(() => {
     return () => {
-      dropAliveRef.current = false;
+      mountedRef.current = false;
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
     };
   }, []);
@@ -117,62 +159,18 @@ export function HypnoticPlinkoBoard({
     const canvas = canvasRef.current;
     const width = canvas?.clientWidth ?? 400;
     const height = canvas?.clientHeight ?? 340;
-    const layout = computePlinkoLayout(width, height);
-    layoutRef.current = layout;
-    return layout;
+    return computePlinkoLayout(width, height);
   }
 
-  async function animateDrop(
-    layout: PlinkoBoardLayout,
-    waypoints: { x: number; y: number }[],
-    ballRadius: number,
-    targetSlot: number,
-  ): Promise<void> {
-    dropAliveRef.current = true;
-    ballRef.current = null;
-    highlightRef.current = null;
-    const started = performance.now();
-
-    return new Promise((resolve) => {
-      const tick = (now: number) => {
-        if (!dropAliveRef.current) {
-          resolve();
-          return;
-        }
-
-        const progress = Math.min(1, (now - started) / DROP_MS);
-        const pos = pointAlongWaypoints(waypoints, progress);
-        ballRef.current = { x: pos.x, y: pos.y, radius: ballRadius };
-        paintFrame();
-
-        if (progress < 1) {
-          rafRef.current = requestAnimationFrame(tick);
-        } else {
-          highlightRef.current = targetSlot;
-          paintFrame();
-          resolve();
-        }
-      };
-      rafRef.current = requestAnimationFrame(tick);
-    });
-  }
-
-  async function dropBall() {
-    if (dropping || balance < clampedStake) return;
-
-    setDropping(true);
-    setLastResult(null);
-    setHighlightSlot(null);
-    highlightRef.current = null;
-    ballRef.current = null;
-    setError(null);
-    paintFrame();
+  async function runDrop(stakeAmount: number, riskLevel: PlinkoRisk) {
+    pendingRpcRef.current += 1;
+    setPendingRpc(pendingRpcRef.current);
 
     try {
       const supabase = createClient();
       const { data, error: rpcError } = await supabase.rpc("play_plinko", {
-        p_stake: clampedStake,
-        p_risk: risk,
+        p_stake: stakeAmount,
+        p_risk: riskLevel,
       });
       if (rpcError) throw rpcError;
 
@@ -187,19 +185,25 @@ export function HypnoticPlinkoBoard({
         newBalance: Number(row.new_balance),
       };
 
+      if (!mountedRef.current) return;
+
       const layout = snapshotLayout();
       const path = pathForSlot(result.slotIndex, PLINKO_ROW_COUNT);
       const waypoints = waypointsForPath(path, layout, result.slotIndex);
       const ballRadius = Math.max(5, layout.pegRadius * 1.6);
 
-      await animateDrop(layout, waypoints, ballRadius, result.slotIndex);
+      activeBallsRef.current.push({
+        id: nextBallIdRef.current++,
+        waypoints,
+        startedAt: performance.now(),
+        ballRadius,
+        targetSlot: result.slotIndex,
+      });
+      setActiveDrops(activeBallsRef.current.length);
 
-      if (!dropAliveRef.current) return;
-
-      dropAliveRef.current = false;
-      setHighlightSlot(result.slotIndex);
       onBalanceChange?.(result.newBalance);
       setLastResult(result);
+      ensureAnimLoop();
 
       const netLabel =
         result.net >= 0
@@ -209,23 +213,28 @@ export function HypnoticPlinkoBoard({
         `Landed ${result.multiplier}× · ${formatVibe(result.payout)} VIBE (${netLabel})`,
       );
     } catch (err) {
-      if (!dropAliveRef.current) return;
+      if (!mountedRef.current) return;
       const message = err instanceof Error ? err.message : "Plinko bet failed";
       setError(message);
       toast.error(message);
-      ballRef.current = null;
-      highlightRef.current = null;
       paintFrame();
     } finally {
-      dropAliveRef.current = false;
-      setDropping(false);
+      pendingRpcRef.current = Math.max(0, pendingRpcRef.current - 1);
+      setPendingRpc(pendingRpcRef.current);
     }
   }
 
+  function dropBall() {
+    if (balanceRef.current < clampedStake) return;
+    setError(null);
+    void runDrop(clampedStake, risk);
+  }
+
   function adjustStake(delta: number) {
-    if (controlsLocked) return;
     setStake((prev) => clampPlinkoStake(prev + delta));
   }
+
+  const queueLabel = queueCount > 0 ? `${queueCount} dropping` : null;
 
   return (
     <div
@@ -245,7 +254,7 @@ export function HypnoticPlinkoBoard({
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
-              void dropBall();
+              dropBall();
             }
           }}
         />
@@ -257,7 +266,7 @@ export function HypnoticPlinkoBoard({
         </p>
       )}
 
-      {(lastResult && !dropping) && (
+      {lastResult && (
         <p className="text-center text-[11px] text-zinc-400">
           Last drop:{" "}
           <span className="font-semibold text-violet-200">{lastResult.multiplier}×</span>
@@ -267,6 +276,9 @@ export function HypnoticPlinkoBoard({
             {lastResult.net >= 0 ? "+" : ""}
             {formatVibe(lastResult.net)} VIBE
           </span>
+          {queueLabel && (
+            <span className="text-zinc-500"> · {queueLabel}</span>
+          )}
         </p>
       )}
 
@@ -276,7 +288,6 @@ export function HypnoticPlinkoBoard({
           <div className="hypnotic-plinko-board__stepper">
             <button
               type="button"
-              disabled={controlsLocked}
               onClick={() => adjustStake(-10)}
               aria-label="Decrease bet"
             >
@@ -288,7 +299,6 @@ export function HypnoticPlinkoBoard({
             </div>
             <button
               type="button"
-              disabled={controlsLocked}
               onClick={() => adjustStake(10)}
               aria-label="Increase bet"
             >
@@ -309,7 +319,6 @@ export function HypnoticPlinkoBoard({
               <button
                 key={level}
                 type="button"
-                disabled={controlsLocked}
                 onClick={() => setRisk(level)}
                 className={risk === level ? "is-active" : ""}
               >
@@ -321,11 +330,11 @@ export function HypnoticPlinkoBoard({
 
         <button
           type="button"
-          disabled={controlsLocked || balance < clampedStake}
-          onClick={() => void dropBall()}
+          disabled={!canBet}
+          onClick={dropBall}
           className="hypnotic-plinko-board__bet-cta"
         >
-          {dropping ? "Dropping…" : "Bet"}
+          {queueLabel ? `Bet (${queueLabel})` : "Bet"}
         </button>
       </div>
 
@@ -334,7 +343,7 @@ export function HypnoticPlinkoBoard({
           <button
             key={preset}
             type="button"
-            disabled={controlsLocked || balance < preset}
+            disabled={balance < preset}
             onClick={() => setStake(preset)}
             className={`${BTN} tabular-nums ${
               clampedStake === preset

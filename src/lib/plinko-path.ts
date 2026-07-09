@@ -80,6 +80,13 @@ export function easeOutCubic(t: number): number {
   return 1 - (1 - t) ** 3;
 }
 
+/** Peg-hit bounce: slight arc and wobble within each segment (0…1). */
+export function easeSegmentBounce(t: number): number {
+  const clamped = Math.max(0, Math.min(1, t));
+  const arc = Math.sin(clamped * Math.PI) * 0.14 * (1 - clamped * 0.4);
+  return Math.min(1, clamped + arc);
+}
+
 export function pointAlongWaypoints(
   waypoints: PlinkoWaypoint[],
   progress: number,
@@ -90,11 +97,17 @@ export function pointAlongWaypoints(
   const segments = waypoints.length - 1;
   const scaled = eased * segments;
   const idx = Math.min(Math.floor(scaled), segments - 1);
-  const localT = scaled - idx;
+  const localT = easeSegmentBounce(scaled - idx);
   const a = waypoints[idx];
   const b = waypoints[idx + 1];
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const pegWobble = Math.sin(localT * Math.PI) * dx * 0.06;
+  const dropBounce =
+    dy > 0 ? -Math.sin(localT * Math.PI) * Math.min(10, dy * 0.22) : 0;
+
   return {
-    x: a.x + (b.x - a.x) * localT,
-    y: a.y + (b.y - a.y) * localT,
+    x: a.x + dx * localT + pegWobble,
+    y: a.y + dy * localT + dropBounce,
   };
 }

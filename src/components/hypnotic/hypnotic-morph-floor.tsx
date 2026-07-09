@@ -98,6 +98,8 @@ export function HypnoticMorphFloor({
   const [caseRouletteTier, setCaseRouletteTier] = useState<CaseTier | null>(null);
   const [pendingCrate, setPendingCrate] = useState<CrateResult | null>(null);
   const [cinemaPortal, setCinemaPortal] = useState<"wheel" | "case" | "plinko" | null>(null);
+  const cinemaPortalRef = useRef<typeof cinemaPortal>(null);
+  cinemaPortalRef.current = cinemaPortal;
   const [pendingSpins, setPendingSpins] = useState(0);
   const [pendingCases, setPendingCases] = useState(0);
   const [wheelQueueLen, setWheelQueueLen] = useState(0);
@@ -133,6 +135,12 @@ export function HypnoticMorphFloor({
     return "Something went wrong. Try again.";
   }
 
+  function shouldDeferArenaRefresh(): boolean {
+    return (
+      cinemaPortalRef.current != null || document.fullscreenElement != null
+    );
+  }
+
   function finishCrateOpen() {
     setPendingCrate((pending) => {
       if (!pending) return null;
@@ -146,7 +154,7 @@ export function HypnoticMorphFloor({
         onCaseResult(pending.net, parseMomentumFromRpc(sync));
       }
       crateSyncRef.current = null;
-      router.refresh();
+      if (!shouldDeferArenaRefresh()) router.refresh();
 
       window.setTimeout(() => {
         setCrateOpen(false);
@@ -204,7 +212,7 @@ export function HypnoticMorphFloor({
       setWheelSpinning(false);
       wheelDrainingRef.current = false;
       onWheelWin(job.result.payout, parseMomentumFromRpc(job.syncRow));
-      router.refresh();
+      if (!shouldDeferArenaRefresh()) router.refresh();
       void drainWheelQueue();
     }, WHEEL_SPIN_MS);
   }
@@ -636,6 +644,13 @@ export function HypnoticMorphFloor({
         caseOpenLabel={caseOpenLabel}
         plinkoBalance={balance}
         onPlinkoBalanceChange={setBalance}
+        crateStake={crateStake}
+        stakeDocked={stakeDocked}
+        recommendedStake={recommendedStake}
+        caseStakeLocked={caseStakeLocked}
+        chipSliding={chipSliding}
+        onSelectStake={cinemaMode === "case" ? selectStake : undefined}
+        caseBalance={balance}
       />
     </div>
   );

@@ -136,15 +136,31 @@ function pegX(layout: PlinkoBoardLayout, row: number, pegIndex: number): number 
   return ballXForCol(layout, pegColForIndex(row, pegIndex, layout.slotCount));
 }
 
+function normalizeBalls(
+  balls?: PlinkoBallState | PlinkoBallState[] | null,
+): PlinkoBallState[] {
+  if (!balls) return [];
+  return Array.isArray(balls) ? balls : [balls];
+}
+
+function normalizeHighlights(
+  highlightSlots?: number | number[] | null,
+): number[] {
+  if (highlightSlots == null) return [];
+  return Array.isArray(highlightSlots) ? highlightSlots : [highlightSlots];
+}
+
 export function drawPlinkoBoard(
   ctx: CanvasRenderingContext2D,
   layout: PlinkoBoardLayout,
   risk: PlinkoRisk,
-  ball?: PlinkoBallState | null,
-  highlightSlot?: number | null,
+  balls?: PlinkoBallState | PlinkoBallState[] | null,
+  highlightSlots?: number | number[] | null,
 ): void {
   const multipliers = multipliersForRisk(risk);
   const slotCount = multipliers.length;
+  const ballList = normalizeBalls(balls);
+  const highlights = new Set(normalizeHighlights(highlightSlots));
 
   ctx.clearRect(0, 0, layout.width, layout.height);
 
@@ -170,7 +186,7 @@ export function drawPlinkoBoard(
     const mult = multipliers[i];
     const x = slotCenterX(layout, i) - slotW / 2;
     const color = slotColor(i, slotCount, mult);
-    const active = highlightSlot === i;
+    const active = highlights.has(i);
 
     ctx.beginPath();
     ctx.roundRect(x + 1.5, layout.slotTop, slotW - 3, layout.slotBarH - 2, 3);
@@ -191,7 +207,7 @@ export function drawPlinkoBoard(
     ctx.fillText(formatMultiplier(mult), x + slotW / 2, layout.slotTop + layout.slotBarH / 2 - 1);
   }
 
-  if (ball) {
+  for (const ball of ballList) {
     const grad = ctx.createRadialGradient(
       ball.x - ball.radius * 0.3,
       ball.y - ball.radius * 0.3,

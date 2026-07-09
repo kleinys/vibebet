@@ -2927,6 +2927,37 @@ body {
   color: #fef3c7;
 }
 
+.hypnotic-cinema-overlay__stakes {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: min(100%, 28rem);
+}
+
+.hypnotic-cinema-overlay__stakes-label {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(254, 243, 199, 0.7);
+}
+
+.hypnotic-cinema-overlay__stakes-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem;
+}
+
+.hypnotic-cinema-overlay__stakes-balance {
+  margin: 0;
+  font-size: 11px;
+  color: rgba(161, 161, 170, 0.9);
+}
+
 .hypnotic-plinko-board__back {
   align-self: flex-start;
   border-radius: 6px;

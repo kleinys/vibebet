@@ -6,6 +6,8 @@ import { LockerCasinoWheel } from "@/components/locker-casino-wheel";
 import { LockerCaseRoulette } from "@/components/locker-case-roulette";
 import { LockerTierCase, type CaseTier } from "@/components/locker-tier-case";
 import { HypnoticPlinkoBoard } from "@/components/hypnotic/hypnotic-plinko-board";
+import { CRATE_STAKES } from "@/lib/hypnotic-flow";
+import { formatVibe } from "@/lib/utils";
 
 const TIER_DISPLAY: Record<CaseTier, string> = {
   common: "Industrial",
@@ -36,6 +38,13 @@ export function HypnoticCinemaOverlay({
   caseOpenLabel,
   plinkoBalance,
   onPlinkoBalanceChange,
+  crateStake,
+  stakeDocked,
+  recommendedStake,
+  caseStakeLocked,
+  chipSliding,
+  onSelectStake,
+  caseBalance,
 }: {
   visible: boolean;
   mode: "wheel" | "case" | "plinko" | null;
@@ -57,6 +66,13 @@ export function HypnoticCinemaOverlay({
   caseOpenLabel?: string;
   plinkoBalance?: number;
   onPlinkoBalanceChange?: (balance: number) => void;
+  crateStake?: (typeof CRATE_STAKES)[number];
+  stakeDocked?: boolean;
+  recommendedStake?: (typeof CRATE_STAKES)[number];
+  caseStakeLocked?: boolean;
+  chipSliding?: number | null;
+  onSelectStake?: (stake: (typeof CRATE_STAKES)[number]) => void;
+  caseBalance?: number;
 }) {
   const [mounted, setMounted] = useState(false);
 
@@ -144,6 +160,42 @@ export function HypnoticCinemaOverlay({
             <p className="hypnotic-cinema-overlay__hint">
               {caseRouletteActive ? "Inspecting weapon finish…" : queueHint ?? "Tap open again to queue more"}
             </p>
+            {onSelectStake && crateStake != null && (
+              <div className="hypnotic-cinema-overlay__stakes">
+                <p className="hypnotic-cinema-overlay__stakes-label">Stake (VIBE)</p>
+                <div className="hypnotic-cinema-overlay__stakes-row">
+                  {CRATE_STAKES.map((stake) => {
+                    const isRec = recommendedStake === stake;
+                    const isActive = crateStake === stake;
+                    return (
+                      <button
+                        key={stake}
+                        type="button"
+                        disabled={caseStakeLocked}
+                        onClick={() => onSelectStake(stake)}
+                        className={`hypnotic-stake-chip min-w-[4.5rem] rounded-lg border px-4 py-2.5 text-sm font-bold tabular-nums transition ${
+                          chipSliding === stake ? "hypnotic-stake-chip--slide" : ""
+                        } ${
+                          isActive
+                            ? "hypnotic-stake-chip--recommended border-amber-400/70 bg-amber-500/30 text-amber-50 shadow-[0_0_16px_rgba(251,191,36,0.35)]"
+                            : isRec
+                              ? "border-amber-300/40 bg-amber-500/15 text-amber-100"
+                              : "border-white/15 bg-zinc-900/70 text-zinc-200 hover:border-amber-400/35 hover:bg-zinc-800"
+                        }`}
+                      >
+                        {formatVibe(stake)}
+                      </button>
+                    );
+                  })}
+                </div>
+                {caseBalance != null && (
+                  <p className="hypnotic-cinema-overlay__stakes-balance tabular-nums">
+                    Balance {formatVibe(caseBalance)} VIBE
+                    {!stakeDocked && " · pick a stake to dock on crate"}
+                  </p>
+                )}
+              </div>
+            )}
             {onCaseOpen && (
               <button
                 type="button"
@@ -168,7 +220,7 @@ export function HypnoticCinemaOverlay({
               />
             </div>
             <p className="hypnotic-cinema-overlay__hint">
-              Set stake and risk, then tap Bet to drop the ball.
+              Set stake and risk, then tap Bet — queue multiple drops without waiting.
             </p>
           </>
         )}
