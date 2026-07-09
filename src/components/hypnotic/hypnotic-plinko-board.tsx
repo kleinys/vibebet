@@ -37,10 +37,10 @@ function pointAlongWaypoints(
   const localT = easeOutCubic(scaled - idx);
   const a = waypoints[idx];
   const b = waypoints[idx + 1];
-  return {
-    x: a.x + (b.x - a.x) * localT,
-    y: a.y + (b.y - a.y) * localT,
-  };
+  const x = a.x + (b.x - a.x) * localT;
+  const y = a.y + (b.y - a.y) * localT;
+  const bounce = Math.sin(localT * Math.PI) * 3;
+  return { x, y: y - bounce };
 }
 
 export type PlinkoPlayResult = {

@@ -1,5 +1,7 @@
 /** Build a random L/R path that lands in the target slot (12 rows, start col 6). */
 
+import { ballXForCol, ballYForRow, type PlinkoBoardLayout } from "@/lib/plinko-board";
+
 export type PlinkoDirection = "L" | "R";
 
 export function rightsNeededForSlot(targetSlot: number, startCol = 6): number {
@@ -15,6 +17,7 @@ export function shuffle<T>(items: T[]): T[] {
   return out;
 }
 
+/** Random left/right sequence with exactly the rights needed to land in `targetSlot`. */
 export function pathForSlot(targetSlot: number, rows: number, startCol = 6): PlinkoDirection[] {
   const rights = rightsNeededForSlot(targetSlot, startCol);
   const lefts = rows - rights;
@@ -32,35 +35,27 @@ export interface PlinkoWaypoint {
   y: number;
 }
 
+/** Peg-gap bounce points from spawn → each row → final slot. */
 export function waypointsForPath(
   path: PlinkoDirection[],
-  layout: {
-    width: number;
-    padTop: number;
-    rowStep: number;
-    pegPitch: number;
-    originX: number;
-    slotTop: number;
-    slotBarH: number;
-    startCol: number;
-  },
+  layout: PlinkoBoardLayout,
   targetSlot: number,
 ): PlinkoWaypoint[] {
   const points: PlinkoWaypoint[] = [
-    { x: layout.width / 2, y: layout.padTop - 14 },
+    { x: layout.width / 2, y: layout.padTop - 16 },
   ];
 
   let col = layout.startCol;
   for (let row = 0; row < path.length; row++) {
     points.push({
-      x: layout.originX + (col + 0.5) * layout.pegPitch,
-      y: layout.padTop + row * layout.rowStep,
+      x: ballXForCol(layout, col),
+      y: ballYForRow(layout, row),
     });
     col += path[row] === "R" ? 1 : -1;
   }
 
   points.push({
-    x: layout.originX + (targetSlot + 0.5) * layout.pegPitch,
+    x: ballXForCol(layout, targetSlot),
     y: layout.slotTop + layout.slotBarH / 2,
   });
 

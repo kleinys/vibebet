@@ -2217,6 +2217,7 @@ body {
 .hypnotic-cinema-overlay__plinko {
   width: min(100%, 44rem);
   margin: 0 auto;
+  pointer-events: auto;
 }
 
 .hypnotic-morph-panel--slots {
@@ -2820,6 +2821,33 @@ body {
   pointer-events: none;
 }
 
+.hypnotic-cinema-overlay--interactive {
+  pointer-events: auto;
+}
+
+.hypnotic-cinema-overlay__exit {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 130;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(15, 23, 42, 0.88);
+  color: #f4f4f5;
+  padding: 0.55rem 1rem;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.hypnotic-cinema-overlay__exit:hover {
+  border-color: rgba(167, 139, 250, 0.55);
+  background: rgba(76, 29, 149, 0.55);
+}
+
 .hypnotic-cinema-overlay__backdrop {
   position: absolute;
   inset: 0;
@@ -2836,6 +2864,9 @@ body {
   align-items: center;
   gap: 1.25rem;
   padding: 1.5rem;
+  max-height: 100vh;
+  overflow-y: auto;
+  pointer-events: auto;
   animation: hypnotic-cinema-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 

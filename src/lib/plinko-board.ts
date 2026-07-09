@@ -93,6 +93,35 @@ export function slotColor(index: number, total: number, multiplier: number): str
   return "#fde047";
 }
 
+function pegsInRow(row: number): number {
+  return row + 3;
+}
+
+function firstPegCol(row: number, slotCount: number): number {
+  const count = pegsInRow(row);
+  return Math.max(0, Math.floor((slotCount - count) / 2));
+}
+
+export function pegPosition(
+  layout: PlinkoBoardLayout,
+  row: number,
+  pegIndex: number,
+): { x: number; y: number } {
+  const col = firstPegCol(row, layout.slotCount) + pegIndex;
+  return {
+    x: layout.originX + col * layout.pegPitch,
+    y: layout.padTop + row * layout.rowStep,
+  };
+}
+
+export function ballXForCol(layout: PlinkoBoardLayout, col: number): number {
+  return layout.originX + (col + 0.5) * layout.pegPitch;
+}
+
+export function ballYForRow(layout: PlinkoBoardLayout, row: number): number {
+  return layout.padTop + row * layout.rowStep;
+}
+
 function drawPeg(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
@@ -101,15 +130,6 @@ function drawPeg(ctx: CanvasRenderingContext2D, x: number, y: number, r: number)
   ctx.shadowBlur = 4;
   ctx.fill();
   ctx.shadowBlur = 0;
-}
-
-function pegX(layout: PlinkoBoardLayout, row: number, col: number, pegsInRow: number): number {
-  if (row === layout.rows - 1) {
-    return layout.originX + col * layout.pegPitch;
-  }
-  const rowSpan = (pegsInRow - 1) * layout.pegPitch;
-  const base = layout.originX + (layout.boardW - rowSpan) / 2 + col * layout.pegPitch;
-  return row % 2 === 1 ? base + layout.pegPitch / 2 : base;
 }
 
 export function drawPlinkoBoard(
@@ -134,11 +154,12 @@ export function drawPlinkoBoard(
   const slotW = layout.boardW / slotCount;
 
   for (let row = 0; row < layout.rows; row++) {
-    const pegsInRow = row + 3;
-    const y = layout.padTop + row * layout.rowStep;
+    const count = pegsInRow(row);
+    const y = ballYForRow(layout, row);
 
-    for (let col = 0; col < pegsInRow; col++) {
-      drawPeg(ctx, pegX(layout, row, col, pegsInRow), y, layout.pegRadius);
+    for (let pegIndex = 0; pegIndex < count; pegIndex++) {
+      const { x } = pegPosition(layout, row, pegIndex);
+      drawPeg(ctx, x, y, layout.pegRadius);
     }
   }
 
