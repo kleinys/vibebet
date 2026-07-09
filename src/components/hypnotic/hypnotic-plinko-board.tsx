@@ -25,7 +25,8 @@ import {
 const BTN =
   "rounded-sm border px-3 py-2 text-[10px] font-semibold uppercase tracking-wider transition disabled:opacity-50";
 
-const DROP_MS = 2800;
+const DROP_MS = 5200;
+const MAX_ACTIVE_BALLS = 24;
 
 export type PlinkoPlayResult = {
   slotIndex: number;
@@ -74,11 +75,13 @@ export function HypnoticPlinkoBoard({
 
   const clampedStake = useMemo(() => clampPlinkoStake(stake), [stake]);
   const isCinema = variant === "cinema";
-  const canBet = balance >= clampedStake;
   const queueCount = pendingRpc + activeDrops;
 
   riskRef.current = risk;
-  balanceRef.current = balance;
+
+  useEffect(() => {
+    balanceRef.current = balance;
+  }, [balance]);
 
   const paintFrame = useCallback(() => {
     const canvas = canvasRef.current;
@@ -191,29 +194,44 @@ export function HypnoticPlinkoBoard({
       const path = pathForSlot(result.slotIndex, PLINKO_ROW_COUNT);
       const waypoints = waypointsForPath(path, layout, result.slotIndex);
       const ballRadius = Math.max(5, layout.pegRadius * 1.6);
+      const spawnJitter = ((activeBallsRef.current.length % 7) - 3) * 2.5;
+      const adjustedWaypoints =
+        spawnJitter === 0
+          ? waypoints
+          : waypoints.map((point, index) =>
+              index === 0 ? { ...point, x: point.x + spawnJitter } : point,
+            );
 
       activeBallsRef.current.push({
         id: nextBallIdRef.current++,
-        waypoints,
+        waypoints: adjustedWaypoints,
         startedAt: performance.now(),
         ballRadius,
         targetSlot: result.slotIndex,
       });
+      if (activeBallsRef.current.length > MAX_ACTIVE_BALLS) {
+        activeBallsRef.current = activeBallsRef.current.slice(-MAX_ACTIVE_BALLS);
+      }
       setActiveDrops(activeBallsRef.current.length);
 
+      balanceRef.current = result.newBalance;
       onBalanceChange?.(result.newBalance);
       setLastResult(result);
       ensureAnimLoop();
 
-      const netLabel =
-        result.net >= 0
-          ? `+${formatVibe(result.net)} VIBE`
-          : `${formatVibe(result.net)} VIBE`;
-      toast.success(
-        `Landed ${result.multiplier}× · ${formatVibe(result.payout)} VIBE (${netLabel})`,
-      );
+      if (pendingRpcRef.current <= 1 && activeBallsRef.current.length <= 1) {
+        const netLabel =
+          result.net >= 0
+            ? `+${formatVibe(result.net)} VIBE`
+            : `${formatVibe(result.net)} VIBE`;
+        toast.success(
+          `Landed ${result.multiplier}× · ${formatVibe(result.payout)} VIBE (${netLabel})`,
+        );
+      }
     } catch (err) {
       if (!mountedRef.current) return;
+      balanceRef.current += stakeAmount;
+      onBalanceChange?.(balanceRef.current);
       const message = err instanceof Error ? err.message : "Plinko bet failed";
       setError(message);
       toast.error(message);
@@ -225,9 +243,14 @@ export function HypnoticPlinkoBoard({
   }
 
   function dropBall() {
-    if (balanceRef.current < clampedStake) return;
+    const stakeAmount = clampPlinkoStake(stake);
+    const riskLevel = riskRef.current;
+    if (balanceRef.current < stakeAmount) return;
+
+    balanceRef.current -= stakeAmount;
+    onBalanceChange?.(balanceRef.current);
     setError(null);
-    void runDrop(clampedStake, risk);
+    void runDrop(stakeAmount, riskLevel);
   }
 
   function adjustStake(delta: number) {
@@ -330,11 +353,11 @@ export function HypnoticPlinkoBoard({
 
         <button
           type="button"
-          disabled={!canBet}
+          disabled={balance < clampedStake}
           onClick={dropBall}
           className="hypnotic-plinko-board__bet-cta"
         >
-          {queueLabel ? `Bet (${queueLabel})` : "Bet"}
+          Bet{queueCount > 0 ? ` · ${queueCount} live` : ""}
         </button>
       </div>
 

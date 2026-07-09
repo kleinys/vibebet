@@ -75,7 +75,14 @@ export function waypointsForPath(
   return points;
 }
 
-/** Global ease along the full path (0…1). */
+/** Global ease along the full path (0…1) — gentle in/out for a slower visual fall. */
+export function easeInOutQuad(t: number): number {
+  const clamped = Math.max(0, Math.min(1, t));
+  return clamped < 0.5
+    ? 2 * clamped * clamped
+    : 1 - (-2 * clamped + 2) ** 2 / 2;
+}
+
 export function easeOutCubic(t: number): number {
   return 1 - (1 - t) ** 3;
 }
@@ -93,7 +100,7 @@ export function pointAlongWaypoints(
 ): PlinkoWaypoint {
   if (waypoints.length <= 1) return waypoints[0] ?? { x: 0, y: 0 };
 
-  const eased = easeOutCubic(Math.max(0, Math.min(1, progress)));
+  const eased = easeInOutQuad(Math.max(0, Math.min(1, progress)));
   const segments = waypoints.length - 1;
   const scaled = eased * segments;
   const idx = Math.min(Math.floor(scaled), segments - 1);
