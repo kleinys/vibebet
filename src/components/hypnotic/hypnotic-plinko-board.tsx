@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { CurrencyIconVibe } from "@/components/fantasy-icons";
 import { formatVibe } from "@/lib/utils";
 import {
-  PLINKO_MULTIPLIERS,
   PLINKO_ROW_COUNT,
   PLINKO_STAKE_PRESETS,
   clampPlinkoStake,
@@ -13,7 +12,7 @@ import {
 } from "@/lib/plinko-board";
 
 const BTN =
-  "rounded-sm border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider transition disabled:opacity-50";
+  "rounded-sm border px-3 py-2 text-[10px] font-semibold uppercase tracking-wider transition disabled:opacity-50";
 
 export function HypnoticPlinkoBoard({
   balance,
@@ -48,111 +47,98 @@ export function HypnoticPlinkoBoard({
       canvas.width = Math.floor(width * dpr);
       canvas.height = Math.floor(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      drawPlinkoBoard(ctx, width, height);
+      drawPlinkoBoard(ctx, width, height, risk);
     }
 
     paint();
     const ro = new ResizeObserver(paint);
     ro.observe(wrap);
     return () => ro.disconnect();
-  }, [variant]);
+  }, [variant, risk]);
+
+  function adjustStake(delta: number) {
+    setStake((prev) => clampPlinkoStake(prev + delta));
+  }
 
   return (
     <div
       className={`hypnotic-plinko-board w-full ${isCinema ? "hypnotic-plinko-board--cinema" : ""}`}
     >
-      <div className="hypnotic-plinko-board__layout">
-        <div ref={wrapRef} className="hypnotic-plinko-board__canvas-wrap">
-          <canvas
-            ref={canvasRef}
-            className="hypnotic-plinko-board__canvas"
-            aria-label="Plinko board with peg triangle and multiplier slots"
-          />
+      <div ref={wrapRef} className="hypnotic-plinko-board__canvas-wrap">
+        <canvas
+          ref={canvasRef}
+          className="hypnotic-plinko-board__canvas"
+          aria-label="Plinko board with peg triangle and multiplier slots"
+        />
+      </div>
+
+      <div className="hypnotic-plinko-board__controls">
+        <div className="hypnotic-plinko-board__control">
+          <span className="hypnotic-plinko-board__label">Bet (VIBE)</span>
+          <div className="hypnotic-plinko-board__stepper">
+            <button type="button" onClick={() => adjustStake(-10)} aria-label="Decrease bet">
+              −
+            </button>
+            <div className="hypnotic-plinko-board__bet-value">
+              <CurrencyIconVibe className="h-3.5 w-3.5 text-amber-300" />
+              <span className="tabular-nums">{formatVibe(clampedStake)}</span>
+            </div>
+            <button type="button" onClick={() => adjustStake(10)} aria-label="Increase bet">
+              +
+            </button>
+          </div>
         </div>
 
-        <div className="hypnotic-plinko-board__controls space-y-4">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-300/90">
-              Stake (VIBE)
-            </p>
-            <div className="mt-2 flex items-center gap-2">
-              <CurrencyIconVibe className="h-4 w-4 shrink-0 text-amber-300" />
-              <input
-                type="number"
-                min={10}
-                max={5000}
-                step={10}
-                value={clampedStake}
-                onChange={(e) => setStake(Number(e.target.value))}
-                className="w-full rounded-sm border border-white/10 bg-black/40 px-3 py-2 text-sm font-semibold tabular-nums text-zinc-100 outline-none focus:border-violet-400/50"
-              />
-            </div>
-            <p className="mt-1 text-[10px] text-zinc-500">
-              Balance: {formatVibe(balance)} VIBE
-            </p>
-          </div>
+        <div className="hypnotic-plinko-board__control">
+          <span className="hypnotic-plinko-board__label">Rows</span>
+          <div className="hypnotic-plinko-board__static-value">{PLINKO_ROW_COUNT}</div>
+        </div>
 
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-300/90">
-              Risk
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {(["low", "medium", "high"] as const).map((level) => (
-                <button
-                  key={level}
-                  type="button"
-                  onClick={() => setRisk(level)}
-                  className={`${BTN} ${
-                    risk === level
-                      ? "border-violet-400/50 bg-violet-500/25 text-violet-100"
-                      : "border-white/10 bg-black/30 text-zinc-400 hover:border-white/20"
-                  }`}
-                >
-                  {level}
-                </button>
-              ))}
-            </div>
+        <div className="hypnotic-plinko-board__control">
+          <span className="hypnotic-plinko-board__label">Risk</span>
+          <div className="hypnotic-plinko-board__risk-toggle">
+            {(["low", "medium", "high"] as const).map((level) => (
+              <button
+                key={level}
+                type="button"
+                onClick={() => setRisk(level)}
+                className={risk === level ? "is-active" : ""}
+              >
+                {level}
+              </button>
+            ))}
           </div>
+        </div>
 
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-violet-300/90">
-              Quick stakes
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {PLINKO_STAKE_PRESETS.map((preset) => (
-                <button
-                  key={preset}
-                  type="button"
-                  disabled={balance < preset}
-                  onClick={() => setStake(preset)}
-                  className={`${BTN} min-w-[3rem] tabular-nums ${
-                    clampedStake === preset
-                      ? "border-amber-400/45 bg-amber-500/20 text-amber-100"
-                      : "border-white/10 bg-black/30 text-zinc-300 hover:border-white/20"
-                  }`}
-                >
-                  {preset}
-                </button>
-              ))}
-            </div>
-          </div>
+        <button
+          type="button"
+          disabled
+          className="hypnotic-plinko-board__bet-cta"
+          title="Ball drop coming soon"
+        >
+          Bet — coming soon
+        </button>
+      </div>
 
+      <div className="hypnotic-plinko-board__quick-row">
+        {PLINKO_STAKE_PRESETS.map((preset) => (
           <button
+            key={preset}
             type="button"
-            disabled
-            className={`${BTN} w-full border-violet-400/35 bg-violet-500/15 py-2.5 text-violet-200`}
-            title="Ball drop coming soon"
+            disabled={balance < preset}
+            onClick={() => setStake(preset)}
+            className={`${BTN} tabular-nums ${
+              clampedStake === preset
+                ? "border-amber-400/45 bg-amber-500/20 text-amber-100"
+                : "border-white/10 bg-black/30 text-zinc-400 hover:border-white/20"
+            }`}
           >
-            Drop ball — coming soon
+            {preset}
           </button>
-
-          {!isCinema && (
-            <p className="text-center text-[10px] leading-relaxed text-zinc-500">
-              {PLINKO_ROW_COUNT}-row pyramid · {PLINKO_MULTIPLIERS.length} slots · {risk} risk
-              shown. Physics and payouts are not wired yet.
-            </p>
-          )}
-        </div>
+        ))}
+        <span className="ml-auto text-[10px] text-zinc-500 tabular-nums">
+          Balance {formatVibe(balance)}
+        </span>
       </div>
     </div>
   );

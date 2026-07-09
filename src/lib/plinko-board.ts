@@ -3,105 +3,122 @@
 export const PLINKO_ROW_COUNT = 12;
 export const PLINKO_SLOT_COUNT = 13;
 
-/** Medium-risk multipliers (left → right). */
-export const PLINKO_MULTIPLIERS: number[] = [
-  5, 3, 2, 1, 0.5, 0.2, 0.1, 0.2, 0.5, 1, 2, 3, 5,
-];
-
 export const PLINKO_STAKE_PRESETS = [10, 25, 50, 100, 250, 500, 1000] as const;
 
 export type PlinkoRisk = "low" | "medium" | "high";
+
+/** Symmetric multiplier rows — edges hot, center cold (reference-style). */
+export const PLINKO_MULTIPLIERS_BY_RISK: Record<PlinkoRisk, number[]> = {
+  low: [8, 4, 2, 1.2, 1, 0.7, 0.5, 0.7, 1, 1.2, 2, 4, 8],
+  medium: [110, 26, 9, 4, 2, 1, 0.2, 1, 2, 4, 9, 26, 110],
+  high: [1000, 130, 26, 9, 4, 2, 0.2, 0.5, 2, 4, 9, 26, 130],
+};
+
+export function multipliersForRisk(risk: PlinkoRisk): number[] {
+  return PLINKO_MULTIPLIERS_BY_RISK[risk];
+}
 
 export function clampPlinkoStake(value: number): number {
   if (!Number.isFinite(value)) return 50;
   return Math.max(10, Math.min(5000, Math.floor(value)));
 }
 
-export function slotColor(multiplier: number): string {
-  if (multiplier >= 5) return "#f43f5e";
-  if (multiplier >= 2) return "#f97316";
-  if (multiplier >= 1) return "#eab308";
-  if (multiplier >= 0.5) return "#84cc16";
-  if (multiplier >= 0.2) return "#22d3ee";
-  return "#a855f7";
+/** Red (edges) → orange → yellow (center), like classic Plinko UIs. */
+export function slotColor(index: number, total: number, multiplier: number): string {
+  const center = (total - 1) / 2;
+  const dist = Math.abs(index - center) / Math.max(center, 1);
+
+  if (dist > 0.85 || multiplier >= 100) return "#dc2626";
+  if (dist > 0.65 || multiplier >= 20) return "#ea580c";
+  if (dist > 0.45 || multiplier >= 5) return "#f59e0b";
+  if (dist > 0.25 || multiplier >= 2) return "#facc15";
+  return "#fde047";
 }
 
-/** Draw staggered peg pyramid + multiplier slots onto a 2D canvas context. */
+function formatMultiplier(mult: number): string {
+  if (mult >= 100) return String(Math.round(mult));
+  if (Number.isInteger(mult)) return String(mult);
+  return String(mult);
+}
+
+/** Equilateral honeycomb peg grid + multiplier bins. */
 export function drawPlinkoBoard(
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
+  risk: PlinkoRisk = "medium",
 ): void {
-  const slotCount = PLINKO_MULTIPLIERS.length;
-  const slotW = width / slotCount;
-  const boardTop = 14;
-  const slotTop = height - 36;
-  const pegAreaBottom = slotTop - 8;
-  const pegAreaHeight = pegAreaBottom - boardTop;
-  const pegRadius = Math.max(2.5, Math.min(4.5, width / 120));
-  const rowGap = pegAreaHeight / PLINKO_ROW_COUNT;
+  const multipliers = multipliersForRisk(risk);
+  const slotCount = multipliers.length;
+  const rows = PLINKO_ROW_COUNT;
+
+  const padX = 10;
+  const slotBarH = 30;
+  const padTop = 18;
+  const boardW = width - padX * 2;
+  const idealPitch = boardW / slotCount;
+  const idealRowStep = idealPitch * (Math.sqrt(3) / 2);
+  const pegAreaH = height - slotBarH - padTop - 14;
+  const maxRowStep = pegAreaH / Math.max(rows - 1, 1);
+  const scale = Math.min(1, maxRowStep / idealRowStep);
+  const pegPitch = idealPitch * scale;
+  const rowStep = idealRowStep * scale;
+  const slotTop = height - slotBarH - 6;
+  const pegRadius = Math.max(2.2, Math.min(3.8, pegPitch * 0.13));
 
   ctx.clearRect(0, 0, width, height);
 
   const bg = ctx.createLinearGradient(0, 0, 0, height);
-  bg.addColorStop(0, "rgba(76, 29, 149, 0.35)");
-  bg.addColorStop(1, "rgba(15, 23, 42, 0.9)");
+  bg.addColorStop(0, "#1e1b4b");
+  bg.addColorStop(0.55, "#0f172a");
+  bg.addColorStop(1, "#020617");
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, width, height);
 
-  // Pyramid guide lines (subtle) — narrow at top, wide at bottom.
-  ctx.strokeStyle = "rgba(167, 139, 250, 0.12)";
-  ctx.lineWidth = 1;
-  const apexX = width / 2;
-  const apexY = boardTop - 4;
-  ctx.beginPath();
-  ctx.moveTo(apexX, apexY);
-  ctx.lineTo(0, slotTop);
-  ctx.moveTo(apexX, apexY);
-  ctx.lineTo(width, slotTop);
-  ctx.stroke();
+  const originX = padX;
 
-  for (let row = 0; row < PLINKO_ROW_COUNT; row++) {
-    const pegsInRow = row + 3;
-    const y = boardTop + rowGap * (row + 0.55);
-    const rowWidth = (pegsInRow - 1) * slotW;
-    let startX = (width - rowWidth) / 2;
-
-    // Honeycomb stagger — skip on the widest row so pegs stay inside the board.
-    if (row % 2 === 1 && pegsInRow <= slotCount) {
-      startX += slotW / 2;
+  function pegX(row: number, col: number, pegsInRow: number): number {
+    if (row === rows - 1) {
+      return originX + col * pegPitch;
     }
+    const rowSpan = (pegsInRow - 1) * pegPitch;
+    const base = originX + (boardW - rowSpan) / 2 + col * pegPitch;
+    return row % 2 === 1 ? base + pegPitch / 2 : base;
+  }
+
+  for (let row = 0; row < rows; row++) {
+    const pegsInRow = row + 3;
+    const y = padTop + row * rowStep;
 
     for (let col = 0; col < pegsInRow; col++) {
-      const x = startX + col * slotW;
+      const x = pegX(row, col, pegsInRow);
       ctx.beginPath();
       ctx.arc(x, y, pegRadius, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(196, 181, 253, 0.9)";
-      ctx.shadowColor = "rgba(167, 139, 250, 0.55)";
-      ctx.shadowBlur = 5;
+      ctx.fillStyle = "#ffffff";
+      ctx.shadowColor = "rgba(255,255,255,0.45)";
+      ctx.shadowBlur = 4;
       ctx.fill();
       ctx.shadowBlur = 0;
     }
   }
 
+  const slotW = boardW / slotCount;
   for (let i = 0; i < slotCount; i++) {
-    const mult = PLINKO_MULTIPLIERS[i];
-    const x = i * slotW;
-    const color = slotColor(mult);
+    const mult = multipliers[i];
+    const x = originX + i * slotW;
+    const color = slotColor(i, slotCount, mult);
+    const r = 3;
 
+    ctx.beginPath();
+    ctx.roundRect(x + 1.5, slotTop, slotW - 3, slotBarH - 2, r);
     ctx.fillStyle = color;
-    ctx.globalAlpha = 0.92;
-    ctx.fillRect(x + 1, slotTop, slotW - 2, height - slotTop - 2);
-    ctx.globalAlpha = 1;
+    ctx.fill();
 
-    ctx.fillStyle = "#0f172a";
-    ctx.font = `bold ${Math.max(9, Math.min(13, slotW * 0.28))}px ui-sans-serif, system-ui, sans-serif`;
+    ctx.fillStyle = mult >= 10 ? "#ffffff" : "#0f172a";
+    const fontSize = Math.max(8, Math.min(11, slotW * 0.34));
+    ctx.font = `bold ${fontSize}px ui-sans-serif, system-ui, sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(`${mult}×`, x + slotW / 2, slotTop + (height - slotTop) / 2);
+    ctx.fillText(formatMultiplier(mult), x + slotW / 2, slotTop + slotBarH / 2 - 1);
   }
-
-  ctx.strokeStyle = "rgba(255,255,255,0.08)";
-  ctx.lineWidth = 1;
-  ctx.strokeRect(0.5, 0.5, width - 1, height - 1);
 }
