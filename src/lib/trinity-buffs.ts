@@ -5,7 +5,7 @@
  * - Each theme has 3 purchasable pieces (trainer skin, animal unlock, phenomenon orb).
  * - Buff activates only when all 3 of the SAME theme rank are owned.
  * - Ranks 1–6: cosmetic + flavor only (0% EV shift on wheel/case).
- * - Ranks 7–10: proportional buff growth, capped below +50% effective edge until rank 10 (~45% max).
+ * - Ranks 7–12: smooth buff growth, capped at +30% at rank 12.
  * - Higher stake cases improve tier odds slightly; never breaks house margin at low ranks.
  *
  * Implementation: shop + inventory kinds (`skin`, `animal`, `phenomenon`) + RPC weight tables (future migration).
@@ -78,10 +78,12 @@ function pieceCosts(rank: number): TrinityTheme["pieceCostVibe"] {
 
 function trinityBuffForRank(rank: number): number {
   if (rank < 7) return 0;
-  if (rank === 7) return 8;
-  if (rank === 8) return 18;
-  if (rank === 9) return 32;
-  return 45;
+  if (rank === 7) return 5;
+  if (rank === 8) return 10;
+  if (rank === 9) return 15;
+  if (rank === 10) return 20;
+  if (rank === 11) return 25;
+  return 30;
 }
 
 const ARCHETYPE_BY_MORPH: Record<SpiritMorphElement, OrbitArchetype> = {

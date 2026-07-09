@@ -2023,8 +2023,48 @@ body {
 
 @media (min-width: 1280px) {
   .hypnotic-morph-floor__grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
+}
+
+.hypnotic-morph-panel--plinko {
+  border-color: rgba(167, 139, 250, 0.2);
+  background: linear-gradient(180deg, rgba(76, 29, 149, 0.14) 0%, rgba(0, 0, 0, 0.22) 100%);
+}
+
+.hypnotic-morph-panel--plinko.hypnotic-morph-panel--focused {
+  box-shadow: 0 0 0 1px rgba(192, 132, 252, 0.35);
+}
+
+.hypnotic-plinko-board__layout {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .hypnotic-plinko-board__layout {
+    grid-template-columns: 1.2fr 0.8fr;
+    align-items: start;
+  }
+}
+
+.hypnotic-plinko-board__canvas-wrap {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(167, 139, 250, 0.25);
+  background: rgba(15, 23, 42, 0.65);
+  overflow: hidden;
+}
+
+.hypnotic-plinko-board__canvas {
+  display: block;
+  width: 100%;
+  height: 300px;
+}
+
+.hypnotic-plinko-board__controls {
+  width: 100%;
 }
 
 .hypnotic-morph-panel--slots {
