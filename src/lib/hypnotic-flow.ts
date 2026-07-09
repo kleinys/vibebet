@@ -1,6 +1,6 @@
 /** Client-side hypnotic UX state — momentum, cinema phases, recommended stakes. */
 
-export type HypnoticMode = "case" | "wheel" | "plinko";
+export type HypnoticMode = "case" | "wheel";
 export type HypnoticReaction =
   | "idle"
   | "watch-wheel"

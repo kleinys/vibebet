@@ -11,7 +11,6 @@ import {
   cancelDiceDuel,
   createDiceDuel,
   playCoinFlip,
-  playPlinko,
   revealLuckyScratcher,
   spinLuckySlots,
 } from "./actions";
@@ -181,8 +180,6 @@ export function DiceDuelPanel({
     </div>
   );
 }
-
-// Removed PLINKO_SLOTS constant and PlinkoPanel component
 
 export function LuckySlotsPanel({
   pendingTickets,
