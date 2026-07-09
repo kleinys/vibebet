@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { LockerCasinoWheel } from "@/components/locker-casino-wheel";
 import { LockerCaseRoulette } from "@/components/locker-case-roulette";
 import { LockerTierCase, type CaseTier } from "@/components/locker-tier-case";
+import { HypnoticPlinkoBoard } from "@/components/hypnotic/hypnotic-plinko-board";
 
 const TIER_DISPLAY: Record<CaseTier, string> = {
   common: "Industrial",
@@ -33,9 +34,10 @@ export function HypnoticCinemaOverlay({
   caseOpenDisabled,
   wheelSpinLabel,
   caseOpenLabel,
+  plinkoBalance,
 }: {
   visible: boolean;
-  mode: "wheel" | "case" | null;
+  mode: "wheel" | "case" | "plinko" | null;
   wheelRotation: number;
   wheelSpinning: boolean;
   superActive: boolean;
@@ -52,6 +54,7 @@ export function HypnoticCinemaOverlay({
   caseOpenDisabled?: boolean;
   wheelSpinLabel?: string;
   caseOpenLabel?: string;
+  plinkoBalance?: number;
 }) {
   const [mounted, setMounted] = useState(false);
 
@@ -75,7 +78,13 @@ export function HypnoticCinemaOverlay({
       className="hypnotic-cinema-overlay hypnotic-cinema-overlay--interactive"
       role="dialog"
       aria-modal="true"
-      aria-label={mode === "wheel" ? "Daily wheel full screen" : "VIBE case full screen"}
+      aria-label={
+        mode === "wheel"
+          ? "Daily wheel full screen"
+          : mode === "case"
+            ? "VIBE case full screen"
+            : "Plinko full screen"
+      }
     >
       <div className="hypnotic-cinema-overlay__backdrop" />
       {onExit && (
@@ -143,6 +152,17 @@ export function HypnoticCinemaOverlay({
                 {caseOpenLabel ?? "Open case"}
               </button>
             )}
+          </>
+        )}
+        {mode === "plinko" && plinkoBalance != null && (
+          <>
+            <p className="hypnotic-cinema-overlay__title">Plinko</p>
+            <div className="hypnotic-cinema-overlay__plinko">
+              <HypnoticPlinkoBoard balance={plinkoBalance} variant="cinema" />
+            </div>
+            <p className="hypnotic-cinema-overlay__hint">
+              Ball drop and payouts coming soon — set your stake and risk below.
+            </p>
           </>
         )}
       </div>

@@ -97,7 +97,7 @@ export function HypnoticMorphFloor({
   const [chipSliding, setChipSliding] = useState<number | null>(null);
   const [caseRouletteTier, setCaseRouletteTier] = useState<CaseTier | null>(null);
   const [pendingCrate, setPendingCrate] = useState<CrateResult | null>(null);
-  const [cinemaPortal, setCinemaPortal] = useState<"wheel" | "case" | null>(null);
+  const [cinemaPortal, setCinemaPortal] = useState<"wheel" | "case" | "plinko" | null>(null);
   const [pendingSpins, setPendingSpins] = useState(0);
   const [pendingCases, setPendingCases] = useState(0);
   const [wheelQueueLen, setWheelQueueLen] = useState(0);
@@ -596,9 +596,20 @@ export function HypnoticMorphFloor({
           className={`hypnotic-morph-panel hypnotic-morph-panel--plinko ${mode === "plinko" ? "hypnotic-morph-panel--focused" : ""}`}
           id="vibe-plinko"
         >
-          <p className="hypnotic-morph-panel__title text-[10px] font-semibold uppercase tracking-wider text-violet-300/90">
-            Plinko
-          </p>
+          <div className="flex w-full items-center justify-between gap-2">
+            <p className="hypnotic-morph-panel__title text-[10px] font-semibold uppercase tracking-wider text-violet-300/90">
+              Plinko
+            </p>
+            {cinemaPortal !== "plinko" && (
+              <button
+                type="button"
+                onClick={() => setCinemaPortal("plinko")}
+                className="rounded-md border border-violet-400/35 bg-violet-500/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-violet-200 hover:bg-violet-500/25"
+              >
+                Full screen
+              </button>
+            )}
+          </div>
           <HypnoticPlinkoBoard balance={balance} />
         </section>
 
@@ -623,6 +634,7 @@ export function HypnoticMorphFloor({
         caseOpenDisabled={caseQueueFull || balance < crateStake || !stakeDocked}
         wheelSpinLabel={wheelSpinLabel}
         caseOpenLabel={caseOpenLabel}
+        plinkoBalance={balance}
       />
     </div>
   );
