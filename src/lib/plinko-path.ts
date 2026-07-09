@@ -1,11 +1,24 @@
-/** Build a random L/R path that lands in the target slot (12 rows, start col 6). */
+/** Build a random L/R path that lands in the target slot (Galton board model). */
 
-import { ballXForCol, ballYForRow, slotCenterX, type PlinkoBoardLayout } from "@/lib/plinko-board";
+import {
+  ballXForCol,
+  slotCenterX,
+  type PlinkoBoardLayout,
+} from "@/lib/plinko-board";
 
 export type PlinkoDirection = "L" | "R";
 
-export function rightsNeededForSlot(targetSlot: number, rows: number, startCol: number): number {
-  return (targetSlot + rows - startCol) / 2;
+/** Y midpoint between peg row `row` and the next row — ball passes through gaps here. */
+export function ballYBetweenRows(layout: PlinkoBoardLayout, row: number): number {
+  return layout.padTop + (row + 0.5) * layout.rowStep;
+}
+
+/**
+ * Standard Galton board: with `rows` peg rows, slot index equals the count of
+ * right deflections (0…rows). All 13 slots are reachable.
+ */
+export function rightsNeededForSlot(targetSlot: number, rows: number): number {
+  return targetSlot;
 }
 
 export function shuffle<T>(items: T[]): T[] {
@@ -17,13 +30,13 @@ export function shuffle<T>(items: T[]): T[] {
   return out;
 }
 
-/** Random left/right sequence with exactly the rights needed to land in `targetSlot`. */
-export function pathForSlot(targetSlot: number, rows: number, startCol: number): PlinkoDirection[] {
-  const rights = rightsNeededForSlot(targetSlot, rows, startCol);
-  const lefts = rows - rights;
-  if (rights < 0 || lefts < 0 || !Number.isInteger(rights)) {
+/** Random L/R sequence with exactly `targetSlot` rights — any order stays in bounds. */
+export function pathForSlot(targetSlot: number, rows: number): PlinkoDirection[] {
+  if (!Number.isInteger(targetSlot) || targetSlot < 0 || targetSlot > rows) {
     throw new Error(`Invalid plinko slot ${targetSlot} for ${rows} rows`);
   }
+  const rights = rightsNeededForSlot(targetSlot, rows);
+  const lefts = rows - rights;
   return shuffle<PlinkoDirection>([
     ...Array.from({ length: rights }, () => "R" as const),
     ...Array.from({ length: lefts }, () => "L" as const),
@@ -35,24 +48,23 @@ export interface PlinkoWaypoint {
   y: number;
 }
 
-/** Peg-gap bounce points from spawn → each row → final slot. */
+/** Peg-gap bounce points: spawn → each row gap → final slot. */
 export function waypointsForPath(
   path: PlinkoDirection[],
   layout: PlinkoBoardLayout,
   targetSlot: number,
 ): PlinkoWaypoint[] {
   const points: PlinkoWaypoint[] = [
-    { x: ballXForCol(layout, layout.startCol), y: layout.padTop - 14 },
+    { x: ballXForCol(layout, layout.startCol), y: layout.padTop - 16 },
   ];
 
   let col = layout.startCol;
   for (let row = 0; row < path.length; row++) {
-    const dir = path[row] === "R" ? 1 : -1;
+    col += path[row] === "R" ? 0.5 : -0.5;
     points.push({
-      x: ballXForCol(layout, col + dir * 0.5),
-      y: ballYForRow(layout, row) + layout.rowStep * 0.42,
+      x: ballXForCol(layout, col),
+      y: ballYBetweenRows(layout, row),
     });
-    col += dir;
   }
 
   points.push({
@@ -61,4 +73,28 @@ export function waypointsForPath(
   });
 
   return points;
+}
+
+/** Global ease along the full path (0…1). */
+export function easeOutCubic(t: number): number {
+  return 1 - (1 - t) ** 3;
+}
+
+export function pointAlongWaypoints(
+  waypoints: PlinkoWaypoint[],
+  progress: number,
+): PlinkoWaypoint {
+  if (waypoints.length <= 1) return waypoints[0] ?? { x: 0, y: 0 };
+
+  const eased = easeOutCubic(Math.max(0, Math.min(1, progress)));
+  const segments = waypoints.length - 1;
+  const scaled = eased * segments;
+  const idx = Math.min(Math.floor(scaled), segments - 1);
+  const localT = scaled - idx;
+  const a = waypoints[idx];
+  const b = waypoints[idx + 1];
+  return {
+    x: a.x + (b.x - a.x) * localT,
+    y: a.y + (b.y - a.y) * localT,
+  };
 }

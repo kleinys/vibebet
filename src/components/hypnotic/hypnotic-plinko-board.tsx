@@ -15,33 +15,12 @@ import {
   type PlinkoBoardLayout,
   type PlinkoRisk,
 } from "@/lib/plinko-board";
-import { pathForSlot, waypointsForPath } from "@/lib/plinko-path";
+import { pathForSlot, pointAlongWaypoints, waypointsForPath } from "@/lib/plinko-path";
 
 const BTN =
   "rounded-sm border px-3 py-2 text-[10px] font-semibold uppercase tracking-wider transition disabled:opacity-50";
 
 const DROP_MS = 2800;
-
-function easeOutCubic(t: number): number {
-  return 1 - (1 - t) ** 3;
-}
-
-function pointAlongWaypoints(
-  waypoints: { x: number; y: number }[],
-  progress: number,
-): { x: number; y: number } {
-  if (waypoints.length <= 1) return waypoints[0] ?? { x: 0, y: 0 };
-  const segments = waypoints.length - 1;
-  const scaled = progress * segments;
-  const idx = Math.min(Math.floor(scaled), segments - 1);
-  const localT = easeOutCubic(scaled - idx);
-  const a = waypoints[idx];
-  const b = waypoints[idx + 1];
-  return {
-    x: a.x + (b.x - a.x) * localT,
-    y: a.y + (b.y - a.y) * localT,
-  };
-}
 
 export type PlinkoPlayResult = {
   slotIndex: number;
@@ -66,20 +45,26 @@ export function HypnoticPlinkoBoard({
   const wrapRef = useRef<HTMLDivElement>(null);
   const layoutRef = useRef<PlinkoBoardLayout | null>(null);
   const rafRef = useRef<number | null>(null);
+  const dropAliveRef = useRef(true);
+
+  const ballRef = useRef<PlinkoBallState | null>(null);
+  const highlightRef = useRef<number | null>(null);
+  const riskRef = useRef<PlinkoRisk>("medium");
 
   const [stake, setStake] = useState(50);
   const [risk, setRisk] = useState<PlinkoRisk>("medium");
   const [dropping, setDropping] = useState(false);
-  const [ball, setBall] = useState<PlinkoBallState | null>(null);
-  const [highlightSlot, setHighlightSlot] = useState<number | null>(null);
   const [lastResult, setLastResult] = useState<PlinkoPlayResult | null>(null);
+  const [highlightSlot, setHighlightSlot] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const clampedStake = useMemo(() => clampPlinkoStake(stake), [stake]);
   const isCinema = variant === "cinema";
   const controlsLocked = dropping;
 
-  const paint = useCallback(() => {
+  riskRef.current = risk;
+
+  const paintFrame = useCallback(() => {
     const canvas = canvasRef.current;
     const wrap = wrapRef.current;
     if (!canvas || !wrap) return;
@@ -97,24 +82,80 @@ export function HypnoticPlinkoBoard({
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     const layout = computePlinkoLayout(width, height);
-    layoutRef.current = layout;
-    drawPlinkoBoard(ctx, layout, risk, ball, highlightSlot);
-  }, [risk, ball, highlightSlot]);
+    if (!dropAliveRef.current) {
+      layoutRef.current = layout;
+    }
+
+    drawPlinkoBoard(
+      ctx,
+      layout,
+      riskRef.current,
+      ballRef.current,
+      highlightRef.current,
+    );
+  }, []);
 
   useEffect(() => {
-    paint();
+    paintFrame();
     const wrap = wrapRef.current;
     if (!wrap) return;
-    const ro = new ResizeObserver(paint);
+    const ro = new ResizeObserver(() => {
+      if (!dropAliveRef.current) paintFrame();
+    });
     ro.observe(wrap);
     return () => ro.disconnect();
-  }, [paint, variant]);
+  }, [paintFrame, variant, risk]);
 
   useEffect(() => {
     return () => {
+      dropAliveRef.current = false;
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
     };
   }, []);
+
+  function snapshotLayout(): PlinkoBoardLayout {
+    const canvas = canvasRef.current;
+    const width = canvas?.clientWidth ?? 400;
+    const height = canvas?.clientHeight ?? 340;
+    const layout = computePlinkoLayout(width, height);
+    layoutRef.current = layout;
+    return layout;
+  }
+
+  async function animateDrop(
+    layout: PlinkoBoardLayout,
+    waypoints: { x: number; y: number }[],
+    ballRadius: number,
+    targetSlot: number,
+  ): Promise<void> {
+    dropAliveRef.current = true;
+    ballRef.current = null;
+    highlightRef.current = null;
+    const started = performance.now();
+
+    return new Promise((resolve) => {
+      const tick = (now: number) => {
+        if (!dropAliveRef.current) {
+          resolve();
+          return;
+        }
+
+        const progress = Math.min(1, (now - started) / DROP_MS);
+        const pos = pointAlongWaypoints(waypoints, progress);
+        ballRef.current = { x: pos.x, y: pos.y, radius: ballRadius };
+        paintFrame();
+
+        if (progress < 1) {
+          rafRef.current = requestAnimationFrame(tick);
+        } else {
+          highlightRef.current = targetSlot;
+          paintFrame();
+          resolve();
+        }
+      };
+      rafRef.current = requestAnimationFrame(tick);
+    });
+  }
 
   async function dropBall() {
     if (dropping || balance < clampedStake) return;
@@ -122,7 +163,10 @@ export function HypnoticPlinkoBoard({
     setDropping(true);
     setLastResult(null);
     setHighlightSlot(null);
+    highlightRef.current = null;
+    ballRef.current = null;
     setError(null);
+    paintFrame();
 
     try {
       const supabase = createClient();
@@ -143,32 +187,17 @@ export function HypnoticPlinkoBoard({
         newBalance: Number(row.new_balance),
       };
 
-      const layout = layoutRef.current ?? computePlinkoLayout(
-        canvasRef.current?.clientWidth ?? 400,
-        canvasRef.current?.clientHeight ?? 340,
-      );
-
-      const path = pathForSlot(result.slotIndex, PLINKO_ROW_COUNT, layout.startCol);
+      const layout = snapshotLayout();
+      const path = pathForSlot(result.slotIndex, PLINKO_ROW_COUNT);
       const waypoints = waypointsForPath(path, layout, result.slotIndex);
       const ballRadius = Math.max(5, layout.pegRadius * 1.6);
-      const started = performance.now();
 
-      await new Promise<void>((resolve) => {
-        const tick = (now: number) => {
-          const progress = Math.min(1, (now - started) / DROP_MS);
-          const pos = pointAlongWaypoints(waypoints, progress);
-          setBall({ x: pos.x, y: pos.y, radius: ballRadius });
+      await animateDrop(layout, waypoints, ballRadius, result.slotIndex);
 
-          if (progress < 1) {
-            rafRef.current = requestAnimationFrame(tick);
-          } else {
-            setHighlightSlot(result.slotIndex);
-            resolve();
-          }
-        };
-        rafRef.current = requestAnimationFrame(tick);
-      });
+      if (!dropAliveRef.current) return;
 
+      dropAliveRef.current = false;
+      setHighlightSlot(result.slotIndex);
       onBalanceChange?.(result.newBalance);
       setLastResult(result);
 
@@ -180,11 +209,15 @@ export function HypnoticPlinkoBoard({
         `Landed ${result.multiplier}× · ${formatVibe(result.payout)} VIBE (${netLabel})`,
       );
     } catch (err) {
+      if (!dropAliveRef.current) return;
       const message = err instanceof Error ? err.message : "Plinko bet failed";
       setError(message);
       toast.error(message);
-      setBall(null);
+      ballRef.current = null;
+      highlightRef.current = null;
+      paintFrame();
     } finally {
+      dropAliveRef.current = false;
       setDropping(false);
     }
   }
@@ -207,7 +240,14 @@ export function HypnoticPlinkoBoard({
         <canvas
           ref={canvasRef}
           className="hypnotic-plinko-board__canvas"
+          tabIndex={0}
           aria-label="Plinko board with peg triangle and multiplier slots"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              void dropBall();
+            }
+          }}
         />
       </div>
 
@@ -217,7 +257,7 @@ export function HypnoticPlinkoBoard({
         </p>
       )}
 
-      {lastResult && !dropping && (
+      {(lastResult && !dropping) && (
         <p className="text-center text-[11px] text-zinc-400">
           Last drop:{" "}
           <span className="font-semibold text-violet-200">{lastResult.multiplier}×</span>
@@ -299,7 +339,7 @@ export function HypnoticPlinkoBoard({
             className={`${BTN} tabular-nums ${
               clampedStake === preset
                 ? "border-amber-400/45 bg-amber-500/20 text-amber-100"
-                : "border-white/10 bg-black/30 text-zinc-400 hover:border-white/20"
+                : "border-white/10 bg-black/30 text-zinc-400 hover:border-white/20 disabled:hover:border-white/10"
             }`}
           >
             {preset}

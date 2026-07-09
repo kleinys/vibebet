@@ -113,10 +113,12 @@ export function slotColor(index: number, total: number, multiplier: number): str
   const center = (total - 1) / 2;
   const dist = Math.abs(index - center) / Math.max(center, 1);
 
-  if (dist > 0.85 || multiplier >= 10) return "#dc2626";
-  if (dist > 0.65 || multiplier >= 5) return "#ea580c";
-  if (dist > 0.45 || multiplier >= 2) return "#f59e0b";
-  if (dist > 0.25 || multiplier >= 1) return "#facc15";
+  const heat = Math.max(dist, multiplier >= 10 ? 0.9 : multiplier >= 5 ? 0.7 : multiplier >= 2 ? 0.5 : multiplier >= 1 ? 0.3 : 0);
+
+  if (heat > 0.85) return "#dc2626";
+  if (heat > 0.65) return "#ea580c";
+  if (heat > 0.45) return "#f59e0b";
+  if (heat > 0.25) return "#facc15";
   return "#fde047";
 }
 
