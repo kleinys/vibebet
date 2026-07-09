@@ -2217,7 +2217,6 @@ body {
 .hypnotic-cinema-overlay__plinko {
   width: min(100%, 44rem);
   margin: 0 auto;
-  pointer-events: auto;
 }
 
 .hypnotic-morph-panel--slots {
@@ -2811,6 +2810,33 @@ body {
 }
 
 /* Fullscreen cinema for wheel + case */
+.hypnotic-cinema-overlay--interactive {
+  pointer-events: auto;
+}
+
+.hypnotic-cinema-overlay__exit {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 130;
+  pointer-events: auto;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(15, 23, 42, 0.85);
+  padding: 0.5rem 0.85rem;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #e4e4e7;
+  cursor: pointer;
+}
+
+.hypnotic-cinema-overlay__exit:hover {
+  border-color: rgba(167, 139, 250, 0.45);
+  color: #f5f3ff;
+}
+
 .hypnotic-cinema-overlay {
   position: fixed;
   inset: 0;
@@ -2819,33 +2845,6 @@ body {
   align-items: center;
   justify-content: center;
   pointer-events: none;
-}
-
-.hypnotic-cinema-overlay--interactive {
-  pointer-events: auto;
-}
-
-.hypnotic-cinema-overlay__exit {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 130;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: rgba(15, 23, 42, 0.88);
-  color: #f4f4f5;
-  padding: 0.55rem 1rem;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
-}
-
-.hypnotic-cinema-overlay__exit:hover {
-  border-color: rgba(167, 139, 250, 0.55);
-  background: rgba(76, 29, 149, 0.55);
 }
 
 .hypnotic-cinema-overlay__backdrop {
@@ -2897,6 +2896,53 @@ body {
   color: rgba(254, 243, 199, 0.76);
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.hypnotic-cinema-overlay__cta {
+  pointer-events: auto;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0.75rem 1.5rem;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.hypnotic-cinema-overlay__cta:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.hypnotic-cinema-overlay__cta--wheel {
+  border-color: rgba(167, 139, 250, 0.45);
+  background: rgba(139, 92, 246, 0.25);
+  color: #ede9fe;
+}
+
+.hypnotic-cinema-overlay__cta--case {
+  border-color: rgba(251, 191, 36, 0.45);
+  background: rgba(245, 158, 11, 0.2);
+  color: #fef3c7;
+}
+
+.hypnotic-plinko-board__back {
+  align-self: flex-start;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(15, 23, 42, 0.75);
+  padding: 0.4rem 0.75rem;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #e4e4e7;
+}
+
+.hypnotic-plinko-board__back:hover {
+  border-color: rgba(167, 139, 250, 0.4);
+  color: #f5f3ff;
 }
 
 .hypnotic-cinema-overlay__case {

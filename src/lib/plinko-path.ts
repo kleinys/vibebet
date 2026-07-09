@@ -1,11 +1,11 @@
 /** Build a random L/R path that lands in the target slot (12 rows, start col 6). */
 
-import { ballXForCol, ballYForRow, type PlinkoBoardLayout } from "@/lib/plinko-board";
+import { ballXForCol, ballYForRow, slotCenterX, type PlinkoBoardLayout } from "@/lib/plinko-board";
 
 export type PlinkoDirection = "L" | "R";
 
-export function rightsNeededForSlot(targetSlot: number, startCol = 6): number {
-  return Math.round((targetSlot + startCol) / 2);
+export function rightsNeededForSlot(targetSlot: number, rows: number, startCol: number): number {
+  return (targetSlot + rows - startCol) / 2;
 }
 
 export function shuffle<T>(items: T[]): T[] {
@@ -18,10 +18,10 @@ export function shuffle<T>(items: T[]): T[] {
 }
 
 /** Random left/right sequence with exactly the rights needed to land in `targetSlot`. */
-export function pathForSlot(targetSlot: number, rows: number, startCol = 6): PlinkoDirection[] {
-  const rights = rightsNeededForSlot(targetSlot, startCol);
+export function pathForSlot(targetSlot: number, rows: number, startCol: number): PlinkoDirection[] {
+  const rights = rightsNeededForSlot(targetSlot, rows, startCol);
   const lefts = rows - rights;
-  if (rights < 0 || lefts < 0) {
+  if (rights < 0 || lefts < 0 || !Number.isInteger(rights)) {
     throw new Error(`Invalid plinko slot ${targetSlot} for ${rows} rows`);
   }
   return shuffle<PlinkoDirection>([
@@ -42,20 +42,21 @@ export function waypointsForPath(
   targetSlot: number,
 ): PlinkoWaypoint[] {
   const points: PlinkoWaypoint[] = [
-    { x: layout.width / 2, y: layout.padTop - 16 },
+    { x: ballXForCol(layout, layout.startCol), y: layout.padTop - 14 },
   ];
 
   let col = layout.startCol;
   for (let row = 0; row < path.length; row++) {
+    const dir = path[row] === "R" ? 1 : -1;
     points.push({
-      x: ballXForCol(layout, col),
-      y: ballYForRow(layout, row),
+      x: ballXForCol(layout, col + dir * 0.5),
+      y: ballYForRow(layout, row) + layout.rowStep * 0.42,
     });
-    col += path[row] === "R" ? 1 : -1;
+    col += dir;
   }
 
   points.push({
-    x: ballXForCol(layout, targetSlot),
+    x: slotCenterX(layout, targetSlot),
     y: layout.slotTop + layout.slotBarH / 2,
   });
 

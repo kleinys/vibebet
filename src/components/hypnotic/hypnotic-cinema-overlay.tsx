@@ -90,13 +90,8 @@ export function HypnoticCinemaOverlay({
     >
       <div className="hypnotic-cinema-overlay__backdrop" />
       {onExit && (
-        <button
-          type="button"
-          className="hypnotic-cinema-overlay__exit"
-          onClick={onExit}
-          aria-label="Exit full screen"
-        >
-          ← Back
+        <button type="button" className="hypnotic-cinema-overlay__exit" onClick={onExit}>
+          Exit full screen
         </button>
       )}
       <div className="hypnotic-cinema-overlay__content">
@@ -168,6 +163,7 @@ export function HypnoticCinemaOverlay({
               <HypnoticPlinkoBoard
                 balance={plinkoBalance}
                 onBalanceChange={onPlinkoBalanceChange}
+                onExit={onExit}
                 variant="cinema"
               />
             </div>

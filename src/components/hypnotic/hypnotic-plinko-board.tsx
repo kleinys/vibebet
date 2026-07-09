@@ -37,10 +37,10 @@ function pointAlongWaypoints(
   const localT = easeOutCubic(scaled - idx);
   const a = waypoints[idx];
   const b = waypoints[idx + 1];
-  const x = a.x + (b.x - a.x) * localT;
-  const y = a.y + (b.y - a.y) * localT;
-  const bounce = Math.sin(localT * Math.PI) * 3;
-  return { x, y: y - bounce };
+  return {
+    x: a.x + (b.x - a.x) * localT,
+    y: a.y + (b.y - a.y) * localT,
+  };
 }
 
 export type PlinkoPlayResult = {
@@ -54,10 +54,12 @@ export type PlinkoPlayResult = {
 export function HypnoticPlinkoBoard({
   balance,
   onBalanceChange,
+  onExit,
   variant = "panel",
 }: {
   balance: number;
   onBalanceChange?: (balance: number) => void;
+  onExit?: () => void;
   variant?: "panel" | "cinema";
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -196,6 +198,11 @@ export function HypnoticPlinkoBoard({
     <div
       className={`hypnotic-plinko-board w-full ${isCinema ? "hypnotic-plinko-board--cinema" : ""}`}
     >
+      {isCinema && onExit && (
+        <button type="button" className="hypnotic-plinko-board__back" onClick={onExit}>
+          ← Back to arena
+        </button>
+      )}
       <div ref={wrapRef} className="hypnotic-plinko-board__canvas-wrap">
         <canvas
           ref={canvasRef}

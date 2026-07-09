@@ -46,9 +46,9 @@ export function computePlinkoLayout(
 ): PlinkoBoardLayout {
   const padX = 10;
   const slotBarH = 30;
-  const padTop = 18;
+  const padTop = 22;
   const boardW = width - padX * 2;
-  const idealPitch = boardW / slotCount;
+  const idealPitch = boardW / (slotCount - 1);
   const idealRowStep = idealPitch * (Math.sqrt(3) / 2);
   const pegAreaH = height - slotBarH - padTop - 14;
   const maxRowStep = pegAreaH / Math.max(rows - 1, 1);
@@ -56,7 +56,7 @@ export function computePlinkoLayout(
   const pegPitch = idealPitch * scale;
   const rowStep = idealRowStep * scale;
   const slotTop = height - slotBarH - 6;
-  const pegRadius = Math.max(2.2, Math.min(3.8, pegPitch * 0.13));
+  const pegRadius = Math.max(2.2, Math.min(3.6, pegPitch * 0.12));
 
   return {
     width,
@@ -70,10 +70,37 @@ export function computePlinkoLayout(
     slotBarH,
     pegRadius,
     originX: padX,
-    startCol: Math.floor(slotCount / 2),
+    startCol: (slotCount - 1) / 2,
     rows,
     slotCount,
   };
+}
+
+/** Peg count per row: 3 at top, +1 each row (12 rows → 14 pegs on bottom). */
+export function pegsInRow(row: number): number {
+  return row + 3;
+}
+
+/** Column index (0…12) for peg `pegIndex` in `row` — centered on the board. */
+export function pegColForIndex(row: number, pegIndex: number, slotCount: number): number {
+  const count = pegsInRow(row);
+  const center = (slotCount - 1) / 2;
+  return center - (count - 1) / 2 + pegIndex;
+}
+
+/** Lateral position for ball column (may be fractional). */
+export function ballXForCol(layout: PlinkoBoardLayout, col: number): number {
+  return layout.originX + col * layout.pegPitch;
+}
+
+/** Vertical center of a peg row. */
+export function ballYForRow(layout: PlinkoBoardLayout, row: number): number {
+  return layout.padTop + row * layout.rowStep;
+}
+
+/** Slot bin center X. */
+export function slotCenterX(layout: PlinkoBoardLayout, slotIndex: number): number {
+  return ballXForCol(layout, slotIndex);
 }
 
 function formatMultiplier(mult: number): string {
@@ -93,35 +120,6 @@ export function slotColor(index: number, total: number, multiplier: number): str
   return "#fde047";
 }
 
-function pegsInRow(row: number): number {
-  return row + 3;
-}
-
-function firstPegCol(row: number, slotCount: number): number {
-  const count = pegsInRow(row);
-  return Math.max(0, Math.floor((slotCount - count) / 2));
-}
-
-export function pegPosition(
-  layout: PlinkoBoardLayout,
-  row: number,
-  pegIndex: number,
-): { x: number; y: number } {
-  const col = firstPegCol(row, layout.slotCount) + pegIndex;
-  return {
-    x: layout.originX + col * layout.pegPitch,
-    y: layout.padTop + row * layout.rowStep,
-  };
-}
-
-export function ballXForCol(layout: PlinkoBoardLayout, col: number): number {
-  return layout.originX + (col + 0.5) * layout.pegPitch;
-}
-
-export function ballYForRow(layout: PlinkoBoardLayout, row: number): number {
-  return layout.padTop + row * layout.rowStep;
-}
-
 function drawPeg(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
@@ -130,6 +128,10 @@ function drawPeg(ctx: CanvasRenderingContext2D, x: number, y: number, r: number)
   ctx.shadowBlur = 4;
   ctx.fill();
   ctx.shadowBlur = 0;
+}
+
+function pegX(layout: PlinkoBoardLayout, row: number, pegIndex: number): number {
+  return ballXForCol(layout, pegColForIndex(row, pegIndex, layout.slotCount));
 }
 
 export function drawPlinkoBoard(
@@ -151,21 +153,20 @@ export function drawPlinkoBoard(
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, layout.width, layout.height);
 
-  const slotW = layout.boardW / slotCount;
+  const slotW = layout.pegPitch * 0.94;
 
   for (let row = 0; row < layout.rows; row++) {
     const count = pegsInRow(row);
     const y = ballYForRow(layout, row);
 
-    for (let pegIndex = 0; pegIndex < count; pegIndex++) {
-      const { x } = pegPosition(layout, row, pegIndex);
-      drawPeg(ctx, x, y, layout.pegRadius);
+    for (let i = 0; i < count; i++) {
+      drawPeg(ctx, pegX(layout, row, i), y, layout.pegRadius);
     }
   }
 
   for (let i = 0; i < slotCount; i++) {
     const mult = multipliers[i];
-    const x = layout.originX + i * slotW;
+    const x = slotCenterX(layout, i) - slotW / 2;
     const color = slotColor(i, slotCount, mult);
     const active = highlightSlot === i;
 
