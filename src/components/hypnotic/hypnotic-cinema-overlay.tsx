@@ -35,6 +35,7 @@ export function HypnoticCinemaOverlay({
   wheelSpinLabel,
   caseOpenLabel,
   plinkoBalance,
+  onPlinkoBalanceChange,
 }: {
   visible: boolean;
   mode: "wheel" | "case" | "plinko" | null;
@@ -55,6 +56,7 @@ export function HypnoticCinemaOverlay({
   wheelSpinLabel?: string;
   caseOpenLabel?: string;
   plinkoBalance?: number;
+  onPlinkoBalanceChange?: (balance: number) => void;
 }) {
   const [mounted, setMounted] = useState(false);
 
@@ -158,10 +160,14 @@ export function HypnoticCinemaOverlay({
           <>
             <p className="hypnotic-cinema-overlay__title">Plinko</p>
             <div className="hypnotic-cinema-overlay__plinko">
-              <HypnoticPlinkoBoard balance={plinkoBalance} variant="cinema" />
+              <HypnoticPlinkoBoard
+                balance={plinkoBalance}
+                onBalanceChange={onPlinkoBalanceChange}
+                variant="cinema"
+              />
             </div>
             <p className="hypnotic-cinema-overlay__hint">
-              Ball drop and payouts coming soon — set your stake and risk below.
+              Set stake and risk, then tap Bet to drop the ball.
             </p>
           </>
         )}

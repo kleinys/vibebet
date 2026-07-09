@@ -2188,6 +2188,11 @@ body {
   color: #052e16;
 }
 
+.hypnotic-plinko-board__bet-cta:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 @media (min-width: 640px) {
   .hypnotic-plinko-board__bet-cta {
     grid-column: auto;

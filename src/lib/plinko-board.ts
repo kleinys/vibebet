@@ -1,57 +1,49 @@
-/** Static Plinko board layout — visual only until drop mechanics ship. */
+/** Plinko board geometry + canvas rendering (pegs, slots, ball). */
 
-export const PLINKO_ROW_COUNT = 12;
-export const PLINKO_SLOT_COUNT = 13;
+import {
+  multipliersForRisk,
+  type PlinkoRisk,
+} from "@/lib/plinko-board-types";
 
-export const PLINKO_STAKE_PRESETS = [10, 25, 50, 100, 250, 500, 1000] as const;
+export {
+  PLINKO_ROW_COUNT,
+  PLINKO_SLOT_COUNT,
+  PLINKO_STAKE_PRESETS,
+  PLINKO_MULTIPLIERS_BY_RISK,
+  multipliersForRisk,
+  clampPlinkoStake,
+  type PlinkoRisk,
+} from "@/lib/plinko-board-types";
 
-export type PlinkoRisk = "low" | "medium" | "high";
-
-/** Symmetric multiplier rows — edges hot, center cold (reference-style). */
-export const PLINKO_MULTIPLIERS_BY_RISK: Record<PlinkoRisk, number[]> = {
-  low: [8, 4, 2, 1.2, 1, 0.7, 0.5, 0.7, 1, 1.2, 2, 4, 8],
-  medium: [110, 26, 9, 4, 2, 1, 0.2, 1, 2, 4, 9, 26, 110],
-  high: [1000, 130, 26, 9, 4, 2, 0.2, 0.5, 2, 4, 9, 26, 130],
-};
-
-export function multipliersForRisk(risk: PlinkoRisk): number[] {
-  return PLINKO_MULTIPLIERS_BY_RISK[risk];
+export interface PlinkoBoardLayout {
+  width: number;
+  height: number;
+  padX: number;
+  padTop: number;
+  boardW: number;
+  pegPitch: number;
+  rowStep: number;
+  slotTop: number;
+  slotBarH: number;
+  pegRadius: number;
+  originX: number;
+  startCol: number;
+  rows: number;
+  slotCount: number;
 }
 
-export function clampPlinkoStake(value: number): number {
-  if (!Number.isFinite(value)) return 50;
-  return Math.max(10, Math.min(5000, Math.floor(value)));
+export interface PlinkoBallState {
+  x: number;
+  y: number;
+  radius: number;
 }
 
-/** Red (edges) → orange → yellow (center), like classic Plinko UIs. */
-export function slotColor(index: number, total: number, multiplier: number): string {
-  const center = (total - 1) / 2;
-  const dist = Math.abs(index - center) / Math.max(center, 1);
-
-  if (dist > 0.85 || multiplier >= 100) return "#dc2626";
-  if (dist > 0.65 || multiplier >= 20) return "#ea580c";
-  if (dist > 0.45 || multiplier >= 5) return "#f59e0b";
-  if (dist > 0.25 || multiplier >= 2) return "#facc15";
-  return "#fde047";
-}
-
-function formatMultiplier(mult: number): string {
-  if (mult >= 100) return String(Math.round(mult));
-  if (Number.isInteger(mult)) return String(mult);
-  return String(mult);
-}
-
-/** Equilateral honeycomb peg grid + multiplier bins. */
-export function drawPlinkoBoard(
-  ctx: CanvasRenderingContext2D,
+export function computePlinkoLayout(
   width: number,
   height: number,
-  risk: PlinkoRisk = "medium",
-): void {
-  const multipliers = multipliersForRisk(risk);
-  const slotCount = multipliers.length;
-  const rows = PLINKO_ROW_COUNT;
-
+  rows = 12,
+  slotCount = 13,
+): PlinkoBoardLayout {
   const padX = 10;
   const slotBarH = 30;
   const padTop = 18;
@@ -66,59 +58,137 @@ export function drawPlinkoBoard(
   const slotTop = height - slotBarH - 6;
   const pegRadius = Math.max(2.2, Math.min(3.8, pegPitch * 0.13));
 
-  ctx.clearRect(0, 0, width, height);
+  return {
+    width,
+    height,
+    padX,
+    padTop,
+    boardW,
+    pegPitch,
+    rowStep,
+    slotTop,
+    slotBarH,
+    pegRadius,
+    originX: padX,
+    startCol: Math.floor(slotCount / 2),
+    rows,
+    slotCount,
+  };
+}
 
-  const bg = ctx.createLinearGradient(0, 0, 0, height);
+function formatMultiplier(mult: number): string {
+  if (mult >= 100) return String(Math.round(mult));
+  if (Number.isInteger(mult)) return String(mult);
+  return String(mult);
+}
+
+export function slotColor(index: number, total: number, multiplier: number): string {
+  const center = (total - 1) / 2;
+  const dist = Math.abs(index - center) / Math.max(center, 1);
+
+  if (dist > 0.85 || multiplier >= 10) return "#dc2626";
+  if (dist > 0.65 || multiplier >= 5) return "#ea580c";
+  if (dist > 0.45 || multiplier >= 2) return "#f59e0b";
+  if (dist > 0.25 || multiplier >= 1) return "#facc15";
+  return "#fde047";
+}
+
+function drawPeg(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = "#ffffff";
+  ctx.shadowColor = "rgba(255,255,255,0.45)";
+  ctx.shadowBlur = 4;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+}
+
+function pegX(layout: PlinkoBoardLayout, row: number, col: number, pegsInRow: number): number {
+  if (row === layout.rows - 1) {
+    return layout.originX + col * layout.pegPitch;
+  }
+  const rowSpan = (pegsInRow - 1) * layout.pegPitch;
+  const base = layout.originX + (layout.boardW - rowSpan) / 2 + col * layout.pegPitch;
+  return row % 2 === 1 ? base + layout.pegPitch / 2 : base;
+}
+
+export function drawPlinkoBoard(
+  ctx: CanvasRenderingContext2D,
+  layout: PlinkoBoardLayout,
+  risk: PlinkoRisk,
+  ball?: PlinkoBallState | null,
+  highlightSlot?: number | null,
+): void {
+  const multipliers = multipliersForRisk(risk);
+  const slotCount = multipliers.length;
+
+  ctx.clearRect(0, 0, layout.width, layout.height);
+
+  const bg = ctx.createLinearGradient(0, 0, 0, layout.height);
   bg.addColorStop(0, "#1e1b4b");
   bg.addColorStop(0.55, "#0f172a");
   bg.addColorStop(1, "#020617");
   ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, width, height);
+  ctx.fillRect(0, 0, layout.width, layout.height);
 
-  const originX = padX;
+  const slotW = layout.boardW / slotCount;
 
-  function pegX(row: number, col: number, pegsInRow: number): number {
-    if (row === rows - 1) {
-      return originX + col * pegPitch;
-    }
-    const rowSpan = (pegsInRow - 1) * pegPitch;
-    const base = originX + (boardW - rowSpan) / 2 + col * pegPitch;
-    return row % 2 === 1 ? base + pegPitch / 2 : base;
-  }
-
-  for (let row = 0; row < rows; row++) {
+  for (let row = 0; row < layout.rows; row++) {
     const pegsInRow = row + 3;
-    const y = padTop + row * rowStep;
+    const y = layout.padTop + row * layout.rowStep;
 
     for (let col = 0; col < pegsInRow; col++) {
-      const x = pegX(row, col, pegsInRow);
-      ctx.beginPath();
-      ctx.arc(x, y, pegRadius, 0, Math.PI * 2);
-      ctx.fillStyle = "#ffffff";
-      ctx.shadowColor = "rgba(255,255,255,0.45)";
-      ctx.shadowBlur = 4;
-      ctx.fill();
-      ctx.shadowBlur = 0;
+      drawPeg(ctx, pegX(layout, row, col, pegsInRow), y, layout.pegRadius);
     }
   }
 
-  const slotW = boardW / slotCount;
   for (let i = 0; i < slotCount; i++) {
     const mult = multipliers[i];
-    const x = originX + i * slotW;
+    const x = layout.originX + i * slotW;
     const color = slotColor(i, slotCount, mult);
-    const r = 3;
+    const active = highlightSlot === i;
 
     ctx.beginPath();
-    ctx.roundRect(x + 1.5, slotTop, slotW - 3, slotBarH - 2, r);
+    ctx.roundRect(x + 1.5, layout.slotTop, slotW - 3, layout.slotBarH - 2, 3);
     ctx.fillStyle = color;
     ctx.fill();
+
+    if (active) {
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
 
     ctx.fillStyle = mult >= 10 ? "#ffffff" : "#0f172a";
     const fontSize = Math.max(8, Math.min(11, slotW * 0.34));
     ctx.font = `bold ${fontSize}px ui-sans-serif, system-ui, sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(formatMultiplier(mult), x + slotW / 2, slotTop + slotBarH / 2 - 1);
+    ctx.fillText(formatMultiplier(mult), x + slotW / 2, layout.slotTop + layout.slotBarH / 2 - 1);
   }
+
+  if (ball) {
+    const grad = ctx.createRadialGradient(
+      ball.x - ball.radius * 0.3,
+      ball.y - ball.radius * 0.3,
+      ball.radius * 0.2,
+      ball.x,
+      ball.y,
+      ball.radius,
+    );
+    grad.addColorStop(0, "#fde68a");
+    grad.addColorStop(0.55, "#f59e0b");
+    grad.addColorStop(1, "#b45309");
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
+    ctx.shadowColor = "rgba(245, 158, 11, 0.65)";
+    ctx.shadowBlur = 10;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+
+  ctx.strokeStyle = "rgba(255,255,255,0.08)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(0.5, 0.5, layout.width - 1, layout.height - 1);
 }

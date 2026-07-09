@@ -610,7 +610,7 @@ export function HypnoticMorphFloor({
               </button>
             )}
           </div>
-          <HypnoticPlinkoBoard balance={balance} />
+          <HypnoticPlinkoBoard balance={balance} onBalanceChange={setBalance} />
         </section>
 
       </div>
@@ -635,6 +635,7 @@ export function HypnoticMorphFloor({
         wheelSpinLabel={wheelSpinLabel}
         caseOpenLabel={caseOpenLabel}
         plinkoBalance={balance}
+        onPlinkoBalanceChange={setBalance}
       />
     </div>
   );
