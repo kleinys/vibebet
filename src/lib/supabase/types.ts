@@ -1322,7 +1322,7 @@ export interface Database {
         Returns: undefined;
       };
       get_daily_hustle: {
-        Args: Record<string, never>;
+        Args: { p_task_kind?: string | null };
         Returns: {
           task_id: string;
           title: string;
@@ -1332,11 +1332,111 @@ export interface Database {
           progress: number;
           completed: boolean;
           claimed: boolean;
+          task_kind: string;
+          metric: string;
+          min_hustle_tier: number;
+          tier_locked: boolean;
         }[];
+      };
+      get_hustle_oracle: {
+        Args: Record<string, never>;
+        Returns: Record<string, unknown>;
+      };
+      submit_spark_hustle_progress: {
+        Args: { p_task_id: string; p_amount?: number };
+        Returns: Record<string, unknown>;
       };
       claim_daily_hustle_reward: {
         Args: { p_task_id: string };
         Returns: number;
+      };
+      get_hustle_wallet: {
+        Args: Record<string, never>;
+        Returns: Record<string, unknown>;
+      };
+      request_hustle_transfer: {
+        Args: { p_direction: string; p_amount: number };
+        Returns: Record<string, unknown>;
+      };
+      cancel_hustle_transfer: {
+        Args: { p_transfer_id: string };
+        Returns: Record<string, unknown>;
+      };
+      get_hustle_marketplace: {
+        Args: Record<string, never>;
+        Returns: Record<string, unknown>;
+      };
+      post_hustle_gig: {
+        Args: {
+          p_title: string;
+          p_description: string;
+          p_category: string;
+          p_reward_vibe: number;
+          p_min_hustle_tier?: number;
+          p_slots?: number;
+          p_proof_instructions?: string | null;
+        };
+        Returns: Record<string, unknown>;
+      };
+      claim_hustle_gig: {
+        Args: { p_gig_id: string };
+        Returns: Record<string, unknown>;
+      };
+      submit_hustle_gig_proof: {
+        Args: {
+          p_submission_id: string;
+          p_proof_text: string;
+          p_proof_url?: string | null;
+        };
+        Returns: Record<string, unknown>;
+      };
+      review_hustle_gig_submission: {
+        Args: {
+          p_submission_id: string;
+          p_action: string;
+          p_reason?: string | null;
+        };
+        Returns: Record<string, unknown>;
+      };
+      cancel_hustle_gig: {
+        Args: { p_gig_id: string };
+        Returns: Record<string, unknown>;
+      };
+      get_hustle_equity: {
+        Args: Record<string, never>;
+        Returns: Record<string, unknown>;
+      };
+      convert_hustle_cash_to_shares: {
+        Args: { p_hustle_cash: number };
+        Returns: Record<string, unknown>;
+      };
+      redeem_hustle_shares_to_cash: {
+        Args: { p_shares: number };
+        Returns: Record<string, unknown>;
+      };
+      get_hustle_governance: {
+        Args: Record<string, never>;
+        Returns: Record<string, unknown>;
+      };
+      cast_hustle_governance_vote: {
+        Args: { p_proposal_id: string; p_support: boolean };
+        Returns: Record<string, unknown>;
+      };
+      submit_hustle_governance_proposal: {
+        Args: { p_title: string; p_description: string; p_category?: string };
+        Returns: Record<string, unknown>;
+      };
+      get_hustle_wellness: {
+        Args: Record<string, never>;
+        Returns: Record<string, unknown>;
+      };
+      enable_hustle_recovery: {
+        Args: { p_days: number };
+        Returns: Record<string, unknown>;
+      };
+      set_hustle_region: {
+        Args: { p_region: string };
+        Returns: Record<string, unknown>;
       };
       get_product_metrics: {
         Args: { p_days?: number };

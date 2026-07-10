@@ -20,6 +20,15 @@ export const FEATURE_FLAG_CATALOG: FeatureFlagDefinition[] = [
   { key: "referrals_enabled", description: "Invite links — VIBE rewards on signup / first bet" },
   { key: "weekly_digest_enabled", description: "Weekly recap at /account/digest" },
   { key: "daily_hustle_enabled", description: "Daily earn-back tasks" },
+  { key: "play_hub_enabled", description: "Unified /play hub — Live, Duels, Vibe, Hustle, Watch" },
+  { key: "hustle_spark_enabled", description: "HustleOS Spark platform tasks in Play hub" },
+  { key: "hustle_trust_enabled", description: "HustleOS Trust Score and tier unlocks" },
+  { key: "hustle_bridge_enabled", description: "Hustle Cash ↔ Play VIBE bridge with cooling-off" },
+  { key: "hustle_marketplace_enabled", description: "HustleOS Gig marketplace — escrowed multi-step tasks" },
+  { key: "hustle_shares_enabled", description: "Hustle Shares — convert Hustle Cash to capped equity" },
+  { key: "hustle_governance_enabled", description: "HustleOS governance polls — tier + share weighted votes" },
+  { key: "hustle_recovery_enabled", description: "HustleOS Recovery Mode — earn caps, regional gigs, play bridge lock" },
+  { key: "hustle_fiat_withdrawals_enabled", description: "USD withdrawals from Hustle — legal/KYC, keep OFF" },
   { key: "product_metrics_enabled", description: "Admin retention + court health dashboard" },
   { key: "analytics_dashboard_enabled", description: "Admin analytics summary + CSV export" },
   { key: "posthog_forward_enabled", description: "Mirror track_event to PostHog when configured" },
@@ -63,6 +72,7 @@ export const FEATURE_FLAG_CATALOG: FeatureFlagDefinition[] = [
 export const FEATURE_FLAGS_KEEP_OFF = new Set([
   "real_money_enabled",
   "gems_cashout_enabled",
+  "hustle_fiat_withdrawals_enabled",
 ]);
 
 export const FEATURE_FLAG_KEYS = new Set(FEATURE_FLAG_CATALOG.map((f) => f.key));

@@ -1,0 +1,270 @@
+import { Suspense, type ComponentProps } from "react";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { isEnabled } from "@/lib/feature-flags";
+import { getAllBalances } from "@/lib/ledger";
+import { getDailyHustle, getFlashHustle, getSparkHustle } from "@/lib/daily-hustle";
+import { getHustleOracle } from "@/lib/hustle-oracle";
+import { getHustleWallet } from "@/lib/hustle-wallet";
+import { getHustleMarketplace } from "@/lib/hustle-marketplace";
+import { getHustleEquity } from "@/lib/hustle-equity";
+import { getHustleGovernance } from "@/lib/hustle-governance";
+import { getHustleWellness } from "@/lib/hustle-wellness";
+import { listFastMarkets, tickFastMarkets } from "@/lib/fast-markets";
+import { getActiveSpectatorDuels } from "@/lib/duels";
+import {
+  fetchLiveArenaPrices,
+  pricesToTickPayload,
+} from "@/lib/live-arena-prices";
+import { GAME_CATALOG, liveGames } from "@/lib/game-catalog";
+import { PlayHub, type PlayHubTab } from "@/components/play/play-hub";
+
+export const revalidate = 0;
+
+const VALID_TABS = new Set<PlayHubTab>(["live", "duels", "vibe", "hustle", "watch"]);
+
+export default async function PlayPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const params = await searchParams;
+  const tabParam = params.tab;
+  const initialTab: PlayHubTab = VALID_TABS.has(tabParam as PlayHubTab)
+    ? (tabParam as PlayHubTab)
+    : "hustle";
+
+  const [
+    playHubOn,
+    hustleSparkOn,
+    dailyHustleOn,
+    hustleTrustOn,
+    hustleBridgeOn,
+    hustleMarketplaceOn,
+    hustleSharesOn,
+    hustleGovernanceOn,
+    hustleRecoveryOn,
+    arenaOn,
+    fastOn,
+    equitiesOn,
+    duelsOn,
+    spectatorOn,
+    liveEventsOn,
+    gameLayerOn,
+  ] = await Promise.all([
+    isEnabled("play_hub_enabled"),
+    isEnabled("hustle_spark_enabled"),
+    isEnabled("daily_hustle_enabled"),
+    isEnabled("hustle_trust_enabled"),
+    isEnabled("hustle_bridge_enabled"),
+    isEnabled("hustle_marketplace_enabled"),
+    isEnabled("hustle_shares_enabled"),
+    isEnabled("hustle_governance_enabled"),
+    isEnabled("hustle_recovery_enabled"),
+    isEnabled("live_arena_enabled"),
+    isEnabled("fast_markets_enabled"),
+    isEnabled("equities_enabled"),
+    isEnabled("duels_enabled"),
+    isEnabled("duel_spectator_markets_enabled"),
+    isEnabled("live_events_enabled"),
+    isEnabled("game_layer_enabled"),
+  ]);
+
+  if (!playHubOn) {
+    return (
+      <div className="mx-auto max-w-2xl px-6 py-16 text-center">
+        <h1 className="text-2xl font-semibold">Play hub off</h1>
+        <p className="mt-2 text-sm text-zinc-400">
+          Enable <code className="font-mono">play_hub_enabled</code> in Admin.
+        </p>
+        <Link href="/games" className="mt-4 inline-block text-sm text-fuchsia-400 hover:underline">
+          Go to Live Arena →
+        </Link>
+      </div>
+    );
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const hustleEnabled = hustleSparkOn && dailyHustleOn;
+
+  let vibeBalance = 0;
+  let sparkTasks: Awaited<ReturnType<typeof getSparkHustle>> = [];
+  let flashTasks: Awaited<ReturnType<typeof getFlashHustle>> = [];
+  let dailyTasks: Awaited<ReturnType<typeof getDailyHustle>> = [];
+  let oracle: Awaited<ReturnType<typeof getHustleOracle>> = null;
+  let wallet: Awaited<ReturnType<typeof getHustleWallet>> = null;
+  let marketplace: Awaited<ReturnType<typeof getHustleMarketplace>> = null;
+  let equity: Awaited<ReturnType<typeof getHustleEquity>> = null;
+  let governance: Awaited<ReturnType<typeof getHustleGovernance>> = null;
+  let wellness: Awaited<ReturnType<typeof getHustleWellness>> = null;
+
+  if (user) {
+    const [
+      balances,
+      spark,
+      flash,
+      daily,
+      oracleData,
+      walletData,
+      marketplaceData,
+      equityData,
+      governanceData,
+      wellnessData,
+    ] = await Promise.all([
+      getAllBalances(user.id).catch(() => ({ vibe: 0, gem: 0 })),
+      hustleEnabled ? getSparkHustle().catch(() => []) : Promise.resolve([]),
+      hustleEnabled ? getFlashHustle().catch(() => []) : Promise.resolve([]),
+      dailyHustleOn ? getDailyHustle().catch(() => []) : Promise.resolve([]),
+      hustleTrustOn ? getHustleOracle().catch(() => null) : Promise.resolve(null),
+      hustleBridgeOn ? getHustleWallet().catch(() => null) : Promise.resolve(null),
+      hustleMarketplaceOn ? getHustleMarketplace().catch(() => null) : Promise.resolve(null),
+      hustleSharesOn ? getHustleEquity().catch(() => null) : Promise.resolve(null),
+      hustleGovernanceOn ? getHustleGovernance().catch(() => null) : Promise.resolve(null),
+      hustleRecoveryOn ? getHustleWellness().catch(() => null) : Promise.resolve(null),
+    ]);
+    vibeBalance = balances.vibe;
+    sparkTasks = spark;
+    flashTasks = flash;
+    dailyTasks = daily;
+    oracle = oracleData;
+    wallet = walletData;
+    marketplace = marketplaceData;
+    equity = equityData;
+    governance = governanceData;
+    wellness = wellnessData;
+  }
+
+  let liveInitial: ComponentProps<typeof PlayHub>["liveInitial"] = null;
+
+  if (arenaOn || fastOn || equitiesOn) {
+    const prices = await fetchLiveArenaPrices({
+      cryptoOn: fastOn,
+      equitiesOn,
+    });
+    const payload = pricesToTickPayload(prices);
+    if ((fastOn || equitiesOn) && payload.length > 0) {
+      await tickFastMarkets(payload);
+    }
+
+    const [windows, equityWindows, duels] = await Promise.all([
+      fastOn ? listFastMarkets(24, "crypto") : Promise.resolve([]),
+      equitiesOn ? listFastMarkets(12, "finance") : Promise.resolve([]),
+      duelsOn && spectatorOn ? getActiveSpectatorDuels(12) : Promise.resolve([]),
+    ]);
+
+    liveInitial = {
+      at: Date.now(),
+      prices: prices.map((p) => ({
+        asset: p.asset,
+        label: p.label,
+        price: p.price,
+        kind: (["aapl", "tsla", "nvda"].includes(p.asset) ? "equity" : "crypto") as
+          | "equity"
+          | "crypto",
+      })),
+      windows: windows.map((m) => ({
+        id: m.id,
+        question: m.question,
+        asset: m.fast_asset,
+        intervalSec: m.fast_interval_sec,
+        strikePrice: m.strike_price,
+        windowEnd: m.window_end,
+        yesPrice: m.yes_price,
+        isCommunity: Boolean(m.recurring_series_id),
+        kind: "crypto" as const,
+      })),
+      equityWindows: equityWindows.map((m) => ({
+        id: m.id,
+        question: m.question,
+        asset: m.fast_asset,
+        intervalSec: m.fast_interval_sec,
+        strikePrice: m.strike_price,
+        windowEnd: m.window_end,
+        yesPrice: m.yes_price,
+        kind: "equity" as const,
+      })),
+      duels: duels.map((d) => ({
+        duelId: d.duel_id,
+        challenger: d.challenger_name,
+        opponent: d.opponent_name,
+        question: d.market_question,
+        spectatorMarketId: d.spectator_market_id,
+        stake: d.stake,
+        acceptedAt: d.accepted_at,
+      })),
+      paperRaces: [],
+    };
+  }
+
+  const flags = {
+    game_layer_enabled: gameLayerOn,
+    duels_enabled: duelsOn,
+    arcade_games_enabled: false,
+    paper_trading_duels_enabled: false,
+    fast_markets_enabled: fastOn,
+    connect4_enabled: await isEnabled("connect4_enabled"),
+    liars_dice_enabled: await isEnabled("liars_dice_enabled"),
+    chess_enabled: await isEnabled("chess_enabled"),
+    checkers_enabled: await isEnabled("checkers_enabled"),
+    go_enabled: await isEnabled("go_enabled"),
+    shogi_enabled: await isEnabled("shogi_enabled"),
+    poker_enabled: await isEnabled("poker_enabled"),
+  };
+
+  const duelGameLinks = gameLayerOn
+    ? liveGames(flags)
+        .filter((g) => g.href)
+        .slice(0, 8)
+        .map((g) => ({
+          name: g.name,
+          href: g.href!,
+          desc: g.description,
+        }))
+    : GAME_CATALOG.filter((g) => g.status === "live" && g.href)
+        .slice(0, 6)
+        .map((g) => ({
+          name: g.name,
+          href: g.href!,
+          desc: g.description,
+        }));
+
+  if (tabParam === "hustle" && !user) {
+    redirect("/login?next=/play?tab=hustle");
+  }
+
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+      <Suspense fallback={<div className="text-sm text-zinc-500">Loading play hub…</div>}>
+        <PlayHub
+          initialTab={initialTab}
+          hustleEnabled={hustleEnabled}
+          sparkTasks={sparkTasks}
+          flashTasks={flashTasks}
+          dailyTasks={dailyTasks}
+          vibeBalance={vibeBalance}
+          oracle={oracle}
+          trustEnabled={hustleTrustOn}
+          bridgeEnabled={hustleBridgeOn}
+          marketplaceEnabled={hustleMarketplaceOn}
+          sharesEnabled={hustleSharesOn}
+          governanceEnabled={hustleGovernanceOn}
+          recoveryEnabled={hustleRecoveryOn}
+          wallet={wallet}
+          marketplace={marketplace}
+          equity={equity}
+          governance={governance}
+          wellness={wellness}
+          isLoggedIn={Boolean(user)}
+          liveInitial={liveInitial}
+          duelGameLinks={duelGameLinks}
+          liveEventsOn={liveEventsOn}
+        />
+      </Suspense>
+    </div>
+  );
+}

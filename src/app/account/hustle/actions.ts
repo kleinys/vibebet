@@ -12,6 +12,7 @@ export async function claimDailyHustleReward(
   });
   if (error) return { error: error.message };
 
+  revalidatePath("/play");
   revalidatePath("/account/hustle");
   revalidatePath("/account/quests");
   return { amount: Number(data) };

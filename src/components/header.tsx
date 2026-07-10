@@ -27,7 +27,7 @@ export async function Header({
   let companionInput: Awaited<ReturnType<typeof getCompanionInput>> | null = null;
 
   // 初始化功能开关
-  let [duelsOn, guildsOn, copyOn, limitsOn] = [false, false, false, false];
+  let [duelsOn, guildsOn, copyOn, limitsOn, playHubOn] = [false, false, false, false, false];
 
   if (user) {
     try {
@@ -37,11 +37,12 @@ export async function Header({
     }
     
     // 并行获取功能开关状态
-    [duelsOn, guildsOn, copyOn, limitsOn] = await Promise.all([
+    [duelsOn, guildsOn, copyOn, limitsOn, playHubOn] = await Promise.all([
       isEnabled("duels_enabled"),
       isEnabled("guilds_enabled"),
       isEnabled("copy_trading_enabled"),
       isEnabled("limit_orders_enabled"),
+      isEnabled("play_hub_enabled"),
     ]);
     
     // 并行获取用户数据，使用Promise.allSettled避免单个请求失败导致整体失败
@@ -167,9 +168,15 @@ export async function Header({
       {!mobileNavOn && (
         <nav aria-label="Main" className="border-t border-white/5 bg-zinc-950/95">
           <div className="mx-auto flex max-w-6xl items-center gap-0.5 overflow-x-auto px-4 py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <Link href="/games" className={`${navLink} text-emerald-300/90 hover:text-emerald-200`}>
-              Live Arena
-            </Link>
+            {playHubOn ? (
+              <Link href="/play" className={`${navLink} text-fuchsia-300/90 hover:text-fuchsia-200`}>
+                Play
+              </Link>
+            ) : (
+              <Link href="/games" className={`${navLink} text-emerald-300/90 hover:text-emerald-200`}>
+                Live Arena
+              </Link>
+            )}
             <Link href="/markets/fast" className={`${navLink} text-amber-300/90 hover:text-amber-200`}>
               Fast
             </Link>

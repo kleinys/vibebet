@@ -3379,3 +3379,1132 @@ body {
     transform: none !important;
   }
 }
+
+/* =============================================================================
+   Play hub + HustleOS Spark (Phase A)
+   ============================================================================= */
+
+.play-hub__chrome {
+  margin-bottom: 1.25rem;
+}
+
+.play-hub__eyebrow {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(192, 132, 252, 0.85);
+}
+
+.play-hub__title {
+  margin: 0.35rem 0 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fafafa;
+}
+
+.play-hub__sub {
+  margin: 0.5rem 0 0;
+  max-width: 36rem;
+  font-size: 0.875rem;
+  color: #a1a1aa;
+}
+
+.play-hub__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+  padding: 0.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(9, 9, 11, 0.65);
+}
+
+.play-hub__tab {
+  flex: 1 1 auto;
+  min-width: 4.5rem;
+  border: none;
+  border-radius: 0.35rem;
+  padding: 0.55rem 0.75rem;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #a1a1aa;
+  background: transparent;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.play-hub__tab--active {
+  color: #f5f3ff;
+  background: rgba(139, 92, 246, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(167, 139, 250, 0.35);
+}
+
+.play-hub__panel {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(24, 24, 27, 0.75), rgba(9, 9, 11, 0.9));
+  padding: 1rem;
+}
+
+@media (min-width: 640px) {
+  .play-hub__panel {
+    padding: 1.25rem 1.5rem;
+  }
+}
+
+.play-hub__card {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(9, 9, 11, 0.55);
+  padding: 1rem;
+}
+
+.play-hub__link {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #c084fc;
+}
+
+.play-hub__link:hover {
+  text-decoration: underline;
+}
+
+.play-hub__cta {
+  align-items: center;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(167, 139, 250, 0.45);
+  background: rgba(139, 92, 246, 0.22);
+  padding: 0.65rem 1.1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #ede9fe;
+}
+
+.play-hub__cta:hover {
+  background: rgba(139, 92, 246, 0.32);
+}
+
+.play-hub__vibe-panel {
+  padding: 0.5rem 0;
+}
+
+.hustle-spark-board__hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.hustle-spark-board__eyebrow {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(251, 191, 36, 0.8);
+}
+
+.hustle-spark-board__title {
+  margin: 0.25rem 0 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fef3c7;
+}
+
+.hustle-spark-board__sub {
+  margin: 0.35rem 0 0;
+  max-width: 28rem;
+  font-size: 0.8rem;
+  color: #a1a1aa;
+}
+
+.hustle-spark-board__balance {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 0.35rem;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(120, 53, 15, 0.35);
+  padding: 0.45rem 0.75rem;
+  font-size: 0.85rem;
+  color: #fde68a;
+}
+
+.hustle-spark-board__claim-hint {
+  margin: 0 0 1rem;
+  font-size: 0.8rem;
+  color: #fcd34d;
+}
+
+.hustle-spark-board__banner {
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.hustle-spark-board__banner--earn {
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(245, 158, 11, 0.12);
+  color: #fde68a;
+}
+
+.hustle-spark-board__banner--play {
+  border: 1px solid rgba(167, 139, 250, 0.35);
+  background: rgba(139, 92, 246, 0.12);
+  color: #ddd6fe;
+}
+
+.hustle-spark-board__section-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #a1a1aa;
+}
+
+.hustle-spark-board__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.hustle-spark-board__card {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(9, 9, 11, 0.55);
+  padding: 1rem;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.hustle-spark-board__card--celebrate {
+  animation: hustle-claim-burst 1.1s ease-out;
+  box-shadow: 0 0 28px rgba(251, 191, 36, 0.35);
+}
+
+.hustle-spark-board__ring {
+  --pct: 0;
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  background: conic-gradient(
+    #f59e0b calc(var(--pct) * 1%),
+    rgba(63, 63, 70, 0.65) 0
+  );
+}
+
+.hustle-spark-board__ring span {
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 999px;
+  background: #18181b;
+}
+
+.hustle-spark-board__claim-btn {
+  width: 100%;
+  border: none;
+  border-radius: 0.4rem;
+  background: linear-gradient(180deg, #f59e0b, #d97706);
+  padding: 0.55rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #1c1917;
+  cursor: pointer;
+}
+
+.hustle-spark-board__claim-btn:hover {
+  filter: brightness(1.05);
+}
+
+.hustle-spark-board__claim-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@keyframes hustle-claim-burst {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.hustle-spark-board__card--locked {
+  opacity: 0.72;
+  border-style: dashed;
+}
+
+.hustle-trust-bar {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(167, 139, 250, 0.25);
+  background: rgba(15, 15, 25, 0.75);
+  padding: 1rem;
+}
+
+.hustle-trust-bar__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.hustle-trust-bar__label {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(196, 181, 253, 0.85);
+}
+
+.hustle-trust-bar__score {
+  margin: 0.2rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f5f3ff;
+}
+
+.hustle-trust-bar__tier {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+}
+
+.hustle-trust-bar__tier-badge {
+  border-radius: 0.35rem;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  background: rgba(245, 158, 11, 0.15);
+  padding: 0.2rem 0.55rem;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fde68a;
+}
+
+.hustle-trust-bar__track {
+  margin-top: 0.75rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: rgba(63, 63, 70, 0.65);
+  overflow: hidden;
+}
+
+.hustle-trust-bar__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #8b5cf6, #f59e0b);
+}
+
+.hustle-trust-bar__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.6rem;
+  font-size: 10px;
+  color: #a1a1aa;
+}
+
+.hustle-trust-bar__next {
+  margin: 0.65rem 0 0;
+  font-size: 11px;
+  color: #d4d4d8;
+}
+
+.hustle-tier-ladder {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(9, 9, 11, 0.55);
+  padding: 1rem;
+}
+
+.hustle-tier-ladder__title {
+  margin: 0 0 0.65rem;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #a1a1aa;
+}
+
+.hustle-tier-ladder__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.hustle-tier-ladder__step {
+  border-radius: 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.55rem 0.65rem;
+  opacity: 0.55;
+}
+
+.hustle-tier-ladder__step--unlocked {
+  opacity: 1;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.hustle-tier-ladder__step--current {
+  border-color: rgba(251, 191, 36, 0.4);
+  background: rgba(245, 158, 11, 0.08);
+}
+
+.hustle-spark-board__balance--earn {
+  border-color: rgba(251, 191, 36, 0.35);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.hustle-wallet-panel {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  background: rgba(12, 10, 8, 0.75);
+  padding: 1rem;
+}
+
+.hustle-wallet-panel__title {
+  margin: 0 0 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fcd34d;
+}
+
+.hustle-wallet-panel__balances {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+  margin-bottom: 0.85rem;
+}
+
+.hustle-wallet-panel__balance {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.65rem;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.hustle-wallet-panel__balance--earn {
+  border-color: rgba(251, 191, 36, 0.3);
+}
+
+.hustle-wallet-panel__balance--play {
+  border-color: rgba(167, 139, 250, 0.3);
+}
+
+.hustle-wallet-panel__direction {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+  margin-bottom: 0.65rem;
+}
+
+.hustle-wallet-panel__direction button {
+  border-radius: 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.45rem 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #d4d4d8;
+  cursor: pointer;
+}
+
+.hustle-wallet-panel__direction button.is-active {
+  border-color: rgba(251, 191, 36, 0.45);
+  background: rgba(245, 158, 11, 0.15);
+  color: #fde68a;
+}
+
+.hustle-wallet-panel__form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.hustle-wallet-panel__input {
+  flex: 1;
+  border-radius: 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 0.5rem 0.65rem;
+  font-size: 0.85rem;
+  color: #fafafa;
+}
+
+.hustle-wallet-panel__submit {
+  border: none;
+  border-radius: 0.45rem;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #1c1917;
+  cursor: pointer;
+}
+
+.hustle-wallet-panel__submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.hustle-wallet-panel__hint {
+  margin: 0.55rem 0 0;
+  font-size: 0.65rem;
+  line-height: 1.4;
+  color: #71717a;
+}
+
+.hustle-wallet-panel__pending {
+  list-style: none;
+  margin: 0.85rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.hustle-wallet-panel__pending li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: 0.45rem;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  padding: 0.55rem 0.65rem;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.hustle-gig-board {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(139, 92, 246, 0.28);
+  background: rgba(12, 10, 18, 0.75);
+  padding: 1rem;
+}
+
+.hustle-gig-board__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.hustle-gig-board__eyebrow {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(196, 181, 253, 0.85);
+}
+
+.hustle-gig-board__title {
+  margin: 0.25rem 0 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f4f4f5;
+}
+
+.hustle-gig-board__sub {
+  margin: 0.35rem 0 0;
+  max-width: 36rem;
+  font-size: 0.75rem;
+  color: #a1a1aa;
+}
+
+.hustle-gig-board__post-btn {
+  border: 1px solid rgba(167, 139, 250, 0.45);
+  border-radius: 0.45rem;
+  background: rgba(139, 92, 246, 0.15);
+  padding: 0.45rem 0.85rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #ddd6fe;
+  cursor: pointer;
+}
+
+.hustle-gig-board__lock-hint {
+  margin: 0 0 1rem;
+  border-radius: 0.5rem;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  padding: 0.65rem 0.75rem;
+  font-size: 0.75rem;
+  color: #a1a1aa;
+}
+
+.hustle-gig-board__section {
+  margin-top: 1.25rem;
+}
+
+.hustle-gig-board__section-title {
+  margin: 0 0 0.65rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #71717a;
+}
+
+.hustle-gig-board__list,
+.hustle-gig-board__postings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.hustle-gig-board__card {
+  border-radius: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.28);
+  padding: 0.85rem;
+}
+
+.hustle-gig-board__card--locked {
+  opacity: 0.65;
+  border-style: dashed;
+}
+
+.hustle-gig-board__card--active {
+  border-color: rgba(167, 139, 250, 0.35);
+}
+
+.hustle-gig-board__claim-btn {
+  width: 100%;
+  border: none;
+  border-radius: 0.4rem;
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #faf5ff;
+  cursor: pointer;
+}
+
+.hustle-gig-board__claim-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hustle-gig-board__approve-btn,
+.hustle-gig-board__reject-btn {
+  border-radius: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hustle-gig-board__approve-btn {
+  border: none;
+  background: rgba(16, 185, 129, 0.25);
+  color: #6ee7b7;
+}
+
+.hustle-gig-board__reject-btn {
+  border: 1px solid rgba(244, 63, 94, 0.35);
+  background: transparent;
+  color: #fda4af;
+}
+
+.hustle-gig-board__post-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.85rem;
+  border-radius: 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.hustle-gig-board__input,
+.hustle-gig-board__textarea {
+  width: 100%;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 0.5rem 0.65rem;
+  font-size: 0.8rem;
+  color: #fafafa;
+}
+
+.hustle-gig-board__textarea {
+  resize: vertical;
+  min-height: 4rem;
+}
+
+.hustle-gig-board__posting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.55rem 0.65rem;
+}
+
+.hustle-shares-panel {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  background: rgba(8, 16, 14, 0.8);
+  padding: 1rem;
+}
+
+.hustle-shares-panel__header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.hustle-shares-panel__eyebrow {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(110, 231, 183, 0.85);
+}
+
+.hustle-shares-panel__title {
+  margin: 0.25rem 0 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #ecfdf5;
+}
+
+.hustle-shares-panel__sub {
+  margin: 0.35rem 0 0;
+  max-width: 36rem;
+  font-size: 0.75rem;
+  color: #a1a1aa;
+}
+
+.hustle-shares-panel__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+}
+
+.hustle-shares-panel__tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+  margin-bottom: 0.65rem;
+}
+
+.hustle-shares-panel__tabs button {
+  border-radius: 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.45rem 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #d4d4d8;
+  cursor: pointer;
+}
+
+.hustle-shares-panel__tabs button.is-active {
+  border-color: rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.12);
+  color: #a7f3d0;
+}
+
+.hustle-shares-panel__form {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.hustle-shares-panel__input {
+  flex: 1;
+  border-radius: 0.45rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 0.5rem 0.65rem;
+  font-size: 0.85rem;
+  color: #fafafa;
+}
+
+.hustle-shares-panel__submit {
+  border: none;
+  border-radius: 0.45rem;
+  background: linear-gradient(135deg, #10b981, #059669);
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #042f2e;
+  cursor: pointer;
+}
+
+.hustle-shares-panel__submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hustle-shares-panel__hint {
+  margin: 0.55rem 0 0;
+  font-size: 0.65rem;
+  line-height: 1.4;
+  color: #71717a;
+}
+
+.hustle-shares-panel__hint--warn {
+  color: #fcd34d;
+}
+
+.hustle-shares-panel__history {
+  list-style: none;
+  margin: 0.85rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.hustle-shares-panel__history li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.7rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 0.35rem;
+}
+
+.hustle-gov-panel {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  background: rgba(8, 14, 20, 0.8);
+  padding: 1rem;
+}
+
+.hustle-gov-panel__header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.hustle-gov-panel__eyebrow {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(125, 211, 252, 0.85);
+}
+
+.hustle-gov-panel__title {
+  margin: 0.25rem 0 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f0f9ff;
+}
+
+.hustle-gov-panel__sub {
+  margin: 0.35rem 0 0;
+  max-width: 36rem;
+  font-size: 0.75rem;
+  color: #a1a1aa;
+}
+
+.hustle-gov-panel__propose-btn {
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  border-radius: 0.45rem;
+  background: rgba(14, 165, 233, 0.15);
+  padding: 0.45rem 0.85rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #bae6fd;
+  cursor: pointer;
+}
+
+.hustle-gov-panel__lock-hint {
+  margin: 0 0 1rem;
+  border-radius: 0.5rem;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  padding: 0.65rem 0.75rem;
+  font-size: 0.75rem;
+  color: #a1a1aa;
+}
+
+.hustle-gov-panel__section-title {
+  margin: 0 0 0.65rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #71717a;
+}
+
+.hustle-gov-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.hustle-gov-panel__card {
+  border-radius: 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.28);
+  padding: 0.85rem;
+}
+
+.hustle-gov-panel__card--closed {
+  opacity: 0.75;
+}
+
+.hustle-gov-panel__bar {
+  height: 0.35rem;
+  border-radius: 999px;
+  background: rgba(244, 63, 94, 0.35);
+  overflow: hidden;
+}
+
+.hustle-gov-panel__bar-for {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+  border-radius: 999px;
+}
+
+.hustle-gov-panel__vote-btn {
+  flex: 1;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  background: rgba(34, 197, 94, 0.1);
+  padding: 0.45rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #86efac;
+  cursor: pointer;
+}
+
+.hustle-gov-panel__vote-btn--against {
+  border-color: rgba(244, 63, 94, 0.35);
+  background: rgba(244, 63, 94, 0.1);
+  color: #fda4af;
+}
+
+.hustle-gov-panel__vote-btn.is-active {
+  filter: brightness(1.15);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.08);
+}
+
+.hustle-gov-panel__propose-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0.85rem;
+  border-radius: 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.hustle-gov-panel__input,
+.hustle-gov-panel__textarea {
+  width: 100%;
+  border-radius: 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 0.5rem 0.65rem;
+  font-size: 0.8rem;
+  color: #fafafa;
+}
+
+.hustle-gov-panel__textarea {
+  resize: vertical;
+  min-height: 4rem;
+}
+
+.hustle-gov-panel__submit {
+  border: none;
+  border-radius: 0.45rem;
+  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #f0f9ff;
+  cursor: pointer;
+}
+
+.hustle-gov-panel__submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hustle-wellness-panel {
+  border-radius: 0.75rem;
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  background: rgba(12, 10, 6, 0.82);
+  padding: 1rem;
+}
+
+.hustle-wellness-panel__header {
+  margin-bottom: 0.85rem;
+}
+
+.hustle-wellness-panel__eyebrow {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(252, 211, 77, 0.85);
+}
+
+.hustle-wellness-panel__title {
+  margin: 0.25rem 0 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fffbeb;
+}
+
+.hustle-wellness-panel__sub {
+  margin: 0.35rem 0 0;
+  max-width: 36rem;
+  font-size: 0.75rem;
+  color: #a1a1aa;
+}
+
+.hustle-wellness-panel__banner {
+  border-radius: 0.55rem;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.1);
+  padding: 0.75rem;
+  font-size: 0.75rem;
+  color: #fde68a;
+}
+
+.hustle-wellness-panel__banner--active strong {
+  color: #fef3c7;
+}
+
+.hustle-wellness-panel__cap-bar {
+  height: 0.35rem;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.hustle-wellness-panel__cap-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.hustle-wellness-panel__recovery-btn {
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  border-radius: 0.45rem;
+  background: rgba(251, 191, 36, 0.08);
+  padding: 0.4rem 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fde68a;
+  cursor: pointer;
+}
+
+.hustle-wellness-panel__recovery-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hustle-wellness-panel__confirm {
+  border: none;
+  border-radius: 0.4rem;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  padding: 0.4rem 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #fffbeb;
+  cursor: pointer;
+}
+
+.hustle-wellness-panel__confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hustle-wellness-panel__section-title {
+  margin: 0 0 0.5rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #71717a;
+}
+
+.hustle-wellness-panel__region-btn {
+  border-radius: 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.28);
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.hustle-wellness-panel__region-btn:hover:not(:disabled) {
+  border-color: rgba(251, 191, 36, 0.35);
+}
+
+.hustle-wellness-panel__region-btn.is-active {
+  border-color: rgba(251, 191, 36, 0.55);
+  background: rgba(251, 191, 36, 0.12);
+}
+
+.hustle-wellness-panel__region-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hustle-wallet-panel__recovery-banner {
+  margin-bottom: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  background: rgba(251, 191, 36, 0.1);
+  padding: 0.6rem 0.75rem;
+  font-size: 0.7rem;
+  color: #fde68a;
+}

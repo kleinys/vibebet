@@ -121,6 +121,7 @@ export function hubForPath(id: PlayerPath | string | null | undefined): string {
 export function pathFromPathname(pathname: string): PlayerPath | null {
   if (pathname.startsWith("/markets") || pathname.startsWith("/court")) return "predict";
   if (
+    pathname.startsWith("/play") ||
     pathname.startsWith("/games/duels") ||
     pathname.startsWith("/duels") ||
     pathname.startsWith("/games/create")
