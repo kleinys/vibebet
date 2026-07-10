@@ -1,22 +1,8 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import type { DailyHustleTask, HustleTaskKind } from "@/lib/hustle/shared";
 
-export type HustleTaskKind = "daily" | "spark" | "flash";
-
-export interface DailyHustleTask {
-  task_id: string;
-  title: string;
-  description: string;
-  target: number;
-  reward_vibe: number;
-  progress: number;
-  completed: boolean;
-  claimed: boolean;
-  task_kind: HustleTaskKind;
-  metric: string;
-  min_hustle_tier: number;
-  tier_locked: boolean;
-}
+export type { DailyHustleTask, HustleTaskKind } from "@/lib/hustle/shared";
 
 function mapHustleRow(row: Record<string, unknown>): DailyHustleTask {
   return {

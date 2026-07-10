@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition, type CSSProperties } from "react";
 import { toast } from "sonner";
 import { claimHustleReward } from "@/app/play/actions";
-import type { DailyHustleTask } from "@/lib/daily-hustle";
-import type { HustleOracleProfile } from "@/lib/hustle-oracle";
+import type { DailyHustleTask } from "@/lib/hustle/shared";
+import type { HustleOracleProfile } from "@/lib/hustle/shared";
 import { formatVibe } from "@/lib/utils";
 import { CurrencyIconVibe } from "@/components/fantasy-icons";
 import { SparkTagPanel } from "@/components/hustle/spark-tag-panel";
@@ -19,11 +19,13 @@ import { HustleGigBoard } from "@/components/hustle/hustle-gig-board";
 import { HustleSharesPanel } from "@/components/hustle/hustle-shares-panel";
 import { HustleGovernancePanel } from "@/components/hustle/hustle-governance-panel";
 import { HustleWellnessPanel } from "@/components/hustle/hustle-wellness-panel";
-import type { HustleWalletState } from "@/lib/hustle-wallet";
-import type { HustleMarketplaceState } from "@/lib/hustle-marketplace";
-import type { HustleEquityState } from "@/lib/hustle-equity";
-import type { HustleGovernanceState } from "@/lib/hustle-governance";
-import type { HustleWellnessState } from "@/lib/hustle-wellness";
+import type {
+  HustleEquityState,
+  HustleGovernanceState,
+  HustleMarketplaceState,
+  HustleWalletState,
+  HustleWellnessState,
+} from "@/lib/hustle/shared";
 
 export function HustleSparkBoard({
   sparkTasks,

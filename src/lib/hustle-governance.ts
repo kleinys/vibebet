@@ -1,35 +1,16 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import type {
+  HustleGovernanceCategory,
+  HustleGovernanceProposal,
+  HustleGovernanceState,
+} from "@/lib/hustle/shared";
 
-export type HustleGovernanceCategory = "platform" | "economy" | "tasks" | "community";
-
-export interface HustleGovernanceProposal {
-  proposal_id: string;
-  title: string;
-  description: string;
-  category: HustleGovernanceCategory;
-  status: string;
-  min_vote_tier: number;
-  is_platform: boolean;
-  ends_at: string;
-  created_at: string;
-  votes_for: number;
-  votes_against: number;
-  voter_count: number;
-  my_vote: boolean | null;
-  my_power: number | null;
-  is_open: boolean;
-  can_vote: boolean;
-}
-
-export interface HustleGovernanceState {
-  authenticated: boolean;
-  hustle_tier: number;
-  voting_power: number;
-  can_propose: boolean;
-  min_propose_tier: number;
-  proposals: HustleGovernanceProposal[];
-}
+export type {
+  HustleGovernanceCategory,
+  HustleGovernanceProposal,
+  HustleGovernanceState,
+} from "@/lib/hustle/shared";
 
 function mapProposal(row: Record<string, unknown>): HustleGovernanceProposal {
   return {

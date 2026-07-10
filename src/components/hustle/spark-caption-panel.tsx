@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { submitSparkProgress } from "@/app/play/actions";
-import type { HustleOracleProfile } from "@/lib/hustle-oracle";
+import type { HustleOracleProfile } from "@/lib/hustle/shared";
 
 export function SparkCaptionPanel({
   taskId,

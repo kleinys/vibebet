@@ -1,84 +1,24 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import type {
+  HustleGigCategory,
+  HustleGigSubmissionStatus,
+  HustleMarketplaceState,
+  HustleMyPosting,
+  HustleMySubmission,
+  HustleOpenGig,
+  HustlePendingReview,
+} from "@/lib/hustle/shared";
 
-export type HustleGigCategory = "content" | "moderation" | "research" | "creative";
-
-export type HustleGigSubmissionStatus =
-  | "claimed"
-  | "submitted"
-  | "approved"
-  | "rejected"
-  | "cancelled";
-
-export interface HustleOpenGig {
-  gig_id: string;
-  title: string;
-  description: string;
-  category: HustleGigCategory;
-  reward_vibe: number;
-  min_hustle_tier: number;
-  slots_remaining: number;
-  is_platform: boolean;
-  poster_name: string;
-  expires_at: string;
-  status: string;
-  proof_instructions: string | null;
-  my_submission_status: HustleGigSubmissionStatus | null;
-  my_submission_id: string | null;
-}
-
-export interface HustleMySubmission {
-  submission_id: string;
-  status: HustleGigSubmissionStatus;
-  proof_text: string | null;
-  proof_url: string | null;
-  payout_vibe: number | null;
-  claimed_at: string;
-  submitted_at: string | null;
-  resolved_at: string | null;
-  gig_id: string;
-  title: string;
-  reward_vibe: number;
-  is_platform: boolean;
-  poster_id: string | null;
-  poster_name: string;
-}
-
-export interface HustleMyPosting {
-  gig_id: string;
-  title: string;
-  reward_vibe: number;
-  status: string;
-  slots: number;
-  slots_filled: number;
-  escrow_held: number;
-  expires_at: string;
-  created_at: string;
-  pending_review: number;
-}
-
-export interface HustlePendingReview {
-  submission_id: string;
-  status: string;
-  proof_text: string | null;
-  proof_url: string | null;
-  submitted_at: string | null;
-  gig_id: string;
-  title: string;
-  reward_vibe: number;
-  worker_name: string;
-}
-
-export interface HustleMarketplaceState {
-  authenticated: boolean;
-  hustle_tier: number;
-  hustle_cash: number;
-  can_post: boolean;
-  open_gigs: HustleOpenGig[];
-  my_submissions: HustleMySubmission[];
-  my_postings: HustleMyPosting[];
-  pending_reviews: HustlePendingReview[];
-}
+export type {
+  HustleGigCategory,
+  HustleGigSubmissionStatus,
+  HustleMarketplaceState,
+  HustleMyPosting,
+  HustleMySubmission,
+  HustleOpenGig,
+  HustlePendingReview,
+} from "@/lib/hustle/shared";
 
 function mapOpenGig(row: Record<string, unknown>): HustleOpenGig {
   return {

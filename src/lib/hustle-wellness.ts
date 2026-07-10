@@ -1,29 +1,9 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import type { HustleRegion, HustleWellnessState } from "@/lib/hustle/shared";
 
-export type HustleRegion = "global" | "eu" | "us" | "mena" | "latam";
-
-export interface HustleWellnessState {
-  authenticated: boolean;
-  recovery_mode: boolean;
-  recovery_until: string | null;
-  self_exclude_until: string | null;
-  daily_earn_cap: number | null;
-  earned_today: number;
-  earn_cap_remaining: number | null;
-  region: HustleRegion;
-  region_label: string;
-  blocks_play_bridge: boolean;
-  regional_gig_count: number;
-}
-
-export const HUSTLE_REGIONS: { id: HustleRegion; label: string; hint: string }[] = [
-  { id: "global", label: "Global", hint: "Default platform gigs worldwide" },
-  { id: "eu", label: "Europe", hint: "Privacy-first labeling tasks" },
-  { id: "us", label: "United States", hint: "Election & finance research gigs" },
-  { id: "mena", label: "MENA", hint: "Arabic-friendly caption tasks" },
-  { id: "latam", label: "Latin America", hint: "Spanish/Portuguese share tasks" },
-];
+export type { HustleRegion, HustleWellnessState } from "@/lib/hustle/shared";
+export { HUSTLE_REGIONS } from "@/lib/hustle/shared";
 
 export async function getHustleWellness(): Promise<HustleWellnessState | null> {
   const supabase = await createClient();

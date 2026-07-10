@@ -7,7 +7,7 @@ import {
   HUSTLE_REGIONS,
   type HustleRegion,
   type HustleWellnessState,
-} from "@/lib/hustle-wellness";
+} from "@/lib/hustle/shared";
 import { formatVibe } from "@/lib/utils";
 
 const RECOVERY_OPTIONS = [

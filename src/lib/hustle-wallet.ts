@@ -1,32 +1,16 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import type {
+  HustlePendingTransfer,
+  HustleTransferDirection,
+  HustleWalletState,
+} from "@/lib/hustle/shared";
 
-export type HustleTransferDirection = "earn_to_play" | "play_to_earn";
-
-export interface HustlePendingTransfer {
-  id: string;
-  direction: HustleTransferDirection;
-  amount: number;
-  fee: number;
-  status: string;
-  requested_at: string;
-  completes_at: string | null;
-}
-
-export interface HustleWalletState {
-  authenticated: boolean;
-  hustle_cash: number;
-  play_balance: number;
-  daily_limit_earn_to_play: number;
-  weekly_limit_earn_to_play: number;
-  daily_used_earn_to_play: number;
-  daily_used_play_to_earn: number;
-  self_exclude_until: string | null;
-  pending_transfers: HustlePendingTransfer[];
-  cooling_threshold: number;
-  earn_to_play_fee_pct: number;
-  play_to_earn_fee_pct: number;
-}
+export type {
+  HustlePendingTransfer,
+  HustleTransferDirection,
+  HustleWalletState,
+} from "@/lib/hustle/shared";
 
 export async function getHustleWallet(): Promise<HustleWalletState | null> {
   const supabase = await createClient();

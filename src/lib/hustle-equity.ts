@@ -1,31 +1,12 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import type {
+  HustleEquityState,
+  HustleShareLedgerEntry,
+} from "@/lib/hustle/shared";
 
-export interface HustleShareLedgerEntry {
-  id: string;
-  delta_shares: number;
-  hustle_cash_delta: number;
-  kind: string;
-  created_at: string;
-}
-
-export interface HustleEquityState {
-  authenticated: boolean;
-  hustle_shares: number;
-  hustle_cash: number;
-  hustle_tier: number;
-  floor_cash_value: number;
-  convert_rate: number;
-  floor_redeem_rate: number;
-  max_shares: number;
-  min_convert_tier: number;
-  min_redeem_tier: number;
-  daily_convert_limit: number;
-  daily_converted_today: number;
-  can_convert: boolean;
-  can_redeem: boolean;
-  history: HustleShareLedgerEntry[];
-}
+export type { HustleEquityState, HustleShareLedgerEntry } from "@/lib/hustle/shared";
+export { formatShares } from "@/lib/hustle/shared";
 
 export async function getHustleEquity(): Promise<HustleEquityState | null> {
   const supabase = await createClient();
@@ -63,11 +44,4 @@ export async function getHustleEquity(): Promise<HustleEquityState | null> {
     can_redeem: Boolean(row.can_redeem),
     history,
   };
-}
-
-export function formatShares(shares: number): string {
-  return shares.toLocaleString(undefined, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 4,
-  });
 }

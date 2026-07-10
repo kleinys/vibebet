@@ -4,13 +4,15 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { LiveArenaBoard } from "@/components/live-arena-board";
 import { HustleSparkBoard } from "@/components/hustle/hustle-spark-board";
-import type { DailyHustleTask } from "@/lib/daily-hustle";
-import type { HustleOracleProfile } from "@/lib/hustle-oracle";
-import type { HustleWalletState } from "@/lib/hustle-wallet";
-import type { HustleMarketplaceState } from "@/lib/hustle-marketplace";
-import type { HustleEquityState } from "@/lib/hustle-equity";
-import type { HustleGovernanceState } from "@/lib/hustle-governance";
-import type { HustleWellnessState } from "@/lib/hustle-wellness";
+import type { DailyHustleTask } from "@/lib/hustle/shared";
+import type {
+  HustleEquityState,
+  HustleGovernanceState,
+  HustleMarketplaceState,
+  HustleOracleProfile,
+  HustleWalletState,
+  HustleWellnessState,
+} from "@/lib/hustle/shared";
 import type { ComponentProps } from "react";
 
 export type PlayHubTab = "live" | "duels" | "vibe" | "hustle" | "watch";

@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { claimDailyHustleReward } from "@/app/account/hustle/actions";
-import type { DailyHustleTask } from "@/lib/daily-hustle";
+import type { DailyHustleTask } from "@/lib/hustle/shared";
 import { formatVibe } from "@/lib/utils";
 
 export function DailyHustleBoard({ tasks }: { tasks: DailyHustleTask[] }) {

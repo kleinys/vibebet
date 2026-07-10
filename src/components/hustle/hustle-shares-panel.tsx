@@ -6,8 +6,8 @@ import {
   convertHustleCashToShares,
   redeemHustleSharesToCash,
 } from "@/app/play/actions";
-import type { HustleEquityState } from "@/lib/hustle-equity";
-import { formatShares } from "@/lib/hustle-equity";
+import type { HustleEquityState } from "@/lib/hustle/shared";
+import { formatShares } from "@/lib/hustle/shared";
 import { formatVibe } from "@/lib/utils";
 import { CurrencyIconVibe } from "@/components/fantasy-icons";
 

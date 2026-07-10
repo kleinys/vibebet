@@ -1,22 +1,9 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import type { HustleOracleProfile, HustleTierLabel } from "@/lib/hustle/shared";
 
-export type HustleTierLabel = "Spark" | "Flash" | "Gig" | "Pro" | "Elite";
-
-export interface HustleOracleProfile {
-  authenticated: boolean;
-  trust_score: number;
-  hustle_tier: number;
-  tier_label: HustleTierLabel;
-  spark_claims_lifetime: number;
-  platform_fee_pct: number;
-  current_streak: number;
-  next_tier: number | null;
-  next_tier_label: HustleTierLabel | null;
-  next_tier_spark_target: number | null;
-  next_tier_spark_progress: number | null;
-  next_tier_trust_gate: number | null;
-}
+export type { HustleOracleProfile, HustleTierLabel } from "@/lib/hustle/shared";
+export { HUSTLE_TIER_LADDER } from "@/lib/hustle/shared";
 
 const TIER_LABELS: HustleTierLabel[] = ["Spark", "Flash", "Gig", "Pro", "Elite"];
 
@@ -56,17 +43,3 @@ export async function getHustleOracle(): Promise<HustleOracleProfile | null> {
       row.next_tier_trust_gate != null ? Number(row.next_tier_trust_gate) : null,
   };
 }
-
-export const HUSTLE_TIER_LADDER: {
-  tier: number;
-  label: HustleTierLabel;
-  trustGate: number;
-  sparkGate: number;
-  description: string;
-}[] = [
-  { tier: 1, label: "Spark", trustGate: 0, sparkGate: 0, description: "30-second micro-tasks" },
-  { tier: 2, label: "Flash", trustGate: 550, sparkGate: 20, description: "Faster gigs, higher rewards" },
-  { tier: 3, label: "Gig", trustGate: 650, sparkGate: 35, description: "Multi-step earn tasks" },
-  { tier: 4, label: "Pro", trustGate: 750, sparkGate: 50, description: "Premium client-style work" },
-  { tier: 5, label: "Elite", trustGate: 850, sparkGate: 80, description: "Top reputation lane" },
-];

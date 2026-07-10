@@ -10,7 +10,7 @@ import type {
   HustleGovernanceCategory,
   HustleGovernanceProposal,
   HustleGovernanceState,
-} from "@/lib/hustle-governance";
+} from "@/lib/hustle/shared";
 
 const CATEGORIES: { id: HustleGovernanceCategory; label: string }[] = [
   { id: "platform", label: "Platform" },

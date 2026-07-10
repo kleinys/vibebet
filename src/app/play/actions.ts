@@ -2,10 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import type { HustleTransferDirection } from "@/lib/hustle-wallet";
-import type { HustleGigCategory } from "@/lib/hustle-marketplace";
-import type { HustleGovernanceCategory } from "@/lib/hustle-governance";
-import type { HustleRegion } from "@/lib/hustle-wellness";
+import type {
+  HustleTransferDirection,
+  HustleGigCategory,
+  HustleGovernanceCategory,
+  HustleRegion,
+} from "@/lib/hustle/shared";
 
 export async function claimHustleReward(
   taskId: string,
@@ -198,6 +200,11 @@ export async function submitHustleGovernanceProposal(payload: {
   category: HustleGovernanceCategory;
 }): Promise<{ error?: string }> {
   const supabase = await createClient();
+  const { error } = await supabase.rpc("submit_hustle_governance_proposal", {
+    p_title: payload.title,
+    p_description: payload.description,
+    p_category: payload.category,
+  });
   if (error) return { error: error.message };
   revalidatePath("/play");
   return {};

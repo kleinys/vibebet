@@ -6,7 +6,7 @@ import {
   cancelHustleTransfer,
   requestHustleTransfer,
 } from "@/app/play/actions";
-import type { HustleWalletState } from "@/lib/hustle-wallet";
+import type { HustleWalletState } from "@/lib/hustle/shared";
 import { formatVibe } from "@/lib/utils";
 import { CurrencyIconVibe } from "@/components/fantasy-icons";
 

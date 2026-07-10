@@ -1,5 +1,5 @@
-import { HUSTLE_TIER_LADDER } from "@/lib/hustle-oracle";
-import type { HustleOracleProfile } from "@/lib/hustle-oracle";
+import { HUSTLE_TIER_LADDER } from "@/lib/hustle/shared";
+import type { HustleOracleProfile } from "@/lib/hustle/shared";
 
 export function HustleTierLadder({ oracle }: { oracle: HustleOracleProfile }) {
   return (

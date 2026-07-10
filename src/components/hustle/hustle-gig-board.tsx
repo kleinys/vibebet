@@ -15,7 +15,7 @@ import type {
   HustleMySubmission,
   HustleOpenGig,
   HustlePendingReview,
-} from "@/lib/hustle-marketplace";
+} from "@/lib/hustle/shared";
 import { formatVibe } from "@/lib/utils";
 import { CurrencyIconVibe } from "@/components/fantasy-icons";
 

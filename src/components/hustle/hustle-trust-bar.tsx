@@ -1,4 +1,4 @@
-import type { HustleOracleProfile } from "@/lib/hustle-oracle";
+import type { HustleOracleProfile } from "@/lib/hustle/shared";
 
 export function HustleTrustBar({ oracle }: { oracle: HustleOracleProfile }) {
   const pct = Math.round((oracle.trust_score / 1000) * 100);
