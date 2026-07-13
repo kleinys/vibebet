@@ -33,8 +33,8 @@ export async function Header({
   let companionInput: Awaited<ReturnType<typeof getCompanionInput>> | null = null;
 
   // 初始化功能开关
-  let [duelsOn, guildsOn, copyOn, limitsOn, playHubOn, interconnectOn] = [
-    false, false, false, false, false, false,
+  let [duelsOn, guildsOn, copyOn, limitsOn, playHubOn, interconnectOn, modulesOn] = [
+    false, false, false, false, false, false, false,
   ];
   let adrenalineTokens = 0;
   let companionName: string | null = null;
@@ -48,13 +48,14 @@ export async function Header({
     }
     
     // 并行获取功能开关状态
-    [duelsOn, guildsOn, copyOn, limitsOn, playHubOn, interconnectOn] = await Promise.all([
+    [duelsOn, guildsOn, copyOn, limitsOn, playHubOn, interconnectOn, modulesOn] = await Promise.all([
       isEnabled("duels_enabled"),
       isEnabled("guilds_enabled"),
       isEnabled("copy_trading_enabled"),
       isEnabled("limit_orders_enabled"),
       isEnabled("play_hub_enabled"),
       isEnabled("interconnect_layer_enabled"),
+      isEnabled("user_modules_enabled"),
     ]);
     
     const [balanceResult, streakResult, companionResult, profileRow, tokenCount, expeditionResult] =
@@ -240,6 +241,11 @@ export async function Header({
                 <Link href="/play?tab=watch" className={`${navLink} text-sky-300/90 hover:text-sky-200`}>
                   Watch
                 </Link>
+                {modulesOn && (
+                  <Link href="/apps" className={`${navLink} text-fuchsia-300/90 hover:text-fuchsia-200`}>
+                    Apps
+                  </Link>
+                )}
                 <Link href="/leaderboard" className={`${navLink} text-zinc-400 hover:text-zinc-200`}>
                   Leaderboard
                 </Link>

@@ -11,7 +11,7 @@ export async function MobileNavShell() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [duelsOn, guildsOn, copyOn, limitsOn, tournamentsOn, questsOn, playHubOn, interconnectOn] =
+  const [duelsOn, guildsOn, copyOn, limitsOn, tournamentsOn, questsOn, playHubOn, interconnectOn, modulesOn] =
     await Promise.all([
       isEnabled("duels_enabled"),
       isEnabled("guilds_enabled"),
@@ -21,6 +21,7 @@ export async function MobileNavShell() {
       isEnabled("weekly_quests_enabled"),
       isEnabled("play_hub_enabled"),
       isEnabled("interconnect_layer_enabled"),
+      isEnabled("user_modules_enabled"),
     ]);
 
   return (
@@ -34,6 +35,7 @@ export async function MobileNavShell() {
       isLoggedIn={Boolean(user)}
       playHubOn={playHubOn}
       interconnectOn={interconnectOn}
+      modulesOn={modulesOn}
     />
   );
 }

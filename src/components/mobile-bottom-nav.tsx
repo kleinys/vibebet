@@ -64,6 +64,7 @@ export function MobileBottomNav({
   isLoggedIn,
   playHubOn,
   interconnectOn,
+  modulesOn,
 }: {
   duelsOn: boolean;
   guildsOn: boolean;
@@ -74,6 +75,7 @@ export function MobileBottomNav({
   isLoggedIn: boolean;
   playHubOn: boolean;
   interconnectOn: boolean;
+  modulesOn: boolean;
 }) {
   const pathname = usePathname();
   const [moreOpen, setMoreOpen] = useState(false);
@@ -138,6 +140,7 @@ export function MobileBottomNav({
         questsOn={questsOn}
         isLoggedIn={isLoggedIn}
         playHubOn={playHubOn}
+        modulesOn={modulesOn}
       />
     </>
   );

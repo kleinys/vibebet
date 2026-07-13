@@ -1261,6 +1261,30 @@ export interface Database {
         Args: Record<string, never>;
         Returns: Record<string, unknown>;
       };
+      list_platform_modules: {
+        Args: { p_limit?: number };
+        Returns: Record<string, unknown>;
+      };
+      get_platform_module: {
+        Args: { p_slug: string };
+        Returns: Record<string, unknown>;
+      };
+      install_platform_module: {
+        Args: { p_slug: string };
+        Returns: Record<string, unknown>;
+      };
+      get_my_installed_modules: {
+        Args: Record<string, never>;
+        Returns: Record<string, unknown>;
+      };
+      get_active_arena_raid: {
+        Args: Record<string, never>;
+        Returns: Record<string, unknown>;
+      };
+      join_arena_raid: {
+        Args: Record<string, never>;
+        Returns: Record<string, unknown>;
+      };
       save_onboarding_interests: {
         Args: { p_interests: string[] };
         Returns: undefined;

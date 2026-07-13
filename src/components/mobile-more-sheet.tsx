@@ -15,6 +15,7 @@ export function MobileMoreSheet({
   questsOn,
   isLoggedIn,
   playHubOn = false,
+  modulesOn = false,
 }: {
   open: boolean;
   onClose: () => void;
@@ -26,6 +27,7 @@ export function MobileMoreSheet({
   questsOn: boolean;
   isLoggedIn: boolean;
   playHubOn?: boolean;
+  modulesOn?: boolean;
 }) {
   const [mounted, setMounted] = useState(false);
 
@@ -45,6 +47,7 @@ export function MobileMoreSheet({
   if (!mounted || !open) return null;
 
   const links = [
+    { href: "/apps", label: "Platform Apps", show: modulesOn },
     { href: "/guide", label: "Playbook", show: true },
     { href: playHubOn ? "/play?tab=duels" : "/games/duels", label: "Duels", show: duelsOn },
     { href: "/tournaments", label: "Tournaments", show: tournamentsOn },

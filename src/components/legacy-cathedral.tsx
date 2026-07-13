@@ -1,6 +1,6 @@
 import type { LegacyCathedral } from "@/lib/legacy-cathedral";
 
-const WING_OFFSETS = [-3, -2, -1, 0, 1, 2, 3, 4];
+const WING_OFFSETS = [-4, -3, -2, -1, 0, 1, 2, 3, 4];
 
 export function LegacyCathedralView({
   cathedral,
