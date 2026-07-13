@@ -25,5 +25,6 @@ export async function getCompanionInput(
     equippedBadgeSlug: cosmetics.badge?.slug,
     skinRarity: cosmetics.skin?.rarity,
     badgeRarity: cosmetics.badge?.rarity,
+    lastActiveDate: streak.lastActiveDate,
   };
 }

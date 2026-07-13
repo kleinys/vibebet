@@ -4508,3 +4508,274 @@ body {
   font-size: 0.7rem;
   color: #fde68a;
 }
+
+/* Mystic companion eyes (Phase 0) */
+.mystic-eyes {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  pointer-events: none;
+}
+
+.mystic-eye {
+  position: absolute;
+  width: 14px;
+  height: 10px;
+  top: 19%;
+  transform: translate(-50%, -50%);
+}
+
+.mystic-eye--left {
+  left: 42%;
+}
+
+.mystic-eye--right {
+  left: 52%;
+}
+
+.mystic-eye__halo {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--eye-halo) 0%, transparent 70%);
+  opacity: calc(0.35 * var(--eye-glow-scale, 0.85));
+  filter: blur(2px);
+  animation: mystic-eye-halo-pulse 2.8s ease-in-out infinite;
+}
+
+.mystic-eye__iris {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #fff8 0%, var(--eye-left, #a78bfa) 45%, #0008 100%);
+  box-shadow: 0 0 12px 2px color-mix(in srgb, var(--eye-left) 60%, transparent);
+}
+
+.mystic-eye--right .mystic-eye__iris {
+  background: radial-gradient(circle at 40% 35%, #fff8 0%, var(--eye-right, #fbbf24) 45%, #0008 100%);
+  box-shadow: 0 0 12px 2px color-mix(in srgb, var(--eye-right) 60%, transparent);
+}
+
+.mystic-eye__pupil {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: #0a0a0a;
+}
+
+.mystic-eye__catch {
+  position: absolute;
+  left: 58%;
+  top: 32%;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.mystic-eyes--slit .mystic-eye__pupil {
+  width: 2px;
+  height: 5px;
+  border-radius: 1px;
+}
+
+.mystic-eyes--visor .mystic-eye__iris {
+  border-radius: 2px;
+  height: 5px;
+  top: 2px;
+}
+
+.mystic-eyes--visor .mystic-eye__pupil {
+  width: 80%;
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, transparent, #22d3ee, #e879f9, transparent);
+}
+
+.mystic-eyes--void .mystic-eye--left {
+  opacity: 0.15;
+}
+
+.mystic-eyes--void .mystic-eye--left .mystic-eye__iris {
+  background: #1e1b4b;
+  box-shadow: none;
+}
+
+.mystic-eyes--cosmic .mystic-eye__iris::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent, #fbbf24, transparent, #60a5fa, transparent);
+  opacity: 0.5;
+  animation: mystic-eye-cosmic-spin 6s linear infinite;
+}
+
+.mystic-eyes--urgent .mystic-eye__halo {
+  animation: mystic-eye-urgent 1.2s ease-in-out infinite;
+}
+
+@keyframes mystic-eye-halo-pulse {
+  0%,
+  100% {
+    opacity: calc(0.25 * var(--eye-glow-scale, 0.85));
+    transform: scale(1);
+  }
+  50% {
+    opacity: calc(0.55 * var(--eye-glow-scale, 0.85));
+    transform: scale(1.08);
+  }
+}
+
+@keyframes mystic-eye-urgent {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.65;
+  }
+}
+
+@keyframes mystic-eye-cosmic-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.play-arena-embed--locked {
+  border-radius: 0.75rem;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  padding: 2rem 1.5rem;
+  text-align: center;
+}
+
+.play-arena-embed .hypnotic-arena {
+  min-height: 420px;
+}
+
+.duel-stake-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    rgb(139 92 246 / 0.9) 0%,
+    rgb(139 92 246 / 0.9) var(--slider-pct, 50%),
+    rgb(39 39 42) var(--slider-pct, 50%),
+    rgb(39 39 42) 100%
+  );
+}
+
+.duel-stake-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #c4b5fd;
+  border: 2px solid #7c3aed;
+  cursor: pointer;
+}
+
+.duel-stake-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #c4b5fd;
+  border: 2px solid #7c3aed;
+  cursor: pointer;
+}
+
+.legacy-cathedral {
+  display: grid;
+  gap: 1rem;
+}
+
+.legacy-cathedral--compact .legacy-cathedral__base {
+  height: 72px;
+}
+
+.legacy-cathedral__sky {
+  height: 28px;
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(180deg, #1e1b4b 0%, #312e81 55%, transparent 100%);
+}
+
+.legacy-cathedral__base {
+  position: relative;
+  height: 96px;
+  border-radius: 0 0 8px 8px;
+  background: linear-gradient(180deg, #3f3f46 0%, #18181b 100%);
+  overflow: hidden;
+}
+
+.legacy-cathedral__foundation {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 72%;
+  height: 18px;
+  transform: translateX(-50%);
+  background: linear-gradient(90deg, #52525b, #a1a1aa, #52525b);
+  border-radius: 4px 4px 0 0;
+}
+
+.legacy-cathedral__wing {
+  position: absolute;
+  bottom: 16px;
+  left: calc(50% + (var(--wing-i, 0) * 14px));
+  width: 10px;
+  height: calc(24px + (var(--wing-i, 0) * 2px));
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #8b5cf6, #4c1d95);
+  border-radius: 3px 3px 0 0;
+  opacity: 0.92;
+}
+
+.legacy-cathedral__crown {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  transform: translateX(-50%) rotate(45deg);
+  background: linear-gradient(135deg, #fde047, #f59e0b);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.6);
+}
+
+.luck-reveal {
+  animation: luck-reveal-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes luck-reveal-pop {
+  0% {
+    transform: scale(0.6) rotate(-8deg);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
+}
+
+.luck-coin-flip {
+  animation: luck-coin-flip 0.7s ease-in-out;
+}
+
+@keyframes luck-coin-flip {
+  0% {
+    transform: rotateY(0deg);
+  }
+  50% {
+    transform: rotateY(180deg) scale(1.08);
+  }
+  100% {
+    transform: rotateY(360deg);
+  }
+}

@@ -8,6 +8,7 @@ export interface CompanionInput {
   equippedBadgeSlug?: string;
   skinRarity?: Rarity;
   badgeRarity?: Rarity;
+  lastActiveDate?: string | null;
 }
 
 export interface CompanionState {

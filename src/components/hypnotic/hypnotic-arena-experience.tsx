@@ -56,6 +56,7 @@ export function HypnoticArenaExperience({
   equippedSkinSlug,
   initialSession,
   initialAffinityLabel,
+  adrenalineTokens = 0,
 }: {
   figureConfig: FigureConfig;
   vibeBalance: number;
@@ -63,6 +64,7 @@ export function HypnoticArenaExperience({
   equippedSkinSlug?: string | null;
   initialSession?: HypnoticSession;
   initialAffinityLabel?: string | null;
+  adrenalineTokens?: number;
 }) {
   const freeSpinAvailable = spinsUsedToday === 0;
 
@@ -88,6 +90,7 @@ export function HypnoticArenaExperience({
               vibeBalance={vibeBalance}
               spinsUsedToday={spinsUsedToday}
               equippedSkinSlug={equippedSkinSlug}
+              adrenalineTokens={adrenalineTokens}
             />
           </div>
         </div>

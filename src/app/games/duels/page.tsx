@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { PlayerCodeCard } from "@/components/player-code-card";
@@ -8,7 +9,12 @@ import { GAME_CATALOG, liveGames } from "@/lib/game-catalog";
 export const revalidate = 0;
 
 export default async function DuelsHubPage() {
-  const [layerOn, duelsOn, arcadeOn, paperOn, fastOn, connect4On, liarsOn, chessOn, checkersOn, goOn, shogiOn, pokerOn] =
+  const playHubOn = await isEnabled("play_hub_enabled");
+  if (playHubOn) {
+    redirect("/play?tab=duels");
+  }
+
+  const [layerOn, duelsOn, arcadeOn, paperOn, fastOn, connect4On, liarsOn, chessOn, checkersOn, goOn, shogiOn, pokerOn, triviaOn] =
     await Promise.all([
     isEnabled("game_layer_enabled"),
     isEnabled("duels_enabled"),
@@ -22,6 +28,7 @@ export default async function DuelsHubPage() {
     isEnabled("go_enabled"),
     isEnabled("shogi_enabled"),
     isEnabled("poker_enabled"),
+    isEnabled("trivia_enabled"),
   ]);
 
   const flags = {
@@ -37,6 +44,7 @@ export default async function DuelsHubPage() {
     go_enabled: goOn,
     shogi_enabled: shogiOn,
     poker_enabled: pokerOn,
+    trivia_enabled: triviaOn,
   };
 
   const playable = liveGames(flags);

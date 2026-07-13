@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { isEnabled } from "@/lib/feature-flags";
 import { listFastMarkets, tickFastMarkets } from "@/lib/fast-markets";
@@ -12,6 +13,11 @@ import {
 export const revalidate = 0;
 
 export default async function GamesPage() {
+  const playHubOn = await isEnabled("play_hub_enabled");
+  if (playHubOn) {
+    redirect("/play?tab=live");
+  }
+
   const [arenaOn, fastOn, equitiesOn, duelsOn, spectatorOn, liveEventsOn] =
     await Promise.all([
       isEnabled("live_arena_enabled"),
@@ -25,11 +31,13 @@ export default async function GamesPage() {
   if (!arenaOn && !fastOn && !equitiesOn && !duelsOn && !liveEventsOn) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-16 text-center">
-        <h1 className="text-2xl font-semibold">Live Arena off</h1>
+        <h1 className="text-2xl font-semibold">Live Arena</h1>
         <p className="mt-2 text-sm text-zinc-400">
-          Enable <code className="font-mono">live_arena_enabled</code> or{" "}
-          <code className="font-mono">fast_markets_enabled</code> in Admin.
+          Live windows and fast markets are coming soon.
         </p>
+        <Link href="/markets" className="mt-4 inline-block text-sm text-fuchsia-400 hover:underline">
+          Browse markets →
+        </Link>
       </div>
     );
   }

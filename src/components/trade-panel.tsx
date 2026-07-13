@@ -36,6 +36,11 @@ type Props = {
     username?: string | null;
     marketQuestion?: string;
   };
+  smartDefaults?: {
+    recommendedSide: "yes" | "no";
+    recommendedStake: number;
+    reason: string;
+  };
 };
 
 export function TradePanel({
@@ -52,10 +57,17 @@ export function TradePanel({
   quickExitEnabled = false,
   defaultMode = "buy",
   shareProfile,
+  smartDefaults,
 }: Props) {
+  const initialSide = smartDefaults?.recommendedSide ?? "yes";
+  const initialAmount = smartDefaults
+    ? String(smartDefaults.recommendedStake)
+    : "100";
+
   const [mode, setMode] = useState<"buy" | "sell" | "cancel">(defaultMode);
-  const [side, setSide] = useState<"yes" | "no">("yes");
-  const [amount, setAmount] = useState("100");
+  const [side, setSide] = useState<"yes" | "no">(initialSide);
+  const [amount, setAmount] = useState(initialAmount);
+  const [appliedSmartPick, setAppliedSmartPick] = useState(false);
 
   const [buyState, buyAction, buyPending] = useActionState(placeTrade, null);
   const [sellState, sellAction, sellPending] = useActionState(
@@ -112,8 +124,35 @@ export function TradePanel({
   const showCancelBet =
     quickExitEnabled && totalHeld > 0 && totalCost > 0;
 
+  function applySmartPick() {
+    if (!smartDefaults) return;
+    setSide(smartDefaults.recommendedSide);
+    setAmount(String(smartDefaults.recommendedStake));
+    setMode("buy");
+    setAppliedSmartPick(true);
+  }
+
   return (
     <div className="space-y-4">
+      {smartDefaults && mode === "buy" && !appliedSmartPick && (
+        <div className="rounded-lg border border-violet-500/25 bg-violet-500/5 p-3">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-violet-300">
+            Suggested pick
+          </p>
+          <p className="mt-1 text-xs text-zinc-300">{smartDefaults.reason}</p>
+          <p className="mt-2 text-sm font-medium text-zinc-100">
+            {formatVibe(smartDefaults.recommendedStake)} VIBE on{" "}
+            {smartDefaults.recommendedSide === "yes" ? yesLabel : noLabel}
+          </p>
+          <button
+            type="button"
+            onClick={applySmartPick}
+            className="mt-2 w-full rounded-md bg-violet-600 py-1.5 text-xs font-medium text-white hover:bg-violet-500"
+          >
+            Use suggestion
+          </button>
+        </div>
+      )}
       <div className="flex gap-1 rounded-lg bg-zinc-950/80 p-1">
         <button
           type="button"

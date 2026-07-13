@@ -151,6 +151,16 @@ export const GAME_CATALOG: GameDefinition[] = [
     href: "/games/duels/poker",
     flag: "poker_enabled",
   },
+  {
+    key: "trivia",
+    name: "Trivia Blitz",
+    emoji: "🧠",
+    kind: "skill",
+    status: "live",
+    description: "Head-to-head trivia races — fastest correct answers win the pot.",
+    href: "/games/duels/trivia",
+    flag: "trivia_enabled",
+  },
 ];
 
 export function liveGames(flags: Record<string, boolean>): GameDefinition[] {
@@ -159,6 +169,15 @@ export function liveGames(flags: Record<string, boolean>): GameDefinition[] {
     if (!g.flag) return true;
     return flags[g.flag] === true;
   });
+}
+
+/** PvP / arcade entries for Play hub duels tab (excludes solo oracle markets). */
+export function playHubDuelGames(flags: Record<string, boolean>): GameDefinition[] {
+  return liveGames(flags).filter(
+    (g) =>
+      g.href != null &&
+      (g.href.startsWith("/games/duels") || g.href === "/games/arcade"),
+  );
 }
 
 export function catalogGame(key: string): GameDefinition | undefined {

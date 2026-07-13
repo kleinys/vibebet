@@ -7,11 +7,15 @@ import { AccountNav } from "@/components/account-nav";
 import { DailyHustleBoard } from "@/components/daily-hustle-board";
 
 export default async function HustlePage() {
-  const [enabled, playHubOn] = await Promise.all([
+  const [enabled, playHubOn, interconnectOn] = await Promise.all([
     isEnabled("daily_hustle_enabled"),
     isEnabled("play_hub_enabled"),
+    isEnabled("interconnect_layer_enabled"),
   ]);
 
+  if (interconnectOn) {
+    redirect("/hustle");
+  }
   if (playHubOn) {
     redirect("/play?tab=hustle");
   }

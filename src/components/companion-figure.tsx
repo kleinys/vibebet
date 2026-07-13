@@ -118,15 +118,21 @@ export function CompanionFigureScene({
   labels,
   lockerItems,
   freeSpinAvailable = false,
+  eyeStreakMode = "none",
 }: {
   config: FigureConfig;
   labels?: { humanTitle: string; animalTitle: string };
   lockerItems?: { skins: LockerEquipItem[]; badges: LockerEquipItem[] };
   freeSpinAvailable?: boolean;
+  eyeStreakMode?: import("@/lib/companion-eyes").MysticEyeStreakMode;
 }) {
   return (
     <div className="relative overflow-hidden rounded-sm border border-white/10 bg-[#020617] ring-1 ring-white/5">
-      <HypnoticProfileAmbient config={config} freeSpinAvailable={freeSpinAvailable}>
+      <HypnoticProfileAmbient
+        config={config}
+        freeSpinAvailable={freeSpinAvailable}
+        eyeStreakMode={eyeStreakMode}
+      >
         {lockerItems ? (
           <CompanionLockerEquip skins={lockerItems.skins} badges={lockerItems.badges} />
         ) : (

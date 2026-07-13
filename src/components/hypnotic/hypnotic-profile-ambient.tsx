@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { FigureConfig } from "@/lib/companion-figure";
+import type { MysticEyeStreakMode } from "@/lib/companion-eyes";
 import type { HypnoticReaction } from "@/lib/hypnotic-flow";
 import { CompanionAnimatedStage } from "@/components/companion-animated-stage";
 import { HypnoticParticleField } from "@/components/hypnotic/hypnotic-particle-field";
@@ -12,10 +13,12 @@ const AFTERGLOW_KEY = "vibebet-hypnotic-afterglow";
 export function HypnoticProfileAmbient({
   config,
   freeSpinAvailable,
+  eyeStreakMode = "none",
   children,
 }: {
   config: FigureConfig;
   freeSpinAvailable: boolean;
+  eyeStreakMode?: MysticEyeStreakMode;
   children?: React.ReactNode;
 }) {
   const [reaction, setReaction] = useState<HypnoticReaction>(
@@ -49,7 +52,11 @@ export function HypnoticProfileAmbient({
     >
       <HypnoticParticleField intensity={freeSpinAvailable ? 1 : 0.6} />
       <div className="hypnotic-profile-ambient__stage">
-        <CompanionAnimatedStage config={config} reaction={reaction} />
+        <CompanionAnimatedStage
+          config={config}
+          reaction={reaction}
+          eyeStreakMode={eyeStreakMode}
+        />
       </div>
       {children}
       {freeSpinAvailable && reaction !== "afterglow" && (

@@ -36,6 +36,8 @@ import { isEnabled } from "@/lib/feature-flags";
 import { getActivityFeed } from "@/lib/activity-feed";
 import { LiveActivityFeed } from "@/components/live-activity-feed";
 import { LimitOrderForm } from "@/components/limit-order-panel";
+import { MarketGuestInsight } from "@/components/market-guest-insight";
+import { getSmartBetDefaults } from "@/lib/smart-bet-defaults";
 
 export const revalidate = 0;
 
@@ -73,6 +75,7 @@ export default async function MarketDetailPage({
   const liveFeedEnabled = await isEnabled("live_feed_enabled");
   const limitOrdersEnabled = await isEnabled("limit_orders_enabled");
   const quickExitEnabled = await isEnabled("quick_exit_enabled");
+  const psychologyOn = await isEnabled("psychology_layer_enabled");
 
   const [creator, position, trades, vibeBalance, comments, priceHistory, dispute, newsHeadlines, activityFeed, profileRow] =
     await Promise.all([
@@ -104,6 +107,19 @@ export default async function MarketDetailPage({
     (isFast && market.window_end
       ? new Date(market.window_end) <= new Date()
       : market.closes_at !== null && new Date(market.closes_at) <= new Date());
+
+  const smartDefaults =
+    psychologyOn && user && vibeBalance > 0 && !closed
+      ? await getSmartBetDefaults(user.id, yesPrice, noPrice, vibeBalance)
+      : null;
+
+  const topComment =
+    comments.length > 0
+      ? {
+          body: comments[0]!.body,
+          authorName: comments[0]!.display_name ?? "Player",
+        }
+      : null;
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-8">
@@ -240,6 +256,20 @@ export default async function MarketDetailPage({
         <p className="mt-4 whitespace-pre-wrap rounded-lg border border-white/5 bg-zinc-900/40 p-4 text-sm text-zinc-300">
           {market.description}
         </p>
+      )}
+
+      {psychologyOn && !user && !closed && (
+        <MarketGuestInsight
+          marketId={market.id}
+          question={market.question}
+          yesLabel={market.outcome_yes_label}
+          noLabel={market.outcome_no_label}
+          yesPrice={yesPrice}
+          noPrice={noPrice}
+          yesPrice24hAgo={market.yes_price_24h_ago}
+          volume24h={market.volume_24h}
+          topComment={topComment}
+        />
       )}
 
       {market.source === "polymarket_mirror" && (
@@ -544,6 +574,7 @@ export default async function MarketDetailPage({
                   yesLabel={market.outcome_yes_label}
                   noLabel={market.outcome_no_label}
                   quickExitEnabled={quickExitEnabled}
+                  smartDefaults={smartDefaults ?? undefined}
                   shareProfile={
                     profileRow
                       ? {

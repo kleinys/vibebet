@@ -12,6 +12,7 @@ import { skinStyleForSlug } from "@/lib/cosmetic-styles";
 import type { LockerEquipItem } from "@/components/companion-locker-equip";
 import { rosterBySkin } from "@/lib/companion-roster";
 import { orbitModifierSummary } from "@/lib/orbit-affinity";
+import { mysticEyeStreakMode, type MysticEyeStreakMode } from "@/lib/companion-eyes";
 
 export function VibeCompanion({
   input,
@@ -47,20 +48,26 @@ export function VibeCompanionLink({
   input,
   href,
   title,
+  eyeStreakMode,
 }: {
   input: CompanionInput;
   href: string;
   title?: string;
+  eyeStreakMode?: MysticEyeStreakMode;
 }) {
   const config = resolveFigureConfig(input);
   const labels = figureLabels(config);
   const skinStyle = skinStyleForSlug(config.skinSlug);
+  const streakMode =
+    eyeStreakMode ??
+    mysticEyeStreakMode(input.currentStreak, input.lastActiveDate ?? null);
+  const urgent = streakMode === "urgent";
 
   return (
     <Link
       href={href}
       title={title ?? `${labels.humanTitle} & ${labels.animalTitle}`}
-      className={`inline-flex shrink-0 rounded-full transition hover:scale-105 ${skinStyle.ring} ring-2 ${skinStyle.glow} shadow-lg`}
+      className={`inline-flex shrink-0 rounded-full transition hover:scale-105 ${skinStyle.ring} ring-2 ${skinStyle.glow} shadow-lg ${urgent ? "animate-pulse ring-rose-500/60" : ""}`}
     >
       <ThemedProfileAvatar config={config} size="md" />
     </Link>
@@ -72,24 +79,42 @@ export function VibeCompanionCard({
   companion: precomputed,
   lockerItems,
   freeSpinAvailable = false,
+  eyeStreakMode,
+  lastActiveDate = null,
+  companionName,
 }: {
   input: CompanionInput;
   companion?: CompanionState;
   lockerItems?: { skins: LockerEquipItem[]; badges: LockerEquipItem[] };
   freeSpinAvailable?: boolean;
+  eyeStreakMode?: MysticEyeStreakMode;
+  lastActiveDate?: string | null;
+  companionName?: string | null;
 }) {
   const config = resolveFigureConfig(input);
   if (precomputed) {
     config.companion = precomputed;
   }
+  if (companionName?.trim()) {
+    config.companion = { ...config.companion, name: companionName.trim() };
+  }
   const labels = figureLabels(config);
   const { companion } = config;
   const roster = rosterBySkin(config.skinSlug);
   const modifier = orbitModifierSummary(config.skinSlug);
+  const resolvedEyeMode =
+    eyeStreakMode ??
+    mysticEyeStreakMode(input.currentStreak, lastActiveDate);
 
   return (
     <div className="flex flex-col gap-6">
-      <CompanionFigureScene config={config} labels={labels} lockerItems={lockerItems} freeSpinAvailable={freeSpinAvailable} />
+      <CompanionFigureScene
+        config={config}
+        labels={labels}
+        lockerItems={lockerItems}
+        freeSpinAvailable={freeSpinAvailable}
+        eyeStreakMode={resolvedEyeMode}
+      />
       <div className="min-w-0">
         <p className="text-lg font-semibold text-zinc-100">
           {companion.name}{" "}

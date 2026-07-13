@@ -95,6 +95,8 @@ export interface Database {
           referred_by: string | null;
           email_digest_enabled: boolean;
           player_path: string;
+          companion_name: string | null;
+          vibe_pass_dismissed_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -645,6 +647,17 @@ export interface Database {
           },
         ];
       };
+      user_consumables: {
+        Row: {
+          user_id: string;
+          slug: string;
+          quantity: number;
+          updated_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       gem_bundles: {
         Row: {
           id: string;
@@ -967,7 +980,7 @@ export interface Database {
         }[];
       };
       spin_locker_wheel: {
-        Args: { p_paid_stake?: number };
+        Args: { p_paid_stake?: number; p_use_adrenaline_token?: boolean };
         Returns: {
           segment_index: number;
           label: string;
@@ -983,6 +996,7 @@ export interface Database {
           payout_multiplier: number;
           affinity_label: string;
           is_jackpot: boolean;
+          adrenaline_spin: boolean;
         }[];
       };
       spend_gems_for_item: {
@@ -1213,6 +1227,26 @@ export interface Database {
       };
       get_onboarding_state: {
         Args: Record<string, never>;
+        Returns: Record<string, unknown>;
+      };
+      get_vibe_pass_progress: {
+        Args: Record<string, never>;
+        Returns: Record<string, unknown>;
+      };
+      get_my_consumables: {
+        Args: Record<string, never>;
+        Returns: Record<string, unknown>;
+      };
+      get_legacy_cathedral: {
+        Args: { p_user_id?: string };
+        Returns: Record<string, unknown>;
+      };
+      dismiss_vibe_pass: {
+        Args: Record<string, never>;
+        Returns: Record<string, unknown>;
+      };
+      set_companion_name: {
+        Args: { p_name: string };
         Returns: Record<string, unknown>;
       };
       save_onboarding_interests: {

@@ -5,25 +5,30 @@ import { GettingStartedBar } from "@/components/getting-started-bar";
 import { PlayerModeSwitcher } from "@/components/player-mode-switcher";
 import { PlayerCodeHero } from "@/components/player-code-chip";
 import { CollapsibleSiteChrome } from "@/components/collapsible-site-chrome";
+import { VibePassBar } from "@/components/vibe-pass-bar";
+import { NameCompanionPrompt } from "@/components/name-companion-prompt";
 import { isEnabled } from "@/lib/feature-flags";
 import { getPlayerPath } from "@/lib/player-path-server";
 import { getMyPlayerCode } from "@/lib/player-code";
+import { getVibePassProgress } from "@/lib/vibe-pass";
 import { clientEnv } from "@/lib/env";
 import type { PlayerPath } from "@/lib/player-path";
 
 /** Sticky top shell — header, collapsible nav + player code, getting-started bar. */
 export async function SiteChrome() {
-  // Fetch feature flags once with Promise.all for efficiency
-  const [mobileNavOn, pathPickerOn, referralsOn] = await Promise.all([
+  const [mobileNavOn, pathPickerOn, referralsOn, psychologyOn] = await Promise.all([
     isEnabled("mobile_nav_enabled"),
     isEnabled("player_path_picker_enabled"),
     isEnabled("referrals_enabled"),
+    isEnabled("psychology_layer_enabled"),
   ]);
 
   let storedPath: PlayerPath = "explore";
   let showModeBar = false;
   let playerCode: string | null = null;
   let inviteLink: string | null = null;
+  let vibePass = null;
+  let needsCompanionName = false;
 
   const supabase = await createClient();
   const {
@@ -31,9 +36,18 @@ export async function SiteChrome() {
   } = await supabase.auth.getUser();
 
   if (user) {
-    const [pathResult, codeRow] = await Promise.all([
+    const [pathResult, codeRow, passProgress, profileRow] = await Promise.all([
       pathPickerOn ? getPlayerPath(user.id) : Promise.resolve(null),
       referralsOn ? getMyPlayerCode() : Promise.resolve(null),
+      psychologyOn ? getVibePassProgress() : Promise.resolve(null),
+      psychologyOn
+        ? supabase
+            .from("profiles")
+            .select("companion_name")
+            .eq("id", user.id)
+            .maybeSingle()
+            .then((r) => r.data)
+        : Promise.resolve(null),
     ]);
 
     if (pathPickerOn && pathResult) {
@@ -46,6 +60,9 @@ export async function SiteChrome() {
       const siteUrl = clientEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
       inviteLink = `${siteUrl}/signup?ref=${playerCode}`;
     }
+
+    vibePass = passProgress;
+    needsCompanionName = psychologyOn && !profileRow?.companion_name;
   }
 
   const hasCollapsible = user && (showModeBar || playerCode);
@@ -56,6 +73,8 @@ export async function SiteChrome() {
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
       <Header mobileNavOn={mobileNavOn} />
+      {psychologyOn && vibePass?.visible && <VibePassBar progress={vibePass} />}
+      {psychologyOn && needsCompanionName && <NameCompanionPrompt />}
       {hasCollapsible ? (
         <CollapsibleSiteChrome storedPath={storedPath} playerCode={playerCode}>
           {showModeBar && <PlayerModeSwitcher storedPath={storedPath} />}

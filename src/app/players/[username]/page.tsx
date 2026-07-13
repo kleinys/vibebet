@@ -6,6 +6,9 @@ import { resolveFigureConfig, figureLabels } from "@/lib/companion-figure";
 import { CompanionFigureScene } from "@/components/companion-figure";
 import { formatVibe } from "@/lib/utils";
 import { tierFromProfit } from "@/lib/ranks";
+import { LegacyCathedralView } from "@/components/legacy-cathedral";
+import { getLegacyCathedral } from "@/lib/legacy-cathedral";
+import { isEnabled } from "@/lib/feature-flags";
 import { ogImageUrl } from "@/lib/og-image";
 
 export const revalidate = 60;
@@ -56,6 +59,11 @@ export default async function PublicPlayerPage({
   const profile = await getPublicProfile(username);
   if (!profile) notFound();
 
+  const interconnectOn = await isEnabled("interconnect_layer_enabled");
+  const cathedral = interconnectOn
+    ? await getLegacyCathedral(profile.user_id)
+    : null;
+
   const tier = tierFromProfit(profile.profit);
   const figureConfig = resolveFigureConfig({
     currentStreak: profile.current_streak,
@@ -91,6 +99,12 @@ export default async function PublicPlayerPage({
           )}
         </div>
       </header>
+
+      {cathedral && (
+        <section className="mt-8 rounded-xl border border-violet-500/20 bg-zinc-900/40 p-4">
+          <LegacyCathedralView cathedral={cathedral} compact />
+        </section>
+      )}
 
       <dl className="mt-8 grid gap-3 sm:grid-cols-2">
         <Stat label="Rank tier" value={`${tier.emoji} ${tier.title}`} />

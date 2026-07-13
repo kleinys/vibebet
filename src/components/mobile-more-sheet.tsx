@@ -14,6 +14,7 @@ export function MobileMoreSheet({
   tournamentsOn,
   questsOn,
   isLoggedIn,
+  playHubOn = false,
 }: {
   open: boolean;
   onClose: () => void;
@@ -24,6 +25,7 @@ export function MobileMoreSheet({
   tournamentsOn: boolean;
   questsOn: boolean;
   isLoggedIn: boolean;
+  playHubOn?: boolean;
 }) {
   const [mounted, setMounted] = useState(false);
 
@@ -44,11 +46,12 @@ export function MobileMoreSheet({
 
   const links = [
     { href: "/guide", label: "Playbook", show: true },
+    { href: playHubOn ? "/play?tab=duels" : "/games/duels", label: "Duels", show: duelsOn },
     { href: "/tournaments", label: "Tournaments", show: tournamentsOn },
-    { href: "/account/hustle", label: "Daily Hustle", show: isLoggedIn },
-    { href: "/account/quests", label: "Quests", show: isLoggedIn },
+    { href: playHubOn ? "/play?tab=hustle" : "/account/hustle", label: "Hustle", show: isLoggedIn },
+    { href: "/account/quests", label: "Quests", show: isLoggedIn && questsOn },
     { href: "/leaderboard/accuracy", label: "Sharp Minds", show: true },
-    { href: "/duels", label: "Duels", show: duelsOn },
+    { href: "/duels", label: "Market duels", show: duelsOn },
     { href: "/guilds", label: "Guilds", show: guildsOn },
     { href: "/copy", label: "Copy trading", show: copyOn },
     { href: "/limit-orders", label: "Limit orders", show: limitsOn && isLoggedIn },

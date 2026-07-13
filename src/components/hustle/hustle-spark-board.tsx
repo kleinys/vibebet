@@ -19,6 +19,7 @@ import { HustleGigBoard } from "@/components/hustle/hustle-gig-board";
 import { HustleSharesPanel } from "@/components/hustle/hustle-shares-panel";
 import { HustleGovernancePanel } from "@/components/hustle/hustle-governance-panel";
 import { HustleWellnessPanel } from "@/components/hustle/hustle-wellness-panel";
+import { HustleAccordionSection } from "@/components/hustle/hustle-accordion-section";
 import type {
   HustleEquityState,
   HustleGovernanceState,
@@ -145,43 +146,57 @@ export function HustleSparkBoard({
       </div>
 
       {bridgeEnabled && wallet && (
-        <div className="mb-4">
+        <HustleAccordionSection
+          title="Wallet & bridge"
+          subtitle="Move Hustle Cash to Play balance"
+          defaultOpen={lowPlayBalance}
+        >
           <HustleWalletPanel
             wallet={wallet}
             blocksPlayBridge={wellness?.blocks_play_bridge}
             recoveryUntil={wellness?.recovery_until}
             onUpdate={refresh}
           />
-        </div>
+        </HustleAccordionSection>
       )}
 
       {marketplaceEnabled && marketplace && (
-        <div className="mb-8">
+        <HustleAccordionSection
+          title="Gig marketplace"
+          subtitle="Post and claim micro-gigs"
+          badge="Earn"
+        >
           <HustleGigBoard
             marketplace={marketplace}
             hustleTier={oracle?.hustle_tier ?? marketplace.hustle_tier}
             onUpdate={refresh}
           />
-        </div>
+        </HustleAccordionSection>
       )}
 
       {sharesEnabled && equity && (
-        <div className="mb-8">
+        <HustleAccordionSection title="Shares & equity" subtitle="Platform equity stakes">
           <HustleSharesPanel equity={equity} onUpdate={refresh} />
-        </div>
+        </HustleAccordionSection>
       )}
 
       {governanceEnabled && governance && (
-        <div className="mb-8">
+        <HustleAccordionSection title="Governance" subtitle="Proposals and votes">
           <HustleGovernancePanel governance={governance} onUpdate={refresh} />
-        </div>
+        </HustleAccordionSection>
       )}
 
       {trustEnabled && oracle && (
-        <div className="mb-4 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-          <HustleTrustBar oracle={oracle} />
-          <HustleTierLadder oracle={oracle} />
-        </div>
+        <HustleAccordionSection
+          title="Trust & tiers"
+          subtitle={`${tierLabel} · score ${oracle.trust_score}`}
+          defaultOpen
+        >
+          <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+            <HustleTrustBar oracle={oracle} />
+            <HustleTierLadder oracle={oracle} />
+          </div>
+        </HustleAccordionSection>
       )}
 
       {claimableTotal > 0 && (
@@ -198,8 +213,12 @@ export function HustleSparkBoard({
         </div>
       )}
 
-      <section>
-        <h3 className="hustle-spark-board__section-title">Spark tasks</h3>
+      <HustleAccordionSection
+        title="Spark tasks"
+        subtitle="Micro-earn quests — reset midnight UTC"
+        defaultOpen
+        badge={claimableTotal > 0 ? `${formatVibe(claimableTotal)} ready` : undefined}
+      >
         <ul className="hustle-spark-board__list">
           {sparkTasks.map((task) => (
             <TaskCard
@@ -213,14 +232,13 @@ export function HustleSparkBoard({
             />
           ))}
         </ul>
-      </section>
+      </HustleAccordionSection>
 
       {flashTasks.length > 0 && (
-        <section className="mt-8">
-          <h3 className="hustle-spark-board__section-title">Flash tasks</h3>
-          <p className="mb-3 text-[11px] text-zinc-500">
-            Unlock at 20 Spark claims or Trust 550+.
-          </p>
+        <HustleAccordionSection
+          title="Flash tasks"
+          subtitle="Unlock at 20 Spark claims or Trust 550+"
+        >
           <ul className="hustle-spark-board__list">
             {flashTasks.map((task) => (
               <TaskCard
@@ -234,12 +252,11 @@ export function HustleSparkBoard({
               />
             ))}
           </ul>
-        </section>
+        </HustleAccordionSection>
       )}
 
       {dailyTasks.length > 0 && (
-        <section className="mt-8">
-          <h3 className="hustle-spark-board__section-title">Daily earn-back</h3>
+        <HustleAccordionSection title="Daily earn-back" subtitle="Recurring hustle rewards">
           <ul className="hustle-spark-board__list">
             {dailyTasks.map((task) => (
               <TaskCard
@@ -253,13 +270,13 @@ export function HustleSparkBoard({
               />
             ))}
           </ul>
-        </section>
+        </HustleAccordionSection>
       )}
 
       {recoveryEnabled && wellness && (
-        <div className="mt-8">
+        <HustleAccordionSection title="Wellness & recovery" subtitle="Earn caps and cool-down">
           <HustleWellnessPanel wellness={wellness} onUpdate={refresh} />
-        </div>
+        </HustleAccordionSection>
       )}
     </div>
   );

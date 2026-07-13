@@ -1,6 +1,5 @@
 import { Suspense, type ComponentProps } from "react";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { isEnabled } from "@/lib/feature-flags";
 import { getAllBalances } from "@/lib/ledger";
@@ -17,12 +16,22 @@ import {
   fetchLiveArenaPrices,
   pricesToTickPayload,
 } from "@/lib/live-arena-prices";
-import { GAME_CATALOG, liveGames } from "@/lib/game-catalog";
+import { GAME_CATALOG, playHubDuelGames } from "@/lib/game-catalog";
 import { PlayHub, type PlayHubTab } from "@/components/play/play-hub";
+import { PlayArenaEmbed } from "@/components/play/play-arena-embed";
+import { PlayWatchEmbed } from "@/components/play/play-watch-embed";
+import { FeatureOffPanel } from "@/components/feature-off-panel";
+import type { SpectatorDuel } from "@/lib/duels";
 
 export const revalidate = 0;
 
-const VALID_TABS = new Set<PlayHubTab>(["live", "duels", "vibe", "hustle", "watch"]);
+const VALID_TABS = new Set<PlayHubTab>(["live", "duels", "arcade", "hustle", "watch"]);
+
+function normalizeTab(tab: string | undefined): PlayHubTab {
+  if (tab === "vibe") return "arcade";
+  if (tab && VALID_TABS.has(tab as PlayHubTab)) return tab as PlayHubTab;
+  return "live";
+}
 
 export default async function PlayPage({
   searchParams,
@@ -30,10 +39,7 @@ export default async function PlayPage({
   searchParams: Promise<{ tab?: string }>;
 }) {
   const params = await searchParams;
-  const tabParam = params.tab;
-  const initialTab: PlayHubTab = VALID_TABS.has(tabParam as PlayHubTab)
-    ? (tabParam as PlayHubTab)
-    : "hustle";
+  const initialTab = normalizeTab(params.tab);
 
   const [
     playHubOn,
@@ -52,6 +58,9 @@ export default async function PlayPage({
     spectatorOn,
     liveEventsOn,
     gameLayerOn,
+    arcadeOn,
+    triviaOn,
+    interconnectOn,
   ] = await Promise.all([
     isEnabled("play_hub_enabled"),
     isEnabled("hustle_spark_enabled"),
@@ -69,18 +78,20 @@ export default async function PlayPage({
     isEnabled("duel_spectator_markets_enabled"),
     isEnabled("live_events_enabled"),
     isEnabled("game_layer_enabled"),
+    isEnabled("arcade_games_enabled"),
+    isEnabled("trivia_enabled"),
+    isEnabled("interconnect_layer_enabled"),
   ]);
 
   if (!playHubOn) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-16 text-center">
-        <h1 className="text-2xl font-semibold">Play hub off</h1>
-        <p className="mt-2 text-sm text-zinc-400">
-          Enable <code className="font-mono">play_hub_enabled</code> in Admin.
-        </p>
-        <Link href="/games" className="mt-4 inline-block text-sm text-fuchsia-400 hover:underline">
-          Go to Live Arena →
-        </Link>
+        <FeatureOffPanel
+          title="Play hub"
+          body="The unified games home is rolling out soon."
+          ctaHref="/games"
+          ctaLabel="Go to Live Arena"
+        />
       </div>
     );
   }
@@ -140,6 +151,7 @@ export default async function PlayPage({
   }
 
   let liveInitial: ComponentProps<typeof PlayHub>["liveInitial"] = null;
+  let spectatorDuels: SpectatorDuel[] = [];
 
   if (arenaOn || fastOn || equitiesOn) {
     const prices = await fetchLiveArenaPrices({
@@ -156,6 +168,8 @@ export default async function PlayPage({
       equitiesOn ? listFastMarkets(12, "finance") : Promise.resolve([]),
       duelsOn && spectatorOn ? getActiveSpectatorDuels(12) : Promise.resolve([]),
     ]);
+
+    spectatorDuels = duels;
 
     liveInitial = {
       at: Date.now(),
@@ -204,7 +218,7 @@ export default async function PlayPage({
   const flags = {
     game_layer_enabled: gameLayerOn,
     duels_enabled: duelsOn,
-    arcade_games_enabled: false,
+    arcade_games_enabled: arcadeOn,
     paper_trading_duels_enabled: false,
     fast_markets_enabled: fastOn,
     connect4_enabled: await isEnabled("connect4_enabled"),
@@ -214,26 +228,12 @@ export default async function PlayPage({
     go_enabled: await isEnabled("go_enabled"),
     shogi_enabled: await isEnabled("shogi_enabled"),
     poker_enabled: await isEnabled("poker_enabled"),
+    trivia_enabled: triviaOn,
   };
 
-  const duelGameLinks = gameLayerOn
-    ? liveGames(flags)
-        .filter((g) => g.href)
-        .slice(0, 8)
-        .map((g) => ({
-          name: g.name,
-          href: g.href!,
-          desc: g.description,
-        }))
-    : GAME_CATALOG.filter((g) => g.status === "live" && g.href)
-        .slice(0, 6)
-        .map((g) => ({
-          name: g.name,
-          href: g.href!,
-          desc: g.description,
-        }));
+  const duelGames = playHubDuelGames(flags);
 
-  if (tabParam === "hustle" && !user) {
+  if (params.tab === "hustle" && !user) {
     redirect("/login?next=/play?tab=hustle");
   }
 
@@ -261,8 +261,12 @@ export default async function PlayPage({
           wellness={wellness}
           isLoggedIn={Boolean(user)}
           liveInitial={liveInitial}
-          duelGameLinks={duelGameLinks}
+          duelGames={duelGames}
           liveEventsOn={liveEventsOn}
+          interconnectOn={interconnectOn}
+          spectatorDuels={spectatorDuels}
+          arcadePanel={<PlayArenaEmbed isLoggedIn={Boolean(user)} />}
+          watchPanel={<PlayWatchEmbed />}
         />
       </Suspense>
     </div>

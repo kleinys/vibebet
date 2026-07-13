@@ -64,10 +64,12 @@ export function HypnoticMorphFloor({
   vibeBalance,
   spinsUsedToday,
   equippedSkinSlug,
+  adrenalineTokens = 0,
 }: {
   vibeBalance: number;
   spinsUsedToday: number;
   equippedSkinSlug?: string | null;
+  adrenalineTokens?: number;
 }) {
   const router = useRouter();
   const {
@@ -282,12 +284,13 @@ export function HypnoticMorphFloor({
     setStakeDocked(false);
   }
 
-  function spinWheel() {
+  function spinWheel(useAdrenaline = false) {
     if (wheelQueueFull) {
       setError(`Max ${MAX_WHEEL_QUEUE} spins queued.`);
       return;
     }
-    if (!freeSpinAvailable && balance < PAID_SPIN_COST) return;
+    if (!useAdrenaline && !freeSpinAvailable && balance < PAID_SPIN_COST) return;
+    if (useAdrenaline && adrenalineTokens < 1) return;
 
     setError(null);
     setPendingSpins((n) => n + 1);
@@ -297,6 +300,7 @@ export function HypnoticMorphFloor({
         const supabase = createClient();
         const { data, error: rpcError } = await supabase.rpc("spin_locker_wheel", {
           p_paid_stake: PAID_SPIN_COST,
+          p_use_adrenaline_token: useAdrenaline,
         });
         if (rpcError) throw rpcError;
 
@@ -350,6 +354,22 @@ export function HypnoticMorphFloor({
 
   return (
     <div className="hypnotic-morph-floor">
+      {adrenalineTokens > 0 && (
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-violet-500/30 bg-violet-500/10 px-3 py-2">
+          <p className="text-xs text-violet-200">
+            <span className="font-semibold">{adrenalineTokens}</span> adrenaline token
+            {adrenalineTokens === 1 ? "" : "s"} from duel wins
+          </p>
+          <button
+            type="button"
+            onClick={() => spinWheel(true)}
+            disabled={wheelSpinning || pendingSpins > 0}
+            className={`${BTN} border-violet-400/40 bg-violet-600/30 text-violet-100 hover:bg-violet-600/50`}
+          >
+            Boosted spin
+          </button>
+        </div>
+      )}
       <div className="hypnotic-morph-floor__tabs" role="tablist">
         <button
           type="button"
@@ -588,7 +608,7 @@ export function HypnoticMorphFloor({
             <button
               type="button"
               disabled={wheelQueueFull || (!freeSpinAvailable && balance < PAID_SPIN_COST)}
-              onClick={spinWheel}
+              onClick={() => spinWheel()}
               className={`hypnotic-cta hypnotic-cta--wheel ${freeSpinAvailable ? "hypnotic-cta--magnet" : ""} ${BTN} border-violet-400/45 bg-violet-500/20 text-violet-100 hover:bg-violet-500/30`}
             >
               {wheelQueued > 0
@@ -636,7 +656,7 @@ export function HypnoticMorphFloor({
         onCaseRouletteDone={finishCrateOpen}
         onExit={closeCinemaPortal}
         queueHint={cinemaMode === "wheel" ? wheelQueueHint : caseQueueHint}
-        onWheelSpin={cinemaMode === "wheel" ? spinWheel : undefined}
+        onWheelSpin={cinemaMode === "wheel" ? () => spinWheel() : undefined}
         onCaseOpen={cinemaMode === "case" ? openCrate : undefined}
         wheelSpinDisabled={wheelQueueFull || (!freeSpinAvailable && balance < PAID_SPIN_COST)}
         caseOpenDisabled={caseQueueFull || balance < crateStake || !stakeDocked}

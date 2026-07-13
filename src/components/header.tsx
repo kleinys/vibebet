@@ -8,8 +8,12 @@ import {
 } from "@/lib/streaks";
 import { getCompanionInput } from "@/lib/companion-stats";
 import { VibeCompanionLink } from "@/components/vibe-companion";
+import { CompanionQuickPane } from "@/components/companion-quick-pane";
+import { getAdrenalineTokenCount } from "@/lib/consumables-server";
 import { HeaderWalletPanel } from "@/components/header-wallet-panel";
 import { isEnabled } from "@/lib/feature-flags";
+import { streakUrgency } from "@/lib/streak-urgency";
+import { mysticEyeStreakMode } from "@/lib/companion-eyes";
 
 export async function Header({
   mobileNavOn,
@@ -24,10 +28,15 @@ export async function Header({
   // 初始化状态
   let balances = { vibe: 0, gem: 0 };
   let streak = 0;
+  let lastActiveDate: string | null = null;
   let companionInput: Awaited<ReturnType<typeof getCompanionInput>> | null = null;
 
   // 初始化功能开关
-  let [duelsOn, guildsOn, copyOn, limitsOn, playHubOn] = [false, false, false, false, false];
+  let [duelsOn, guildsOn, copyOn, limitsOn, playHubOn, interconnectOn] = [
+    false, false, false, false, false, false,
+  ];
+  let adrenalineTokens = 0;
+  let companionName: string | null = null;
 
   if (user) {
     try {
@@ -37,19 +46,29 @@ export async function Header({
     }
     
     // 并行获取功能开关状态
-    [duelsOn, guildsOn, copyOn, limitsOn, playHubOn] = await Promise.all([
+    [duelsOn, guildsOn, copyOn, limitsOn, playHubOn, interconnectOn] = await Promise.all([
       isEnabled("duels_enabled"),
       isEnabled("guilds_enabled"),
       isEnabled("copy_trading_enabled"),
       isEnabled("limit_orders_enabled"),
       isEnabled("play_hub_enabled"),
+      isEnabled("interconnect_layer_enabled"),
     ]);
     
-    // 并行获取用户数据，使用Promise.allSettled避免单个请求失败导致整体失败
-    const [balanceResult, streakResult, companionResult] = await Promise.allSettled([
+    const [balanceResult, streakResult, companionResult, profileRow, tokenCount] =
+      await Promise.allSettled([
       getAllBalances(user.id),
       getStreakInfo(user.id),
       getCompanionInput(user.id),
+      interconnectOn
+        ? supabase
+            .from("profiles")
+            .select("companion_name")
+            .eq("id", user.id)
+            .maybeSingle()
+            .then((r) => r.data)
+        : Promise.resolve(null),
+      interconnectOn ? getAdrenalineTokenCount() : Promise.resolve(0),
     ]);
 
     // 处理余额数据
@@ -60,13 +79,25 @@ export async function Header({
     // 处理连击数据
     if (streakResult.status === 'fulfilled') {
       streak = streakResult.value.currentStreak;
+      lastActiveDate = streakResult.value.lastActiveDate;
     }
 
     // 处理同伴数据
     if (companionResult.status === 'fulfilled') {
       companionInput = companionResult.value;
     }
+
+    if (profileRow.status === "fulfilled" && profileRow.value) {
+      companionName = profileRow.value.companion_name ?? null;
+    }
+
+    if (tokenCount.status === "fulfilled") {
+      adrenalineTokens = tokenCount.value;
+    }
   }
+
+  const urgency = streakUrgency(streak, lastActiveDate);
+  const eyeStreakMode = mysticEyeStreakMode(streak, lastActiveDate);
 
   const navLink =
     "shrink-0 whitespace-nowrap rounded-sm px-2 py-1 text-sm transition-colors";
@@ -115,13 +146,27 @@ export async function Header({
 
           {user ? (
             <>
-              <HeaderWalletPanel streak={streak} vibe={balances.vibe} gem={balances.gem} />
+              <HeaderWalletPanel
+                streak={streak}
+                vibe={balances.vibe}
+                gem={balances.gem}
+                streakUrgency={urgency}
+              />
               <NotificationBell />
-              {companionInput ? (
+              {interconnectOn && companionInput ? (
+                <CompanionQuickPane
+                  input={companionInput}
+                  streakUrgency={urgency}
+                  adrenalineTokens={adrenalineTokens}
+                  companionName={companionName}
+                  eyeStreakMode={eyeStreakMode}
+                />
+              ) : companionInput ? (
                 <VibeCompanionLink
                   input={companionInput}
                   href="/account/profile"
                   title="Your Vibe companion"
+                  eyeStreakMode={eyeStreakMode}
                 />
               ) : (
                 <VibeCompanionLink
@@ -129,9 +174,11 @@ export async function Header({
                     currentStreak: streak,
                     streakShields: 0,
                     inventoryCount: 0,
+                    lastActiveDate,
                   }}
                   href="/account/profile"
                   title="Your profile"
+                  eyeStreakMode={eyeStreakMode}
                 />
               )}
               <Link
@@ -168,6 +215,32 @@ export async function Header({
       {!mobileNavOn && (
         <nav aria-label="Main" className="border-t border-white/5 bg-zinc-950/95">
           <div className="mx-auto flex max-w-6xl items-center gap-0.5 overflow-x-auto px-4 py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {interconnectOn ? (
+              <>
+                <Link href="/markets" className={`${navLink} text-zinc-300 hover:text-white`}>
+                  Markets
+                </Link>
+                <Link
+                  href={playHubOn ? "/play" : "/games"}
+                  className={`${navLink} text-fuchsia-300/90 hover:text-fuchsia-200`}
+                >
+                  Play
+                </Link>
+                <Link href="/hustle" className={`${navLink} text-amber-300/90 hover:text-amber-200`}>
+                  Hustle
+                </Link>
+                <Link href="/play?tab=watch" className={`${navLink} text-sky-300/90 hover:text-sky-200`}>
+                  Watch
+                </Link>
+                <Link href="/leaderboard" className={`${navLink} text-zinc-400 hover:text-zinc-200`}>
+                  Leaderboard
+                </Link>
+                <Link href="/shop" className={`${navLink} text-zinc-400 hover:text-zinc-200`}>
+                  Shop
+                </Link>
+              </>
+            ) : (
+              <>
             {playHubOn ? (
               <Link href="/play" className={`${navLink} text-fuchsia-300/90 hover:text-fuchsia-200`}>
                 Play
@@ -218,6 +291,8 @@ export async function Header({
             <Link href="/account/quests" className={`${navLink} text-zinc-300 hover:text-white`}>
               Quests
             </Link>
+              </>
+            )}
           </div>
         </nav>
       )}

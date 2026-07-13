@@ -26,6 +26,7 @@ import {
   cancelShogiGame,
   createShogiGame,
 } from "@/app/games/duels/shogi-actions";
+import { DuelCreateShell } from "@/components/duel-create-shell";
 
 type OpenGame = {
   id: string;
@@ -86,36 +87,30 @@ export function SkillGameLobby({
 
   return (
     <div className="space-y-6">
-      <form action={formAction} className={`rounded-xl border p-5 ${accentClass}`}>
-        <h2 className="text-sm font-semibold">{title}</h2>
-        <p className="mt-1 text-xs text-zinc-400">{description}</p>
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <input
-            name="stake"
-            type="number"
-            min={10}
-            max={10000}
-            defaultValue={100}
-            className="w-24 rounded-md border border-white/10 bg-zinc-900 px-3 py-1.5 text-sm"
-          />
-          <button
-            type="submit"
-            disabled={createPending}
-            className={`rounded-md px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50 ${buttonClass}`}
-          >
-            {createPending ? "Posting…" : "Post game"}
-          </button>
-          <PlayDuelVsBotButton gameKey={gameKey} label="Play vs Bot (free)" />
-        </div>
-        <FriendChallengeFields stakeInputName="stake" />
-        {gameKey === "chess" && (
-          <label className="mt-3 flex items-center gap-2 text-xs text-zinc-400">
-            <input type="checkbox" name="blitz" className="rounded border-white/20" />
-            5+3 blitz (5 min + 3s increment per move) — requires phase 38 + chess_clock_enabled
-          </label>
-        )}
-        {createState?.error && <p className="mt-2 text-xs text-rose-300">{createState.error}</p>}
-        {createState?.ok && <p className="mt-2 text-xs text-emerald-300">{createState.ok}</p>}
+      <form action={formAction}>
+        <DuelCreateShell gameTitle={title} accentClass={accentClass}>
+          <h2 className="text-sm font-semibold">{title}</h2>
+          <p className="mt-1 text-xs text-zinc-400">{description}</p>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <button
+              type="submit"
+              disabled={createPending}
+              className={`rounded-md px-4 py-1.5 text-sm font-medium text-white disabled:opacity-50 ${buttonClass}`}
+            >
+              {createPending ? "Posting…" : "Post game"}
+            </button>
+            <PlayDuelVsBotButton gameKey={gameKey} label="Play vs Bot (free)" />
+          </div>
+          <FriendChallengeFields stakeInputName="stake" />
+          {gameKey === "chess" && (
+            <label className="mt-3 flex items-center gap-2 text-xs text-zinc-400">
+              <input type="checkbox" name="blitz" className="rounded border-white/20" />
+              5+3 blitz (5 min + 3s increment per move) — requires phase 38 + chess_clock_enabled
+            </label>
+          )}
+          {createState?.error && <p className="mt-2 text-xs text-rose-300">{createState.error}</p>}
+          {createState?.ok && <p className="mt-2 text-xs text-emerald-300">{createState.ok}</p>}
+        </DuelCreateShell>
       </form>
 
       <section>

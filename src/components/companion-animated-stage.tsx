@@ -8,6 +8,8 @@ import { stageBackdropStyle } from "@/lib/companion-stage-style";
 import { AnimalSprite, HumanSprite, SpriteGlowDefs } from "@/components/companion-sprites";
 import { FantasySvgDefs } from "@/components/fantasy-icons";
 import { SpiritElementBall } from "@/components/spirit-morph-decor";
+import { MysticEyes } from "@/components/mystic-eyes";
+import type { MysticEyeStreakMode } from "@/lib/companion-eyes";
 import type { HypnoticReaction } from "@/lib/hypnotic-flow";
 
 const FIGURE_SHADOW =
@@ -29,23 +31,29 @@ function BadgeOverlay({ badge }: { badge: FigureConfig["badge"] }) {
   );
 }
 
-function EyeGlow() {
-  return (
-    <>
-      <span className="companion-eye-glow companion-eye-glow--left" aria-hidden />
-      <span className="companion-eye-glow companion-eye-glow--right" aria-hidden />
-    </>
-  );
+function EyeOverlay({
+  skinSlug,
+  streakMode,
+  showRaster,
+}: {
+  skinSlug: string;
+  streakMode: MysticEyeStreakMode;
+  showRaster: boolean;
+}) {
+  if (!showRaster) return null;
+  return <MysticEyes skinSlug={skinSlug} streakMode={streakMode} />;
 }
 
 export function CompanionAnimatedStage({
   config,
   reaction = "idle",
   layout = "orbit",
+  eyeStreakMode = "none",
 }: {
   config: FigureConfig;
   reaction?: HypnoticReaction;
   layout?: "orbit" | "flank";
+  eyeStreakMode?: MysticEyeStreakMode;
 }) {
   const { animal, human, skinSlug, showHuman, palette, animalScale, humanScale, badge, morph } =
     config;
@@ -74,7 +82,9 @@ export function CompanionAnimatedStage({
         <div className="companion-stage__focal companion-stage__focal--flank">
           <div className="companion-figure-slot companion-figure-slot--human-center companion-figure-slot--flank-center">
             <div className={`companion-human-wrap ${HUMAN_MOTION_CLASS}`}>
-              {humanSrc && <EyeGlow />}
+              {humanSrc && (
+                <EyeOverlay skinSlug={skinSlug} streakMode={eyeStreakMode} showRaster />
+              )}
               <BadgeOverlay badge={badge} />
               {humanSrc ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -143,7 +153,9 @@ export function CompanionAnimatedStage({
           {/* Trainer centered (painted first, lower layer) */}
           <div className="companion-figure-slot companion-figure-slot--human-center">
             <div className={`companion-human-wrap ${HUMAN_MOTION_CLASS}`}>
-              {humanSrc && <EyeGlow />}
+              {humanSrc && (
+                <EyeOverlay skinSlug={skinSlug} streakMode={eyeStreakMode} showRaster />
+              )}
               <BadgeOverlay badge={badge} />
               {humanSrc ? (
                 // eslint-disable-next-line @next/next/no-img-element

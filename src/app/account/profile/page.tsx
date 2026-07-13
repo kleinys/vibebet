@@ -19,6 +19,8 @@ import { LockerArenaEntry } from "@/components/locker-arena-entry";
 import { CompanionDiscoverBar } from "@/components/companion-discover-bar";
 import { CompanionRosterPanel } from "@/components/companion-roster-panel";
 import { figureLabels, resolveFigureConfig } from "@/lib/companion-figure";
+import { LegacyCathedralView } from "@/components/legacy-cathedral";
+import { getLegacyCathedral } from "@/lib/legacy-cathedral";
 import { getAllBalances } from "@/lib/ledger";
 
 export const revalidate = 0;
@@ -47,13 +49,13 @@ export default async function ProfilePage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("display_name, username, created_at")
+    .select("display_name, username, created_at, companion_name")
     .eq("id", user.id)
     .maybeSingle();
 
   const guildsOn = await isEnabled("guilds_enabled");
   const utcToday = new Date().toISOString().slice(0, 10);
-  const [equipped, streak, companionInput, myGuild, playerCode, inventoryRes, catalogRes, balances, wheelDaily] =
+  const [equipped, streak, companionInput, myGuild, playerCode, inventoryRes, catalogRes, balances, wheelDaily, cathedral] =
     await Promise.all([
     getEquippedCosmetics(user.id).catch(() => ({ skin: null, badge: null })),
     getStreakInfo(user.id),
@@ -82,6 +84,7 @@ export default async function ProfilePage() {
       .eq("spin_date", utcToday)
       .maybeSingle()
       .then((r) => r.data?.spins_used ?? 0),
+    getLegacyCathedral(user.id),
   ]);
 
   const ownedSlugs = new Set<string>();
@@ -149,7 +152,13 @@ export default async function ProfilePage() {
           VIBE arena below to stake on cases and the wheel.
         </p>
         <div className="mt-5">
-          <VibeCompanionCard input={companionInput} lockerItems={lockerItems} freeSpinAvailable={wheelDaily === 0} />
+          <VibeCompanionCard
+            input={companionInput}
+            lockerItems={lockerItems}
+            freeSpinAvailable={wheelDaily === 0}
+            lastActiveDate={streak.lastActiveDate}
+            companionName={profile?.companion_name}
+          />
           <ClaimLockerPackButton
             missingCount={missingLockerCount}
             eligible={lockerPackEligible}
@@ -186,6 +195,20 @@ export default async function ProfilePage() {
           </Link>
         )}
       </section>
+
+      {cathedral && (
+        <section className="mt-6 rounded-sm border border-violet-500/25 bg-zinc-900/50 p-5">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-violet-300/90">
+            Legacy Cathedral
+          </h2>
+          <p className="mt-1 text-xs text-zinc-500">
+            Your cross-mode achievements — shareable at /players/{profile?.username}
+          </p>
+          <div className="mt-4">
+            <LegacyCathedralView cathedral={cathedral} />
+          </div>
+        </section>
+      )}
 
       {myGuild && (
         <section className="mt-6 rounded-sm border border-emerald-500/20 bg-emerald-500/5 p-5">
