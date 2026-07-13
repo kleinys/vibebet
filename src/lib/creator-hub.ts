@@ -207,3 +207,42 @@ export async function listMarketSuggestions(opts?: {
 export async function listPendingSuggestionsForAdmin(): Promise<MarketSuggestion[]> {
   return listMarketSuggestions({ status: "pending", limit: 50 });
 }
+
+export interface ModuleSubmission {
+  id: string;
+  slug: string;
+  name: string;
+  kind: string;
+  status: string;
+  created_at: string;
+}
+
+export interface CreatorHub {
+  install_count: number;
+  pending_proposals: number;
+  approved_proposals: number;
+  submissions: ModuleSubmission[];
+}
+
+export async function getMyCreatorHub(): Promise<CreatorHub | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_my_creator_hub");
+  if (error || !data || typeof data !== "object") return null;
+  const o = data as Record<string, unknown>;
+  const submissions = Array.isArray(o.submissions)
+    ? (o.submissions as Record<string, unknown>[]).map((s) => ({
+        id: String(s.id ?? ""),
+        slug: String(s.slug ?? ""),
+        name: String(s.name ?? ""),
+        kind: String(s.kind ?? ""),
+        status: String(s.status ?? "pending"),
+        created_at: String(s.created_at ?? ""),
+      }))
+    : [];
+  return {
+    install_count: Number(o.install_count ?? 0),
+    pending_proposals: Number(o.pending_proposals ?? 0),
+    approved_proposals: Number(o.approved_proposals ?? 0),
+    submissions,
+  };
+}

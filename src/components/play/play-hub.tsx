@@ -18,6 +18,8 @@ import type {
   HustleWalletState,
   HustleWellnessState,
 } from "@/lib/hustle/shared";
+import { InstalledModulesStrip } from "@/components/installed-modules-strip";
+import type { PlatformModule } from "@/lib/platform-modules";
 import type { ComponentProps, ReactNode } from "react";
 
 export type PlayHubTab = "live" | "duels" | "arcade" | "hustle" | "watch";
@@ -60,6 +62,7 @@ export function PlayHub({
   spectatorDuels = [],
   arcadePanel,
   watchPanel,
+  installedModules = [],
 }: {
   initialTab: PlayHubTab;
   hustleEnabled: boolean;
@@ -88,6 +91,10 @@ export function PlayHub({
   spectatorDuels?: SpectatorDuel[];
   arcadePanel: ReactNode;
   watchPanel: ReactNode;
+  installedModules?: Pick<
+    PlatformModule,
+    "slug" | "name" | "target_href" | "icon_emoji"
+  >[];
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -135,6 +142,9 @@ export function PlayHub({
       <div className="play-hub__panel" role="tabpanel">
         {tab === "live" && (
           <div>
+            {interconnectOn && installedModules.length > 0 && (
+              <InstalledModulesStrip modules={installedModules} />
+            )}
             {liveInitial ? (
               <LiveArenaBoard initial={liveInitial} />
             ) : (
@@ -158,6 +168,9 @@ export function PlayHub({
 
         {tab === "duels" && (
           <div>
+            {interconnectOn && installedModules.length > 0 && (
+              <InstalledModulesStrip modules={installedModules} />
+            )}
             <p className="mb-4 text-sm text-zinc-400">
               Head-to-head skill games, luck duels, and arcade classics.
             </p>

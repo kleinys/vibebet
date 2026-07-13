@@ -26,12 +26,21 @@ export function parseCardReveal(message: string): {
   return { yours: Number(m[1]), theirs: Number(m[2]) };
 }
 
+export function parseDiceReveal(message: string): {
+  yours: number;
+  theirs: number;
+} | null {
+  const m = message.match(/Rolls\s+(\d+)\s+vs\s+(\d+)/i);
+  if (!m) return null;
+  return { yours: Number(m[1]), theirs: Number(m[2]) };
+}
+
 export function LuckRevealOverlay({
   kind,
   message,
   onDone,
 }: {
-  kind: "rps" | "card" | "coin";
+  kind: "rps" | "card" | "coin" | "dice";
   message: string;
   onDone: () => void;
 }) {
@@ -83,6 +92,19 @@ export function LuckRevealOverlay({
     );
   }
 
+  if (kind === "dice") {
+    const parsed = parseDiceReveal(message);
+    return (
+      <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-6 backdrop-blur-sm">
+        <div className="luck-reveal flex items-center gap-6 rounded-2xl border border-emerald-500/30 bg-zinc-950 px-10 py-8">
+          <DiceFace value={parsed?.yours ?? "?"} label="You" />
+          <span className="text-emerald-300">vs</span>
+          <DiceFace value={parsed?.theirs ?? "?"} label="Bot" delay />
+        </div>
+      </div>
+    );
+  }
+
   const heads = /heads/i.test(message);
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-6 backdrop-blur-sm">
@@ -90,6 +112,25 @@ export function LuckRevealOverlay({
         className={`luck-coin-flip flex h-28 w-28 items-center justify-center rounded-full border-4 border-amber-400/50 bg-gradient-to-br from-amber-300 to-amber-600 text-2xl font-bold text-amber-950 shadow-lg`}
       >
         {heads ? "H" : "T"}
+      </div>
+    </div>
+  );
+}
+
+function DiceFace({
+  value,
+  label,
+  delay,
+}: {
+  value: number | string;
+  label: string;
+  delay?: boolean;
+}) {
+  return (
+    <div className={`text-center ${delay ? "luck-reveal" : ""}`} style={delay ? { animationDelay: "0.2s" } : undefined}>
+      <p className="text-[10px] uppercase tracking-wider text-zinc-500">{label}</p>
+      <div className="mt-2 flex h-20 w-20 items-center justify-center rounded-xl border-2 border-emerald-400/40 bg-zinc-900 text-4xl font-bold text-emerald-100 shadow-inner">
+        {value}
       </div>
     </div>
   );

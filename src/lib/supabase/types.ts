@@ -1285,6 +1285,24 @@ export interface Database {
         Args: Record<string, never>;
         Returns: Record<string, unknown>;
       };
+      submit_module_proposal: {
+        Args: {
+          p_name: string;
+          p_description: string;
+          p_kind: string;
+          p_target_href: string;
+          p_icon_emoji?: string;
+        };
+        Returns: Record<string, unknown>;
+      };
+      get_my_module_submissions: {
+        Args: Record<string, never>;
+        Returns: Record<string, unknown>;
+      };
+      get_my_creator_hub: {
+        Args: Record<string, never>;
+        Returns: Record<string, unknown>;
+      };
       save_onboarding_interests: {
         Args: { p_interests: string[] };
         Returns: undefined;

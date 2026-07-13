@@ -52,6 +52,22 @@ export default async function AppsBrowsePage() {
             to install modules and track your library.
           </p>
         )}
+        {user && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Link
+              href="/apps/mine"
+              className="rounded-md border border-violet-500/30 bg-violet-500/10 px-3 py-1.5 text-xs font-medium text-violet-200 hover:bg-violet-500/20"
+            >
+              Creator hub
+            </Link>
+            <Link
+              href="/apps/create"
+              className="rounded-md border border-fuchsia-500/30 bg-fuchsia-500/10 px-3 py-1.5 text-xs font-medium text-fuchsia-200 hover:bg-fuchsia-500/20"
+            >
+              Propose a module
+            </Link>
+          </div>
+        )}
       </header>
 
       {installed.length > 0 && (
@@ -89,9 +105,23 @@ export default async function AppsBrowsePage() {
       <section className="mt-10 rounded-xl border border-white/5 bg-zinc-900/30 p-5">
         <h2 className="text-sm font-semibold text-zinc-200">Build your own</h2>
         <p className="mt-1 text-xs text-zinc-500">
-          User-submitted modules and royalties are coming in a future update. For now,
-          install platform-curated packs above.
+          Submit a module idea for review. Approved proposals join the Platform Apps store
+          and add a wing to your Legacy Cathedral.
         </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Link
+            href="/apps/create"
+            className="rounded-md bg-fuchsia-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-fuchsia-500"
+          >
+            Propose a module
+          </Link>
+          <Link
+            href="/apps/mine"
+            className="rounded-md border border-white/10 px-3 py-1.5 text-xs text-zinc-300 hover:bg-zinc-800"
+          >
+            Creator hub
+          </Link>
+        </div>
       </section>
     </div>
   );

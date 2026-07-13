@@ -12,6 +12,7 @@ import { getHustleGovernance } from "@/lib/hustle-governance";
 import { getHustleWellness } from "@/lib/hustle-wellness";
 import { listFastMarkets, tickFastMarkets } from "@/lib/fast-markets";
 import { getActiveSpectatorDuels } from "@/lib/duels";
+import { getMyInstalledModules } from "@/lib/platform-modules";
 import {
   fetchLiveArenaPrices,
   pricesToTickPayload,
@@ -115,6 +116,7 @@ export default async function PlayPage({
   let equity: Awaited<ReturnType<typeof getHustleEquity>> = null;
   let governance: Awaited<ReturnType<typeof getHustleGovernance>> = null;
   let wellness: Awaited<ReturnType<typeof getHustleWellness>> = null;
+  let installedModules: Awaited<ReturnType<typeof getMyInstalledModules>> = [];
 
   if (user) {
     const [
@@ -128,6 +130,7 @@ export default async function PlayPage({
       equityData,
       governanceData,
       wellnessData,
+      installed,
     ] = await Promise.all([
       getAllBalances(user.id).catch(() => ({ vibe: 0, gem: 0 })),
       hustleEnabled ? getSparkHustle().catch(() => []) : Promise.resolve([]),
@@ -139,6 +142,7 @@ export default async function PlayPage({
       hustleSharesOn ? getHustleEquity().catch(() => null) : Promise.resolve(null),
       hustleGovernanceOn ? getHustleGovernance().catch(() => null) : Promise.resolve(null),
       hustleRecoveryOn ? getHustleWellness().catch(() => null) : Promise.resolve(null),
+      interconnectOn ? getMyInstalledModules().catch(() => []) : Promise.resolve([]),
     ]);
     vibeBalance = balances.vibe;
     sparkTasks = spark;
@@ -150,6 +154,7 @@ export default async function PlayPage({
     equity = equityData;
     governance = governanceData;
     wellness = wellnessData;
+    installedModules = installed;
   }
 
   let liveInitial: ComponentProps<typeof PlayHub>["liveInitial"] = null;
@@ -270,6 +275,7 @@ export default async function PlayPage({
           spectatorDuels={spectatorDuels}
           arcadePanel={<PlayArenaEmbed isLoggedIn={Boolean(user)} />}
           watchPanel={<PlayWatchEmbed />}
+          installedModules={installedModules}
         />
       </Suspense>
     </div>

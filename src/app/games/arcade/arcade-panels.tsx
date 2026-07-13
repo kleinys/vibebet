@@ -128,6 +128,7 @@ export function DiceDuelPanel({
           <MatchmakingButton gameKey="dice" stakeInputId="dice-stake" defaultStake={100} />
           <PlayVsBotButton
             gameKey="dice"
+            luckReveal
             onWin={() => setShowWinShare(true)}
           />
         </div>

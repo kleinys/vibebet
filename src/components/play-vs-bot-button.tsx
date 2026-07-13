@@ -20,7 +20,7 @@ export function PlayVsBotButton({
 }) {
   const [pending, startTransition] = useTransition();
   const [reveal, setReveal] = useState<{
-    kind: "rps" | "card";
+    kind: "rps" | "card" | "dice";
     message: string;
     won?: boolean;
   } | null>(null);
@@ -57,10 +57,15 @@ export function PlayVsBotButton({
             const message = result.ok ?? "Done!";
             if (
               luckReveal &&
-              (gameKey === "rps" || gameKey === "high_card")
+              (gameKey === "rps" || gameKey === "high_card" || gameKey === "dice")
             ) {
               setReveal({
-                kind: gameKey === "rps" ? "rps" : "card",
+                kind:
+                  gameKey === "rps"
+                    ? "rps"
+                    : gameKey === "high_card"
+                      ? "card"
+                      : "dice",
                 message,
                 won: result.won,
               });

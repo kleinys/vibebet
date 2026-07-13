@@ -56,7 +56,7 @@ export function CompanionQuickPane({
       const r = await startCompanionExpedition();
       if (r.error) toast.error(r.error);
       else {
-        toast.success("Companion sent on expedition — check back in ~1h");
+        toast.success("Companion sent on expedition — check back in ~30m");
         router.refresh();
       }
     });
@@ -99,6 +99,14 @@ export function CompanionQuickPane({
           <p className="text-[10px] text-zinc-500">
             {labels.humanTitle} & {labels.animalTitle}
           </p>
+          {!companionName && (
+            <Link
+              href="/account/profile"
+              className="mt-2 inline-block text-[10px] font-medium text-violet-300 hover:text-violet-200"
+            >
+              Name your companion →
+            </Link>
+          )}
         </div>
         <ul className="divide-y divide-white/5 text-sm">
           <li className="px-4 py-2.5">
@@ -138,7 +146,7 @@ export function CompanionQuickPane({
                   onClick={onStartExpedition}
                   className="mt-0.5 text-[11px] font-medium text-emerald-300 hover:text-emerald-200"
                 >
-                  Send on expedition (1h) →
+                  Send on expedition (30m) →
                 </button>
               ) : expedition.cooldown_ends_at ? (
                 <p className="text-xs text-zinc-500">
