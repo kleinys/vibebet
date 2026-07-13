@@ -23,6 +23,7 @@ export const FEATURE_FLAG_CATALOG: FeatureFlagDefinition[] = [
   { key: "play_hub_enabled", description: "Unified /play hub — Live, Duels, Arcade, Hustle, Watch" },
   { key: "psychology_layer_enabled", description: "Phase 1 psychology shell — Vibe Pass, smart defaults, streak urgency" },
   { key: "interconnect_layer_enabled", description: "Phase 2 interconnect — adrenaline tokens, cathedral, unified nav" },
+  { key: "unified_economy_ui_enabled", description: "Phase 3 economy UI — single VIBE display, hide bridge, tier-gate advanced hustle" },
   { key: "hustle_spark_enabled", description: "HustleOS Spark platform tasks in Play hub" },
   { key: "hustle_trust_enabled", description: "HustleOS Trust Score and tier unlocks" },
   { key: "hustle_bridge_enabled", description: "Hustle Cash ↔ Play VIBE bridge with cooling-off" },

@@ -1249,6 +1249,18 @@ export interface Database {
         Args: { p_name: string };
         Returns: Record<string, unknown>;
       };
+      get_companion_expedition_status: {
+        Args: Record<string, never>;
+        Returns: Record<string, unknown>;
+      };
+      start_companion_expedition: {
+        Args: Record<string, never>;
+        Returns: Record<string, unknown>;
+      };
+      claim_companion_expedition: {
+        Args: Record<string, never>;
+        Returns: Record<string, unknown>;
+      };
       save_onboarding_interests: {
         Args: { p_interests: string[] };
         Returns: undefined;

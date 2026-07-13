@@ -46,6 +46,7 @@ export function PlayHub({
   sharesEnabled,
   governanceEnabled,
   recoveryEnabled,
+  unifiedEconomyUi = false,
   wallet,
   marketplace,
   equity,
@@ -73,6 +74,7 @@ export function PlayHub({
   sharesEnabled: boolean;
   governanceEnabled: boolean;
   recoveryEnabled: boolean;
+  unifiedEconomyUi?: boolean;
   wallet: HustleWalletState | null;
   marketplace: HustleMarketplaceState | null;
   equity: HustleEquityState | null;
@@ -224,6 +226,7 @@ export function PlayHub({
                 sharesEnabled={sharesEnabled}
                 governanceEnabled={governanceEnabled}
                 recoveryEnabled={recoveryEnabled}
+                unifiedEconomyUi={unifiedEconomyUi}
                 wallet={wallet}
                 marketplace={marketplace}
                 equity={equity}

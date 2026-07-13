@@ -10,6 +10,7 @@ import { getCompanionInput } from "@/lib/companion-stats";
 import { VibeCompanionLink } from "@/components/vibe-companion";
 import { CompanionQuickPane } from "@/components/companion-quick-pane";
 import { getAdrenalineTokenCount } from "@/lib/consumables-server";
+import { getCompanionExpeditionStatus } from "@/lib/companion-expedition";
 import { HeaderWalletPanel } from "@/components/header-wallet-panel";
 import { isEnabled } from "@/lib/feature-flags";
 import { streakUrgency } from "@/lib/streak-urgency";
@@ -37,6 +38,7 @@ export async function Header({
   ];
   let adrenalineTokens = 0;
   let companionName: string | null = null;
+  let expedition: Awaited<ReturnType<typeof getCompanionExpeditionStatus>> = null;
 
   if (user) {
     try {
@@ -55,7 +57,7 @@ export async function Header({
       isEnabled("interconnect_layer_enabled"),
     ]);
     
-    const [balanceResult, streakResult, companionResult, profileRow, tokenCount] =
+    const [balanceResult, streakResult, companionResult, profileRow, tokenCount, expeditionResult] =
       await Promise.allSettled([
       getAllBalances(user.id),
       getStreakInfo(user.id),
@@ -69,6 +71,7 @@ export async function Header({
             .then((r) => r.data)
         : Promise.resolve(null),
       interconnectOn ? getAdrenalineTokenCount() : Promise.resolve(0),
+      interconnectOn ? getCompanionExpeditionStatus() : Promise.resolve(null),
     ]);
 
     // 处理余额数据
@@ -93,6 +96,10 @@ export async function Header({
 
     if (tokenCount.status === "fulfilled") {
       adrenalineTokens = tokenCount.value;
+    }
+
+    if (expeditionResult.status === "fulfilled") {
+      expedition = expeditionResult.value;
     }
   }
 
@@ -160,6 +167,7 @@ export async function Header({
                   adrenalineTokens={adrenalineTokens}
                   companionName={companionName}
                   eyeStreakMode={eyeStreakMode}
+                  expedition={expedition}
                 />
               ) : companionInput ? (
                 <VibeCompanionLink

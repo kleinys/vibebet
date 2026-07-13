@@ -28,6 +28,7 @@ export default async function HustleHubPage() {
     hustleSharesOn,
     hustleGovernanceOn,
     hustleRecoveryOn,
+    unifiedEconomyUi,
   ] = await Promise.all([
     isEnabled("interconnect_layer_enabled"),
     isEnabled("hustle_spark_enabled"),
@@ -38,6 +39,7 @@ export default async function HustleHubPage() {
     isEnabled("hustle_shares_enabled"),
     isEnabled("hustle_governance_enabled"),
     isEnabled("hustle_recovery_enabled"),
+    isEnabled("unified_economy_ui_enabled"),
   ]);
 
   if (!interconnectOn) {
@@ -83,7 +85,7 @@ export default async function HustleHubPage() {
     getFlashHustle().catch(() => []),
     getDailyHustle().catch(() => []),
     hustleTrustOn ? getHustleOracle().catch(() => null) : Promise.resolve(null),
-    hustleBridgeOn ? getHustleWallet().catch(() => null) : Promise.resolve(null),
+    hustleBridgeOn || unifiedEconomyUi ? getHustleWallet().catch(() => null) : Promise.resolve(null),
     hustleMarketplaceOn ? getHustleMarketplace().catch(() => null) : Promise.resolve(null),
     hustleSharesOn ? getHustleEquity().catch(() => null) : Promise.resolve(null),
     hustleGovernanceOn ? getHustleGovernance().catch(() => null) : Promise.resolve(null),
@@ -133,6 +135,7 @@ export default async function HustleHubPage() {
         sharesEnabled={hustleSharesOn}
         governanceEnabled={hustleGovernanceOn}
         recoveryEnabled={hustleRecoveryOn}
+        unifiedEconomyUi={unifiedEconomyUi}
         wallet={wallet}
         marketplace={marketplace}
         equity={equity}

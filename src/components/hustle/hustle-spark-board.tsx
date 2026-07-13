@@ -40,6 +40,7 @@ export function HustleSparkBoard({
   sharesEnabled,
   governanceEnabled,
   recoveryEnabled,
+  unifiedEconomyUi = false,
   wallet,
   marketplace,
   equity,
@@ -57,6 +58,7 @@ export function HustleSparkBoard({
   sharesEnabled: boolean;
   governanceEnabled: boolean;
   recoveryEnabled: boolean;
+  unifiedEconomyUi?: boolean;
   wallet: HustleWalletState | null;
   marketplace: HustleMarketplaceState | null;
   equity: HustleEquityState | null;
@@ -103,11 +105,20 @@ export function HustleSparkBoard({
   }
 
   const tierLabel = oracle?.tier_label ?? "Spark";
+  const hustleTier = oracle?.hustle_tier ?? 1;
+
+  const showBridge = bridgeEnabled && wallet && !unifiedEconomyUi;
+  const showShares = sharesEnabled && equity && (!unifiedEconomyUi || hustleTier >= 4);
+  const showGovernance =
+    governanceEnabled && governance && (!unifiedEconomyUi || hustleTier >= 4);
+  const rewardLabel = unifiedEconomyUi || !bridgeEnabled ? "VIBE" : "Hustle Cash";
 
   const displayPlayBalance = bridgeEnabled && wallet ? wallet.play_balance : vibeBalance;
   const displayHustleCash = bridgeEnabled && wallet ? wallet.hustle_cash : 0;
-  const lowPlayBalance =
-    bridgeEnabled && wallet
+  const combinedBalance = displayPlayBalance + displayHustleCash;
+  const lowPlayBalance = unifiedEconomyUi
+    ? combinedBalance < 100
+    : bridgeEnabled && wallet
       ? wallet.play_balance < 100 && wallet.hustle_cash >= 50
       : vibeBalance < 100;
 
@@ -119,11 +130,21 @@ export function HustleSparkBoard({
           <h2 className="hustle-spark-board__title">Earn VIBE in minutes</h2>
           <p className="hustle-spark-board__sub">
             Complete micro-tasks, grow Trust Score, unlock higher tiers. Resets midnight UTC.
-            {bridgeEnabled && " Claims go to Hustle Cash — bridge to Play when ready."}
+            {unifiedEconomyUi
+              ? " Everything earns toward your VIBE balance."
+              : bridgeEnabled
+                ? " Claims go to Hustle Cash — bridge to Play when ready."
+                : null}
           </p>
         </div>
         <div className="flex flex-col items-end gap-2">
-          {bridgeEnabled && wallet ? (
+          {unifiedEconomyUi && wallet ? (
+            <div className="hustle-spark-board__balance">
+              <CurrencyIconVibe className="h-4 w-4 text-violet-300" />
+              <span className="tabular-nums font-semibold">{formatVibe(combinedBalance)}</span>
+              <span className="text-[10px] text-violet-200/80">VIBE total</span>
+            </div>
+          ) : bridgeEnabled && wallet ? (
             <>
               <div className="hustle-spark-board__balance hustle-spark-board__balance--earn">
                 <CurrencyIconVibe className="h-4 w-4 text-amber-300" />
@@ -145,7 +166,7 @@ export function HustleSparkBoard({
         </div>
       </div>
 
-      {bridgeEnabled && wallet && (
+      {showBridge && (
         <HustleAccordionSection
           title="Wallet & bridge"
           subtitle="Move Hustle Cash to Play balance"
@@ -174,14 +195,14 @@ export function HustleSparkBoard({
         </HustleAccordionSection>
       )}
 
-      {sharesEnabled && equity && (
-        <HustleAccordionSection title="Shares & equity" subtitle="Platform equity stakes">
+      {showShares && (
+        <HustleAccordionSection title="Shares & equity" subtitle="Platform equity stakes — tier 4+">
           <HustleSharesPanel equity={equity} onUpdate={refresh} />
         </HustleAccordionSection>
       )}
 
-      {governanceEnabled && governance && (
-        <HustleAccordionSection title="Governance" subtitle="Proposals and votes">
+      {showGovernance && (
+        <HustleAccordionSection title="Governance" subtitle="Proposals and votes — tier 4+">
           <HustleGovernancePanel governance={governance} onUpdate={refresh} />
         </HustleAccordionSection>
       )}
@@ -201,15 +222,17 @@ export function HustleSparkBoard({
 
       {claimableTotal > 0 && (
         <p className="hustle-spark-board__claim-hint">
-          {formatVibe(claimableTotal)} {bridgeEnabled ? "Hustle Cash" : "VIBE"} ready to claim below
+          {formatVibe(claimableTotal)} {rewardLabel} ready to claim below
         </p>
       )}
 
       {lowPlayBalance && (
         <div className="hustle-spark-board__banner hustle-spark-board__banner--earn">
-          {bridgeEnabled
-            ? "Low play balance — claim tasks or bridge Hustle Cash → Play (min 50 VIBE)."
-            : "Low balance — finish a Spark task to top up fast."}
+          {unifiedEconomyUi
+            ? "Low balance — claim a Spark task or send your companion on expedition."
+            : bridgeEnabled
+              ? "Low play balance — claim tasks or bridge Hustle Cash → Play (min 50 VIBE)."
+              : "Low balance — finish a Spark task to top up fast."}
         </div>
       )}
 
@@ -226,7 +249,7 @@ export function HustleSparkBoard({
               task={task}
               celebrating={celebrateId === task.task_id}
               pending={pending}
-              bridgeEnabled={bridgeEnabled}
+              bridgeEnabled={bridgeEnabled && !unifiedEconomyUi}
               onClaim={() => claim(task.task_id)}
               onProgress={refresh}
             />
@@ -246,7 +269,7 @@ export function HustleSparkBoard({
                 task={task}
                 celebrating={celebrateId === task.task_id}
                 pending={pending}
-                bridgeEnabled={bridgeEnabled}
+                bridgeEnabled={bridgeEnabled && !unifiedEconomyUi}
                 onClaim={() => claim(task.task_id)}
                 onProgress={refresh}
               />
@@ -264,7 +287,7 @@ export function HustleSparkBoard({
                 task={task}
                 celebrating={celebrateId === task.task_id}
                 pending={pending}
-                bridgeEnabled={bridgeEnabled}
+                bridgeEnabled={bridgeEnabled && !unifiedEconomyUi}
                 onClaim={() => claim(task.task_id)}
                 onProgress={refresh}
               />
@@ -274,7 +297,14 @@ export function HustleSparkBoard({
       )}
 
       {recoveryEnabled && wellness && (
-        <HustleAccordionSection title="Wellness & recovery" subtitle="Earn caps and cool-down">
+        <HustleAccordionSection
+          title={unifiedEconomyUi ? "Companion wellness" : "Wellness & recovery"}
+          subtitle={
+            unifiedEconomyUi
+              ? "Your spirit needs rest — earn caps protect your balance"
+              : "Earn caps and cool-down"
+          }
+        >
           <HustleWellnessPanel wellness={wellness} onUpdate={refresh} />
         </HustleAccordionSection>
       )}

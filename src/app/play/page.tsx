@@ -61,6 +61,7 @@ export default async function PlayPage({
     arcadeOn,
     triviaOn,
     interconnectOn,
+    unifiedEconomyUi,
   ] = await Promise.all([
     isEnabled("play_hub_enabled"),
     isEnabled("hustle_spark_enabled"),
@@ -81,6 +82,7 @@ export default async function PlayPage({
     isEnabled("arcade_games_enabled"),
     isEnabled("trivia_enabled"),
     isEnabled("interconnect_layer_enabled"),
+    isEnabled("unified_economy_ui_enabled"),
   ]);
 
   if (!playHubOn) {
@@ -132,7 +134,7 @@ export default async function PlayPage({
       hustleEnabled ? getFlashHustle().catch(() => []) : Promise.resolve([]),
       dailyHustleOn ? getDailyHustle().catch(() => []) : Promise.resolve([]),
       hustleTrustOn ? getHustleOracle().catch(() => null) : Promise.resolve(null),
-      hustleBridgeOn ? getHustleWallet().catch(() => null) : Promise.resolve(null),
+      hustleBridgeOn || unifiedEconomyUi ? getHustleWallet().catch(() => null) : Promise.resolve(null),
       hustleMarketplaceOn ? getHustleMarketplace().catch(() => null) : Promise.resolve(null),
       hustleSharesOn ? getHustleEquity().catch(() => null) : Promise.resolve(null),
       hustleGovernanceOn ? getHustleGovernance().catch(() => null) : Promise.resolve(null),
@@ -254,6 +256,7 @@ export default async function PlayPage({
           sharesEnabled={hustleSharesOn}
           governanceEnabled={hustleGovernanceOn}
           recoveryEnabled={hustleRecoveryOn}
+          unifiedEconomyUi={unifiedEconomyUi}
           wallet={wallet}
           marketplace={marketplace}
           equity={equity}

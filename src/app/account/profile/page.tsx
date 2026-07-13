@@ -22,6 +22,7 @@ import { figureLabels, resolveFigureConfig } from "@/lib/companion-figure";
 import { LegacyCathedralView } from "@/components/legacy-cathedral";
 import { getLegacyCathedral } from "@/lib/legacy-cathedral";
 import { getAllBalances } from "@/lib/ledger";
+import { NameCompanionPrompt } from "@/components/name-companion-prompt";
 
 export const revalidate = 0;
 
@@ -54,6 +55,7 @@ export default async function ProfilePage() {
     .maybeSingle();
 
   const guildsOn = await isEnabled("guilds_enabled");
+  const psychologyOn = await isEnabled("psychology_layer_enabled");
   const utcToday = new Date().toISOString().slice(0, 10);
   const [equipped, streak, companionInput, myGuild, playerCode, inventoryRes, catalogRes, balances, wheelDaily, cathedral] =
     await Promise.all([
@@ -138,6 +140,12 @@ export default async function ProfilePage() {
     <div className="mx-auto max-w-4xl px-6 py-10">
       <h1 className="text-2xl font-semibold">Account</h1>
       <AccountNav active="/account/profile" />
+
+      {psychologyOn && !profile?.companion_name && (
+        <div className="mt-6 overflow-hidden rounded-sm border border-fuchsia-500/30">
+          <NameCompanionPrompt />
+        </div>
+      )}
 
       <section
         id="trainer"

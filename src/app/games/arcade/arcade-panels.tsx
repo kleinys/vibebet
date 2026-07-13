@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { MatchmakingButton } from "@/components/matchmaking-button";
 import { PlayVsBotButton } from "@/components/play-vs-bot-button";
 import { WinSharePanel } from "@/components/win-share-panel";
 import type { ShareProfile } from "@/lib/share-profile";
+import { LuckRevealOverlay } from "@/components/luck-reveal";
 import {
   acceptDiceDuel,
   cancelDiceDuel,
@@ -17,48 +18,65 @@ import {
 
 export function CoinFlipPanel({ shareProfile }: { shareProfile: ShareProfile }) {
   const [state, action, pending] = useActionState(playCoinFlip, null);
+  const [showCoin, setShowCoin] = useState(false);
+
+  useEffect(() => {
+    if (state?.result) {
+      setShowCoin(true);
+    }
+  }, [state?.result]);
+
+  function onCoinDone() {
+    setShowCoin(false);
+    if (state?.error) toast.error(state.error);
+    else if (state?.result) toast.success(state.result);
+  }
 
   return (
-    <form action={action} className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5">
-      <h2 className="text-sm font-semibold text-amber-100">Coin flip</h2>
-      <p className="mt-1 text-xs text-zinc-400">
-        Pick heads or tails. Win = 1.8× your stake (10% house edge).
-      </p>
-      <div className="mt-4 flex flex-wrap gap-3">
-        <label className="flex items-center gap-2 text-sm">
-          <input type="radio" name="side" value="heads" defaultChecked /> Heads
-        </label>
-        <label className="flex items-center gap-2 text-sm">
-          <input type="radio" name="side" value="tails" /> Tails
-        </label>
-        <input
-          name="stake"
-          type="number"
-          min={10}
-          max={10000}
-          defaultValue={50}
-          className="w-24 rounded-md border border-white/10 bg-zinc-900 px-3 py-1.5 text-sm"
-        />
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-md bg-amber-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-amber-500 disabled:opacity-50"
-        >
-          {pending ? "Flipping…" : "Flip"}
-        </button>
-      </div>
-      {state?.error && <p className="mt-3 text-xs text-rose-300">{state.error}</p>}
-      {state?.result && (
-        <p className="mt-3 text-xs text-emerald-300">{state.result}</p>
+    <>
+      <form action={action} className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-5">
+        <h2 className="text-sm font-semibold text-amber-100">Coin flip</h2>
+        <p className="mt-1 text-xs text-zinc-400">
+          Pick heads or tails. Win = 1.8× your stake (10% house edge).
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <label className="flex items-center gap-2 text-sm">
+            <input type="radio" name="side" value="heads" defaultChecked /> Heads
+          </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="radio" name="side" value="tails" /> Tails
+          </label>
+          <input
+            name="stake"
+            type="number"
+            min={10}
+            max={10000}
+            defaultValue={50}
+            className="w-24 rounded-md border border-white/10 bg-zinc-900 px-3 py-1.5 text-sm"
+          />
+          <button
+            type="submit"
+            disabled={pending || showCoin}
+            className="rounded-md bg-amber-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-amber-500 disabled:opacity-50"
+          >
+            {pending ? "Flipping…" : "Flip"}
+          </button>
+        </div>
+        {state?.error && !showCoin && (
+          <p className="mt-3 text-xs text-rose-300">{state.error}</p>
+        )}
+      </form>
+      {showCoin && state?.result && (
+        <LuckRevealOverlay kind="coin" message={state.result} onDone={onCoinDone} />
       )}
-      {state?.won && (
+      {state?.won && !showCoin && (
         <WinSharePanel
           displayName={shareProfile.displayName}
           username={shareProfile.username}
           headline="Won a coin flip on Vibebet"
         />
       )}
-    </form>
+    </>
   );
 }
 
