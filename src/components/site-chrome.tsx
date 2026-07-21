@@ -56,7 +56,7 @@ export async function SiteChrome() {
     vibePass = passProgress;
   }
 
-  const hasCollapsible = user && ((showModeBar && !interconnectOn) || playerCode);
+  const hasCollapsible = Boolean(user && (showModeBar || playerCode));
 
   return (
     <div

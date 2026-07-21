@@ -9,6 +9,9 @@ import { CurrencyIconVibe } from "@/components/fantasy-icons";
 import { resolveFigureConfig } from "@/lib/companion-figure";
 import { getAllBalances } from "@/lib/ledger";
 import { getLockerMomentum, lockerMomentumToSession } from "@/lib/locker-momentum-server";
+import { getMyPlayerCode } from "@/lib/player-code";
+import { isEnabled } from "@/lib/feature-flags";
+import { PLAYER_PATHS } from "@/lib/player-path";
 export const revalidate = 0;
 
 export default async function LockerArenaPage() {
@@ -19,7 +22,8 @@ export default async function LockerArenaPage() {
   if (!user) redirect("/login?next=/account/profile/arena");
 
   const utcToday = new Date().toISOString().slice(0, 10);
-  const [equipped, companionInput, balances, wheelDaily, lockerMomentum] = await Promise.all([
+  const [equipped, companionInput, balances, wheelDaily, lockerMomentum, referralsOn, playerCodeRow] =
+    await Promise.all([
     getEquippedCosmetics(user.id).catch(() => ({ skin: null, badge: null })),
     getCompanionInput(user.id).catch(() => ({
       currentStreak: 0,
@@ -35,7 +39,11 @@ export default async function LockerArenaPage() {
       .maybeSingle()
       .then((r) => r.data?.spins_used ?? 0),
     getLockerMomentum(user.id),
+    isEnabled("referrals_enabled"),
+    getMyPlayerCode().catch(() => null),
   ]);
+
+  const playerCode = referralsOn ? playerCodeRow?.referral_code ?? null : null;
 
   const figureConfig = resolveFigureConfig(companionInput);
   const skinSlug = equipped.skin?.slug ?? figureConfig.skinSlug;
@@ -55,6 +63,28 @@ export default async function LockerArenaPage() {
             <CurrencyIconVibe className="h-4 w-4" />
             <span className="font-semibold tabular-nums">{formatVibe(balances.vibe)} VIBE</span>
           </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-white/5 px-4 py-1.5 sm:px-6">
+          <div className="flex min-w-0 flex-wrap items-center gap-1">
+            {PLAYER_PATHS.map((mode) => (
+              <Link
+                key={mode.id}
+                href={mode.hubHref}
+                className={`rounded-sm px-2 py-0.5 text-[10px] font-semibold transition ${
+                  mode.id === "trainer"
+                    ? "bg-violet-600/40 text-violet-100 ring-1 ring-violet-400/40"
+                    : "text-zinc-500 hover:bg-zinc-900 hover:text-zinc-300"
+                }`}
+              >
+                {mode.short}
+              </Link>
+            ))}
+          </div>
+          {playerCode && (
+            <span className="font-mono text-[11px] font-medium text-violet-300/90">
+              {playerCode}
+            </span>
+          )}
         </div>
       </div>
 
