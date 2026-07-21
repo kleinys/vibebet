@@ -2572,6 +2572,65 @@ body {
   animation: hypnotic-trail-pulse 2s ease-in-out infinite;
 }
 
+/* Profile / public showcase — stable, responsive flank composition (avatar + phenomenon + animal)
+   that stays fully visible and aligned on phone, laptop, and desktop. */
+.hypnotic-profile-ambient .companion-stage {
+  min-height: 300px;
+  height: min(62vh, 520px);
+  max-height: 520px;
+  aspect-ratio: auto;
+}
+
+.hypnotic-profile-ambient .companion-stage--flank {
+  overflow: hidden;
+}
+
+.hypnotic-profile-ambient .companion-figure-slot--flank-center {
+  width: min(56vw, 300px);
+  height: 94%;
+  padding-bottom: 2%;
+}
+
+.hypnotic-profile-ambient .companion-figure-raster--human-center,
+.hypnotic-profile-ambient .companion-figure-svg--human-center {
+  height: auto;
+  max-height: min(58vw, 400px);
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+@media (max-width: 640px) {
+  .hypnotic-profile-ambient .companion-stage {
+    height: min(78vw, 440px);
+    min-height: 260px;
+  }
+
+  .hypnotic-profile-ambient .companion-figure-slot--flank-center {
+    width: min(52vw, 220px);
+  }
+
+  .hypnotic-profile-ambient .companion-figure-raster--human-center,
+  .hypnotic-profile-ambient .companion-figure-svg--human-center {
+    max-height: min(64vw, 320px);
+  }
+
+  .hypnotic-profile-ambient .companion-flank--phenomenon {
+    left: 0;
+    bottom: 11%;
+    width: min(30vw, 104px);
+    height: min(30vw, 104px);
+  }
+
+  .hypnotic-profile-ambient .companion-flank--animal {
+    right: 0;
+    bottom: 11%;
+    width: min(42vw, 150px);
+    height: min(42vw, 150px);
+  }
+}
+
 /* ── Casino wheel (SVG) ── */
 .locker-casino-wheel-wrap {
   position: relative;

@@ -14,11 +14,13 @@ export function HypnoticProfileAmbient({
   config,
   freeSpinAvailable,
   eyeStreakMode = "none",
+  layout = "flank",
   children,
 }: {
   config: FigureConfig;
   freeSpinAvailable: boolean;
   eyeStreakMode?: MysticEyeStreakMode;
+  layout?: "orbit" | "flank";
   children?: React.ReactNode;
 }) {
   const [reaction, setReaction] = useState<HypnoticReaction>(
@@ -56,6 +58,7 @@ export function HypnoticProfileAmbient({
           config={config}
           reaction={reaction}
           eyeStreakMode={eyeStreakMode}
+          layout={layout}
         />
       </div>
       {children}
